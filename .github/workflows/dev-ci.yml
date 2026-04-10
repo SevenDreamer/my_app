@@ -4,11 +4,16 @@ on:
   push:
     branches: [dev]
 
+permissions:
+  contents: write
+
 jobs:
   build-dev:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -63,7 +68,6 @@ jobs:
           mkdir -p failure-logs
           echo "Build failed at $(date)" > failure-logs/build-failure.log
           echo "Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> failure-logs/build-failure.log
-          flutter doctor -v >> failure-logs/flutter-info.log 2>&1 || true
       
       - name: Upload failure logs
         if: failure()
