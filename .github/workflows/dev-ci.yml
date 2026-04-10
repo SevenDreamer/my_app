@@ -1,0 +1,104 @@
+name: Dev CI/CD
+
+on:
+  push:
+    branches: [dev]
+
+jobs:
+  build-dev:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.22.0'
+          channel: 'stable'
+      
+      - name: Get dependencies
+        run: flutter pub get
+      
+      - name: Build APK (Debug)
+        id: build
+        run: |
+          flutter build apk --debug
+          echo apk_path=build/app/outputs/flutter-apk/app-debug.apk >> 
+      
+      - name: Generate version info
+        if: success()
+        run: |
+          VERSION=$(date +%Y%m%d-%H%M%S)
+          BUILD_NUM=${{ github.run_number }}
+          echo {"version": "dev-$VERSION", "build_number": $BUILD_NUM, "tag": "dev-v$BUILD_NUM"} > version.json
+          cat version.json
+      
+      - name: Create dev tag
+        if: success()
+        run: |
+          BUILD_NUM=${{ github.run_number }}
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git tag -a "dev-v$BUILD_NUM" -m "Dev build #$BUILD_NUM"
+          git push origin "dev-v$BUILD_NUM"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Upload APK artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-dev-${{ github.run_number }}
+          path: build/app/outputs/flutter-apk/app-debug.apk
+      
+      - name: Upload version info
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: version-info-${{ github.run_number }}
+          path: version.json
+      
+      - name: Save failure log
+        if: failure()
+        run: |
+          mkdir -p failure-logs
+          echo "Build failed at $(date)" > failure-logs/build-failure.log
+          echo "Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> failure-logs/build-failure.log
+          flutter doctor -v >> failure-logs/flutter-info.log 2>&1 || true
+      
+      - name: Upload failure logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: failure-logs-${{ github.run_number }}
+          path: failure-logs/
+
+  update-version-file:
+    needs: build-dev
+    if: success()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dev
+      
+      - name: Download version info
+        uses: actions/download-artifact@v4
+        with:
+          name: version-info-${{ github.run_number }}
+      
+      - name: Commit version file
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add version.json
+          git commit -m "Update version info [skip ci]" || echo "No changes"
+          git push origin dev
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
