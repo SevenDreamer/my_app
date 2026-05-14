@@ -31,15 +31,31 @@ dependencies:
   flutter:
     sdk: flutter
 
+  # State Management
+  flutter_riverpod: ^2.6.1
+
+  # Routing
+  go_router: ^14.8.1
+
+  # Network
+  dio: ^5.8.0
+
+  # Flutter-Rust Bridge
+  flutter_rust_bridge: ^2.12.0
+
+  # Local storage
+  hive_flutter: ^1.1.0
+  shared_preferences: ^2.5.3
+
+  # Local notifications
+  flutter_local_notifications: ^18.1.0
+
+  # Foreground service (Android)
+  flutter_foreground_task: ^8.3.0
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.6
-  flutter_blue_plus: ^1.34.5
-  http: ^1.2.0
-  package_info_plus: ^5.0.1
-  path_provider: ^2.1.3
-  install_plugin: ^2.1.0
 
 dev_dependencies:
   flutter_test:
