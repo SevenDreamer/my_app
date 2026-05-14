@@ -31,31 +31,17 @@ dependencies:
   flutter:
     sdk: flutter
 
-  # State Management
-  flutter_riverpod: ^2.6.1
-
-  # Routing
-  go_router: ^14.8.1
-
-  # Network
-  dio: ^5.8.0
+  # FFI (手动绑定需要)
+  ffi: ^2.1.0
 
   # Flutter-Rust Bridge
   flutter_rust_bridge: ^2.12.0
 
-  # Local storage
-  hive_flutter: ^1.1.0
-  shared_preferences: ^2.5.3
-
-  # Local notifications
-  flutter_local_notifications: ^18.1.0
-
-  # Foreground service (Android)
-  flutter_foreground_task: ^8.3.0
-
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.6
+  hermes_agent:
+    path: rust_builder
 
 dev_dependencies:
   flutter_test:
@@ -67,6 +53,8 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^3.0.0
+  integration_test:
+    sdk: flutter
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

@@ -1,24 +1,5 @@
-# flutter_rust_bridge 代码生成配置
-# 文档: https://frb.dev/
-
-rust_input:
-  - "rust/src/api.rs"        # Rust 侧对外接口（由我们手写）
-rust_root:
-  - "rust/"                   # Cargo.toml 所在目录
-
-dart_output:
-  - "lib/src/rust/"          # 生成的 Dart 桥接代码输出目录
-
-# 代码生成选项
-rust_output:
-  - "rust/src/generated.rs"  # 生成的 Rust 胶水代码
-
-# Dart 端配置
-dart_entrypoint: "lib/src/rust/frb_generated.dart"
-
-# 启用异步运行时（Tokio）
-rust_features:
-  - "async"
-
-# 日志
-verbose: true
+base_dir: "."
+rust_input: "crate::api::simple"
+rust_root: "rust/"
+rust_output: "rust/src/frb_generated/frb_generated.rs"
+dart_output: "lib/src/rust/"
