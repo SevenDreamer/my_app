@@ -9,15 +9,16 @@ import 'package:install_plugin/install_plugin.dart';
 class UpdateService {
   static const String repoOwner = 'SevenDreamer';
   static const String repoName = 'my_app';
-  static const String versionFileUrl = 'https://raw.githubusercontent.com///dev/version.json';
+  static const String versionFileUrl =
+      'https://raw.githubusercontent.com///dev/version.json';
   static const String releasesUrl = 'https://api.github.com/repos///releases';
-  
+
   Future<Map<String, dynamic>?> checkForUpdate() async {
     try {
       // 获取当前版本
       final packageInfo = await PackageInfo.fromPlatform();
       final currentVersion = packageInfo.version;
-      
+
       // 获取远程版本信息
       final response = await http.get(Uri.parse(versionFileUrl));
       if (response.statusCode == 200) {
@@ -35,7 +36,7 @@ class UpdateService {
     }
     return null;
   }
-  
+
   Future<String?> downloadApk(String tag) async {
     try {
       // 获取 release 信息
@@ -46,23 +47,23 @@ class UpdateService {
           (r) => r['tag_name'] == tag,
           orElse: () => null,
         );
-        
+
         if (release != null) {
           final assets = release['assets'] as List;
           final apkAsset = assets.firstWhere(
             (a) => a['name'].toString().endsWith('.apk'),
             orElse: () => null,
           );
-          
+
           if (apkAsset != null) {
             final downloadUrl = apkAsset['browser_download_url'];
             final dir = await getApplicationDocumentsDirectory();
             final file = File('${dir.path}/update.apk');
-            
+
             // 下载 APK
             final apkResponse = await http.get(Uri.parse(downloadUrl));
             await file.writeAsBytes(apkResponse.bodyBytes);
-            
+
             return file.path;
           }
         }
@@ -72,7 +73,7 @@ class UpdateService {
     }
     return null;
   }
-  
+
   Future<void> installApk(String path) async {
     await InstallPlugin.installApk(path);
   }
