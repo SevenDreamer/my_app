@@ -42,6 +42,23 @@ dependencies:
   cupertino_icons: ^1.0.6
   hermes_agent:
     path: rust_builder
+  lucide_flutter: ^1.14.0
+  shared_preferences: ^2.3.2
+
+  # 数据库连接驱动
+  sqflite_common_ffi: ^2.3.0 # SQLite (桌面端)
+  postgres: ^3.4.0 # PostgreSQL (纯Dart实现)
+  mysql1: ^0.20.0 # MySQL (纯Dart实现)
+  mongo_dart: ^0.10.0 # MongoDB (纯Dart实现)
+
+  # 文件树组件
+  flutter_fancy_tree_view: ^1.6.0 # 树形视图组件
+
+  # HeroUI Design System
+  heroui_design_system:
+    git:
+      url: https://github.com/tereshin/the-blank.git
+      path: packages/heroui_design_system
 
 dev_dependencies:
   flutter_test:
