@@ -13,10 +13,12 @@ project(${PROJECT_NAME} LANGUAGES CXX)
 # apply_cargokit(${PROJECT_NAME} ../../../../rust hermes_agent "")
 
 # Find pre-built hermes_agent.dll
-# CMAKE_CURRENT_SOURCE_DIR may be a symlink (Flutter plugin symlinks), so resolve real path
-get_filename_component(REAL_CURRENT_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}" REALPATH)
-# Path from rust_builder/windows/ -> rust_builder/ -> project root -> rust/target/release/
-set(HERMES_DLL_SOURCE "${REAL_CURRENT_SOURCE_DIR}/../../rust/target/release/hermes_agent.dll")
+# CMAKE_SOURCE_DIR may be:
+#   - D:/Projects/my_app (project root, when CMake is invoked from root)
+#   - D:/Projects/my_app/windows (windows subdir, when Flutter builds)
+# Use ../ to go up one level to handle the windows/ case
+set(HERMES_DLL_SOURCE "${CMAKE_SOURCE_DIR}/../rust/target/release/hermes_agent.dll")
+get_filename_component(HERMES_DLL_SOURCE "${HERMES_DLL_SOURCE}" REALPATH)
 
 if(NOT EXISTS "${HERMES_DLL_SOURCE}")
   message(WARNING "hermes_agent.dll not found at ${HERMES_DLL_SOURCE}. "

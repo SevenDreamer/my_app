@@ -5,6 +5,7 @@
 library;
 
 import 'dart:ffi' as ffi;
+import 'dart:ffi';
 import 'dart:io' show Platform;
 import 'package:ffi/ffi.dart';
 
