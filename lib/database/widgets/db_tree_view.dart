@@ -116,17 +116,34 @@ class _DbTreeViewState extends State<DbTreeView> {
 
             // 标签
             Expanded(
-              child: Text(
-                node.label,
-                style: HeroUiTypography.bodyXs.copyWith(
-                  color: node.isSelected
-                      ? Theme.of(context).colorScheme.primary
-                      : Theme.of(context).colorScheme.onSurface,
-                  fontWeight: node.isSelected || isConnection
-                      ? FontWeight.w500
-                      : FontWeight.normal,
-                ),
-                overflow: TextOverflow.ellipsis,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Flexible(
+                    child: Text(
+                      node.label,
+                      style: HeroUiTypography.bodyXs.copyWith(
+                        color: node.isSelected
+                            ? Theme.of(context).colorScheme.primary
+                            : Theme.of(context).colorScheme.onSurface,
+                        fontWeight: node.isSelected || isConnection
+                            ? FontWeight.w500
+                            : FontWeight.normal,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  // 显示表的行数
+                  if (node.type == TreeNodeType.table && node.table != null) ...[
+                    const SizedBox(width: 6),
+                    Text(
+                      '(${node.table!.rowCount})',
+                      style: HeroUiTypography.bodyXs.copyWith(
+                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4),
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ),
 

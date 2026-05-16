@@ -6,6 +6,7 @@ import '../apps/chat_app.dart';
 import '../apps/image_app.dart';
 import '../apps/code_app.dart';
 import '../apps/database_manager_app.dart';
+import '../apps/bar_app.dart';
 
 /// 子应用启动器（主界面）
 class AppLauncherScreen extends StatelessWidget {
@@ -44,6 +45,14 @@ class AppLauncherScreen extends StatelessWidget {
       icon: LucideIcons.database,
       color: const Color(0xFFFF6B6B),
       builder: DatabaseManagerApp.new,
+    ),
+    SubApp(
+      id: 'bar',
+      name: '酒吧系统',
+      description: '酒吧点单与管理',
+      icon: LucideIcons.wine,
+      color: const Color(0xFFE8AA42),
+      builder: BarApp.new,
     ),
   ];
 
