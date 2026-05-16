@@ -37,6 +37,13 @@ class DatabaseTreeBuilder {
             final tableNodes = db.tables.map((t) {
               final tableNode = DbTreeNode.table(t);
               tableNode.parent = dbNode;
+              // 为每个表添加字段子节点
+              final fieldNodes = t.fields.map((f) {
+                final fieldNode = DbTreeNode.field(f);
+                fieldNode.parent = tableNode;
+                return fieldNode;
+              }).toList();
+              tableNode.children = fieldNodes;
               return tableNode;
             }).toList();
             final tablesFolder = DbTreeNode.folder('Tables', LucideIcons.list, tableNodes);

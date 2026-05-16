@@ -3,12 +3,21 @@ import 'package:heroui_design_system/heroui_design_system.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
 import '../models/database_models.dart';
+import '../services/sqlite_service.dart' show SQLiteService;
+import '../services/postgresql_service.dart' show PostgreSQLService;
+import '../services/mysql_service.dart' show MySQLService;
+import '../services/mongodb_service.dart' show MongoDBService;
 
 /// 新建连接对话框
 class ConnectionDialog extends StatefulWidget {
   final Function(DbConnectionConfig) onConnect;
+  final Function(DbConnectionConfig) onSave;
 
-  const ConnectionDialog({super.key, required this.onConnect});
+  const ConnectionDialog({
+    super.key,
+    required this.onConnect,
+    required this.onSave,
+  });
 
   @override
   State<ConnectionDialog> createState() => _ConnectionDialogState();
@@ -25,6 +34,10 @@ class _ConnectionDialogState extends State<ConnectionDialog> {
   final _databaseController = TextEditingController(text: 'postgres');
   final _filePathController = TextEditingController();
 
+  bool _isTesting = false;
+  bool? _testResult;
+  String? _testMessage;
+
   @override
   void dispose() {
     _nameController.dispose();
@@ -35,6 +48,92 @@ class _ConnectionDialogState extends State<ConnectionDialog> {
     _databaseController.dispose();
     _filePathController.dispose();
     super.dispose();
+  }
+
+  DbConnectionConfig _buildConfig() {
+    return DbConnectionConfig(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      name: _nameController.text,
+      type: _selectedType,
+      host: _selectedType != DbType.sqlite ? _hostController.text : null,
+      port: _selectedType != DbType.sqlite && _portController.text.isNotEmpty
+          ? int.tryParse(_portController.text)
+          : null,
+      username:
+          _selectedType != DbType.sqlite ? _usernameController.text : null,
+      password:
+          _selectedType != DbType.sqlite ? _passwordController.text : null,
+      databaseName:
+          _selectedType != DbType.sqlite ? _databaseController.text : null,
+      filePath:
+          _selectedType == DbType.sqlite ? _filePathController.text : null,
+      lastConnected: DateTime.now(),
+    );
+  }
+
+  Future<void> _testConnection() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() {
+      _isTesting = true;
+      _testResult = null;
+      _testMessage = null;
+    });
+
+    try {
+      final config = _buildConfig();
+      bool success = false;
+      String message = '';
+
+      switch (config.type) {
+        case DbType.sqlite:
+          final service = SQLiteService(config);
+          success = await service.testConnection();
+          message = success ? 'SQLite 连接成功' : '无法打开数据库文件';
+          break;
+        case DbType.mysql:
+          final service = MySQLService(config);
+          success = await service.testConnection();
+          message = success ? 'MySQL 连接成功' : '连接失败，请检查配置';
+          break;
+        case DbType.postgresql:
+          final service = PostgreSQLService(config);
+          success = await service.testConnection();
+          message = success ? 'PostgreSQL 连接成功' : '连接失败，请检查配置';
+          break;
+        case DbType.mongodb:
+          final service = MongoDBService(config);
+          success = await service.testConnection();
+          message = success ? 'MongoDB 连接成功' : '连接失败，请检查配置';
+          break;
+      }
+
+      setState(() {
+        _isTesting = false;
+        _testResult = success;
+        _testMessage = message;
+      });
+    } catch (e) {
+      setState(() {
+        _isTesting = false;
+        _testResult = false;
+        _testMessage = '测试失败: ${e.toString()}';
+      });
+    }
+  }
+
+  void _handleConnect() {
+    if (!_formKey.currentState!.validate()) return;
+    final config = _buildConfig();
+    Navigator.of(context).pop();
+    widget.onConnect(config);
+  }
+
+  void _handleSave() {
+    if (!_formKey.currentState!.validate()) return;
+    final config = _buildConfig();
+    Navigator.of(context).pop();
+    widget.onSave(config);
   }
 
   @override
@@ -73,6 +172,8 @@ class _ConnectionDialogState extends State<ConnectionDialog> {
                   onChanged: (value) {
                     setState(() {
                       _selectedType = value!;
+                      _testResult = null;
+                      _testMessage = null;
                       if (_selectedType == DbType.mysql) {
                         _portController.text = '3306';
                       } else if (_selectedType == DbType.postgresql) {
@@ -161,6 +262,47 @@ class _ConnectionDialogState extends State<ConnectionDialog> {
                     ),
                   ),
                 ],
+                if (_testMessage != null) ...[
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: _testResult == true
+                          ? Colors.green.withOpacity(0.1)
+                          : Colors.red.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: _testResult == true
+                            ? Colors.green.withOpacity(0.3)
+                            : Colors.red.withOpacity(0.3),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          _testResult == true
+                              ? LucideIcons.checkCircle
+                              : LucideIcons.xCircle,
+                          size: 18,
+                          color: _testResult == true
+                              ? Colors.green
+                              : Colors.red,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            _testMessage!,
+                            style: TextStyle(
+                              color: _testResult == true
+                                  ? Colors.green
+                                  : Colors.red,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -171,37 +313,37 @@ class _ConnectionDialogState extends State<ConnectionDialog> {
           onPressed: () => Navigator.of(context).pop(),
           child: const Text('取消'),
         ),
-        HeroUiButton(
-          label: '连接',
-          onPressed: _handleConnect,
-          variant: HeroUiButtonVariant.primary,
-          size: HeroUiButtonSize.sm,
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextButton.icon(
+              onPressed: _isTesting ? null : _testConnection,
+              icon: _isTesting
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(LucideIcons.wifi, size: 16),
+              label: const Text('测试'),
+            ),
+            const SizedBox(width: 8),
+            HeroUiButton(
+              label: '连接',
+              onPressed: _handleConnect,
+              variant: HeroUiButtonVariant.primary,
+              size: HeroUiButtonSize.sm,
+            ),
+            const SizedBox(width: 8),
+            HeroUiButton(
+              label: '保存',
+              onPressed: _handleSave,
+              variant: HeroUiButtonVariant.secondary,
+              size: HeroUiButtonSize.sm,
+            ),
+          ],
         ),
       ],
     );
-  }
-
-  void _handleConnect() {
-    if (!_formKey.currentState!.validate()) return;
-    final config = DbConnectionConfig(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      name: _nameController.text,
-      type: _selectedType,
-      host: _selectedType != DbType.sqlite ? _hostController.text : null,
-      port: _selectedType != DbType.sqlite && _portController.text.isNotEmpty
-          ? int.tryParse(_portController.text)
-          : null,
-      username:
-          _selectedType != DbType.sqlite ? _usernameController.text : null,
-      password:
-          _selectedType != DbType.sqlite ? _passwordController.text : null,
-      databaseName:
-          _selectedType != DbType.sqlite ? _databaseController.text : null,
-      filePath:
-          _selectedType == DbType.sqlite ? _filePathController.text : null,
-      lastConnected: DateTime.now(),
-    );
-    Navigator.of(context).pop();
-    widget.onConnect(config);
   }
 }

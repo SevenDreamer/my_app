@@ -33,6 +33,13 @@ class _DatabaseManagerScreenState extends State<DatabaseManagerScreen> {
   bool _isConnecting = false;
   String? _connectionError;
 
+  // 表数据相关
+  List<Map<String, dynamic>> _tableData = [];
+  bool _isLoadingTableData = false;
+  String? _tableDataError;
+  int _currentPage = 0;
+  static const int _pageSize = 50;
+
   @override
   void initState() {
     super.initState();
@@ -53,17 +60,23 @@ class _DatabaseManagerScreenState extends State<DatabaseManagerScreen> {
   }
 
   /// 处理节点选择
-  void _handleNodeSelected(DbTreeNode node) {
+  void _handleNodeSelected(DbTreeNode node) async {
     setState(() {
-      switch (node.type) {
-        case TreeNodeType.connection:
-          // 连接节点选择逻辑由外部处理
-          break;
-        case TreeNodeType.database:
+      _selectedTable = null;
+      _tableData = [];
+      _tableDataError = null;
+    });
+
+    switch (node.type) {
+      case TreeNodeType.connection:
+        break;
+      case TreeNodeType.database:
+        setState(() {
           _selectedDatabase = node.database;
-          _selectedTable = null;
-          break;
-        case TreeNodeType.table:
+        });
+        break;
+      case TreeNodeType.table:
+        setState(() {
           _selectedTable = node.table;
           // 从父节点链查找数据库
           DbTreeNode? current = node.parent;
@@ -74,12 +87,63 @@ class _DatabaseManagerScreenState extends State<DatabaseManagerScreen> {
             }
             current = current.parent;
           }
-          break;
-        case TreeNodeType.folder:
-        case TreeNodeType.field:
-          break;
-      }
+          _showConnectionList = false;
+        });
+        // 加载表数据
+        if (_selectedDatabase != null && _selectedTable != null) {
+          await _loadTableData();
+        }
+        break;
+      case TreeNodeType.folder:
+      case TreeNodeType.field:
+        break;
+    }
+  }
+
+  /// 加载表数据
+  Future<void> _loadTableData() async {
+    if (_currentConnection == null || _selectedDatabase == null || _selectedTable == null) return;
+
+    setState(() {
+      _isLoadingTableData = true;
+      _tableDataError = null;
     });
+
+    try {
+      DatabaseService service = _createService(_currentConnection!);
+      await service.connect();
+      final data = await service.getTableData(
+        _selectedDatabase!.name,
+        _selectedTable!.name,
+        limit: _pageSize,
+        offset: _currentPage * _pageSize,
+      );
+      await service.disconnect();
+
+      setState(() {
+        _tableData = data;
+        _isLoadingTableData = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoadingTableData = false;
+        _tableDataError = e.toString();
+      });
+    }
+  }
+
+  /// 创建数据库服务
+  DatabaseService _createService(DbConnectionConfig config) {
+    switch (config.type) {
+      case DbType.sqlite:
+        return SQLiteService(config);
+      case DbType.mysql:
+        return MySQLService(config);
+      case DbType.postgresql:
+        return PostgreSQLService(config);
+      case DbType.mongodb:
+        return MongoDBService(config);
+    }
   }
 
   /// 处理连接删除
@@ -119,6 +183,7 @@ class _DatabaseManagerScreenState extends State<DatabaseManagerScreen> {
         _databases = [];
         _selectedDatabase = null;
         _selectedTable = null;
+        _tableData = [];
       });
     }
     setState(() {});
@@ -129,25 +194,12 @@ class _DatabaseManagerScreenState extends State<DatabaseManagerScreen> {
     setState(() {
       _isConnecting = true;
       _connectionError = null;
+      _selectedTable = null;
+      _tableData = [];
     });
 
     try {
-      // 根据类型创建对应的服务实例
-      DatabaseService service;
-      switch (config.type) {
-        case DbType.sqlite:
-          service = SQLiteService(config);
-          break;
-        case DbType.mysql:
-          service = MySQLService(config);
-          break;
-        case DbType.postgresql:
-          service = PostgreSQLService(config);
-          break;
-        case DbType.mongodb:
-          service = MongoDBService(config);
-          break;
-      }
+      DatabaseService service = _createService(config);
 
       final success = await service.testConnection();
 
@@ -415,7 +467,7 @@ class _DatabaseManagerScreenState extends State<DatabaseManagerScreen> {
 
     if (_currentConnection == null) return _buildWelcomeScreen();
     if (_selectedTable == null) return _buildDatabaseOverview();
-    return _buildTableDetail();
+    return _buildTableDataView();
   }
 
   /// 欢迎界面
@@ -459,7 +511,27 @@ class _DatabaseManagerScreenState extends State<DatabaseManagerScreen> {
 
   /// 数据库概览
   Widget _buildDatabaseOverview() {
-    if (_selectedDatabase == null) return const SizedBox.shrink();
+    if (_selectedDatabase == null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              LucideIcons.table,
+              size: 48,
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              '选择一个表查看数据',
+              style: HeroUiTypography.bodySm.copyWith(
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -510,11 +582,12 @@ class _DatabaseManagerScreenState extends State<DatabaseManagerScreen> {
     return HeroUiCard(
       borderRadius: 12,
       showShadow: true,
-      onTap: () {
+      onTap: () async {
         setState(() {
           _selectedTable = table;
           _showConnectionList = false;
         });
+        await _loadTableData();
       },
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -547,21 +620,31 @@ class _DatabaseManagerScreenState extends State<DatabaseManagerScreen> {
     );
   }
 
-  /// 表详情
-  Widget _buildTableDetail() {
-    if (_selectedTable == null) return const SizedBox.shrink();
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+  /// 表数据视图
+  Widget _buildTableDataView() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // 标题栏
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            border: Border(
+              bottom: BorderSide(
+                color: Theme.of(context).dividerColor,
+              ),
+            ),
+          ),
+          child: Row(
             children: [
               if (MediaQuery.of(context).size.width < 600)
                 IconButton(
                   icon: const Icon(LucideIcons.arrowLeft),
                   onPressed: () => setState(() => _selectedTable = null),
                 ),
+              Icon(LucideIcons.table, size: 20, color: Theme.of(context).colorScheme.primary),
+              const SizedBox(width: 8),
               Text(_selectedTable!.name, style: HeroUiTypography.heading4),
               const SizedBox(width: 12),
               Text(
@@ -573,18 +656,201 @@ class _DatabaseManagerScreenState extends State<DatabaseManagerScreen> {
                       .withOpacity(0.5),
                 ),
               ),
+              const Spacer(),
+              // 刷新按钮
+              IconButton(
+                icon: const Icon(LucideIcons.refreshCw, size: 18),
+                onPressed: _isLoadingTableData ? null : _loadTableData,
+                tooltip: '刷新数据',
+              ),
+              // 字段信息按钮
+              IconButton(
+                icon: const Icon(LucideIcons.info, size: 18),
+                onPressed: () => _showFieldInfo(),
+                tooltip: '查看字段信息',
+              ),
             ],
           ),
-          const SizedBox(height: 24),
-          Text('字段', style: HeroUiTypography.bodySmMedium),
-          const SizedBox(height: 12),
-          Expanded(
-            child: ListView.separated(
-              itemCount: _selectedTable!.fields.length,
-              separatorBuilder: (context, index) => const Divider(height: 1),
-              itemBuilder: (context, index) =>
-                  _buildFieldItem(_selectedTable!.fields[index]),
+        ),
+        // 数据表格
+        Expanded(
+          child: _buildDataTable(),
+        ),
+        // 分页控件
+        if (_selectedTable!.rowCount > _pageSize)
+          _buildPagination(),
+      ],
+    );
+  }
+
+  /// 数据表格
+  Widget _buildDataTable() {
+    if (_isLoadingTableData) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_tableDataError != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(LucideIcons.alertCircle, size: 48, color: Colors.red.withOpacity(0.5)),
+            const SizedBox(height: 16),
+            Text('加载失败', style: HeroUiTypography.bodySmMedium),
+            const SizedBox(height: 8),
+            Text(_tableDataError!, style: HeroUiTypography.bodyXs, textAlign: TextAlign.center),
+            const SizedBox(height: 16),
+            HeroUiButton(
+              label: '重试',
+              onPressed: _loadTableData,
+              variant: HeroUiButtonVariant.secondary,
+              size: HeroUiButtonSize.sm,
             ),
+          ],
+        ),
+      );
+    }
+
+    if (_tableData.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(LucideIcons.inbox, size: 48, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.3)),
+            const SizedBox(height: 16),
+            Text('表中没有数据', style: HeroUiTypography.bodySm),
+          ],
+        ),
+      );
+    }
+
+    // 获取列名
+    final columns = _selectedTable!.fields.map((f) => f.name).toList();
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.vertical,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: DataTable(
+          headingRowColor: WidgetStateProperty.all(
+            Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.5),
+          ),
+          headingTextStyle: HeroUiTypography.bodyXsMedium.copyWith(
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
+          dataTextStyle: HeroUiTypography.bodyXs,
+          columnSpacing: 16,
+          horizontalMargin: 16,
+          columns: columns.map((col) {
+            final field = _selectedTable!.fields.firstWhere(
+              (f) => f.name == col,
+              orElse: () => _selectedTable!.fields.first,
+            );
+            return DataColumn(
+              label: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (field.isPrimaryKey) ...[
+                    Icon(LucideIcons.key, size: 12, color: Colors.amber),
+                    const SizedBox(width: 4),
+                  ],
+                  Flexible(
+                    child: Text(
+                      col,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+              tooltip: '${field.type}${field.isNullable ? '' : ' NOT NULL'}',
+            );
+          }).toList(),
+          rows: _tableData.map((row) {
+            return DataRow(
+              cells: columns.map((col) {
+                final value = row[col];
+                return DataCell(
+                  Text(
+                    _formatCellValue(value),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                );
+              }).toList(),
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
+  /// 格式化单元格值
+  String _formatCellValue(dynamic value) {
+    if (value == null) return 'NULL';
+    if (value is List) return '[${value.length} items]';
+    if (value is Map) return '{${value.length} keys}';
+    return value.toString();
+  }
+
+  /// 分页控件
+  Widget _buildPagination() {
+    final totalPages = (_selectedTable!.rowCount / _pageSize).ceil();
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        border: Border(
+          top: BorderSide(color: Theme.of(context).dividerColor),
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          IconButton(
+            icon: const Icon(LucideIcons.chevronLeft, size: 18),
+            onPressed: _currentPage > 0
+                ? () {
+                    setState(() => _currentPage--);
+                    _loadTableData();
+                  }
+                : null,
+          ),
+          Text(
+            '第 ${_currentPage + 1} / $totalPages 页',
+            style: HeroUiTypography.bodyXs,
+          ),
+          IconButton(
+            icon: const Icon(LucideIcons.chevronRight, size: 18),
+            onPressed: _currentPage < totalPages - 1
+                ? () {
+                    setState(() => _currentPage++);
+                    _loadTableData();
+                  }
+                : null,
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 显示字段信息对话框
+  void _showFieldInfo() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('${_selectedTable!.name} - 字段信息'),
+        content: SizedBox(
+          width: 500,
+          child: ListView.separated(
+            shrinkWrap: true,
+            itemCount: _selectedTable!.fields.length,
+            separatorBuilder: (context, index) => const Divider(height: 1),
+            itemBuilder: (context, index) => _buildFieldItem(_selectedTable!.fields[index]),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('关闭'),
           ),
         ],
       ),
@@ -644,6 +910,9 @@ class _DatabaseManagerScreenState extends State<DatabaseManagerScreen> {
       builder: (context) => ConnectionDialog(
         onConnect: (config) {
           _connectToDatabase(config);
+        },
+        onSave: (config) {
+          _saveConnection(config);
         },
       ),
     );

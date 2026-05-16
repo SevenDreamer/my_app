@@ -100,4 +100,10 @@ class SQLiteService extends DatabaseService {
       return false;
     }
   }
+
+  @override
+  Future<List<Map<String, dynamic>>> getTableData(String databaseName, String tableName, {int limit = 100, int offset = 0}) async {
+    if (_db == null) await connect();
+    return await _db!.rawQuery('SELECT * FROM $tableName LIMIT $limit OFFSET $offset');
+  }
 }

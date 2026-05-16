@@ -7,5 +7,6 @@ abstract class DatabaseService {
   Future<List<DatabaseInfo>> getDatabases();
   Future<List<TableInfo>> getTables(String databaseName);
   Future<List<FieldInfo>> getFields(String databaseName, String tableName);
+  Future<List<Map<String, dynamic>>> getTableData(String databaseName, String tableName, {int limit = 100, int offset = 0});
   Future<bool> testConnection();
 }

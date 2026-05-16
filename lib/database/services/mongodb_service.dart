@@ -120,4 +120,12 @@ class MongoDBService extends DatabaseService {
       return false;
     }
   }
+
+  @override
+  Future<List<Map<String, dynamic>>> getTableData(String databaseName, String tableName, {int limit = 100, int offset = 0}) async {
+    if (_db == null) await connect();
+    final collection = _db!.collection(tableName);
+    final cursor = collection.find(where.skip(offset).limit(limit));
+    return await cursor.toList();
+  }
 }

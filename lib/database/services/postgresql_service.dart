@@ -138,4 +138,35 @@ class PostgreSQLService extends DatabaseService {
       return false;
     }
   }
+
+  @override
+  Future<List<Map<String, dynamic>>> getTableData(String databaseName, String tableName, {int limit = 100, int offset = 0}) async {
+    if (_connection == null) await connect();
+
+    // 切换到目标数据库
+    await disconnect();
+    final endpoint = Endpoint(
+      host: config.host ?? 'localhost',
+      port: config.port ?? 5432,
+      database: databaseName,
+      username: config.username ?? 'postgres',
+      password: config.password ?? '',
+    );
+    _connection = await Connection.open(endpoint, settings: ConnectionSettings(sslMode: SslMode.disable));
+
+    final result = await _connection!.execute(
+      'SELECT * FROM "$tableName" LIMIT $limit OFFSET $offset',
+    );
+
+    // 获取列名
+    final columns = result.schema.columns.map((c) => c.columnName).toList();
+
+    return result.map((row) {
+      final map = <String, dynamic>{};
+      for (var i = 0; i < columns.length; i++) {
+        map[columns[i]!] = row[i];
+      }
+      return map;
+    }).toList();
+  }
 }

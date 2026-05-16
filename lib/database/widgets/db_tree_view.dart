@@ -47,7 +47,7 @@ class _DbTreeViewState extends State<DbTreeView> {
 
   Widget _buildNode(DbTreeNode node, int depth) {
     final hasChildren = node.children.isNotEmpty;
-    final isExpandable = hasChildren || node.type == TreeNodeType.connection || node.type == TreeNodeType.database;
+    final isExpandable = hasChildren || node.type == TreeNodeType.connection || node.type == TreeNodeType.database || node.type == TreeNodeType.table;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

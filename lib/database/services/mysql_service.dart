@@ -110,4 +110,22 @@ class MySQLService extends DatabaseService {
       return false;
     }
   }
+
+  @override
+  Future<List<Map<String, dynamic>>> getTableData(String databaseName, String tableName, {int limit = 100, int offset = 0}) async {
+    if (_connection == null) await connect();
+    await _connection!.query('USE `$databaseName`');
+
+    final result = await _connection!.query('SELECT * FROM `$tableName` LIMIT $limit OFFSET $offset');
+
+    return result.map((row) {
+      final map = <String, dynamic>{};
+      final fields = result.fields;
+      for (var i = 0; i < fields.length; i++) {
+        final fieldName = fields[i].name!;
+        map[fieldName] = row[i];
+      }
+      return map;
+    }).toList();
+  }
 }
