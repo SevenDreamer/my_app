@@ -67,3 +67,6 @@ arm64/
 *.suo
 *.user
 *.sln.docstates
+
+# FVM Version Cache
+.fvm/

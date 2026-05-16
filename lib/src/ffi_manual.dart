@@ -22,6 +22,9 @@ class HermesFFI {
       _dylib = ffi.DynamicLibrary.open('libhermes_agent.so');
     } else if (Platform.isMacOS) {
       _dylib = ffi.DynamicLibrary.open('libhermes_agent.dylib');
+    } else if (Platform.isAndroid) {
+      // Android: library is bundled in APK, load from process
+      _dylib = ffi.DynamicLibrary.process();
     } else {
       throw UnsupportedError('Unsupported platform: ${Platform.operatingSystem}');
     }
