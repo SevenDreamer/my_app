@@ -457,13 +457,15 @@ class _PurchaseRecordPageState extends State<_PurchaseRecordPage> {
         // 添加按钮
         Padding(
           padding: const EdgeInsets.all(16),
-          child: HeroUiButton(
-            label: '添加采购记录',
-            onPressed: () => _showAddPurchaseDialog(),
-            variant: HeroUiButtonVariant.primary,
-            size: HeroUiButtonSize.lg,
-            leading: const Icon(LucideIcons.plus, size: 18),
+          child: SizedBox(
             width: double.infinity,
+            child: HeroUiButton(
+              label: '添加采购记录',
+              onPressed: () => _showAddPurchaseDialog(),
+              variant: HeroUiButtonVariant.primary,
+              size: HeroUiButtonSize.lg,
+              leading: const Icon(LucideIcons.plus, size: 18),
+            ),
           ),
         ),
       ],
@@ -651,12 +653,14 @@ class _PurchaseRecordPageState extends State<_PurchaseRecordPage> {
               ),
             ),
             const SizedBox(height: 20),
-            HeroUiButton(
-              label: '保存',
-              onPressed: () => Navigator.pop(context),
-              variant: HeroUiButtonVariant.primary,
-              size: HeroUiButtonSize.lg,
+            SizedBox(
               width: double.infinity,
+              child: HeroUiButton(
+                label: '保存',
+                onPressed: () => Navigator.pop(context),
+                variant: HeroUiButtonVariant.primary,
+                size: HeroUiButtonSize.lg,
+              ),
             ),
           ],
         ),
@@ -687,13 +691,15 @@ class _SupplierPage extends StatelessWidget {
         ),
         Padding(
           padding: const EdgeInsets.all(16),
-          child: HeroUiButton(
-            label: '添加供应商',
-            onPressed: () {},
-            variant: HeroUiButtonVariant.primary,
-            size: HeroUiButtonSize.lg,
-            leading: const Icon(LucideIcons.plus, size: 18),
+          child: SizedBox(
             width: double.infinity,
+            child: HeroUiButton(
+              label: '添加供应商',
+              onPressed: () {},
+              variant: HeroUiButtonVariant.primary,
+              size: HeroUiButtonSize.lg,
+              leading: const Icon(LucideIcons.plus, size: 18),
+            ),
           ),
         ),
       ],
