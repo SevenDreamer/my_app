@@ -3,6 +3,7 @@ pub mod api;
 // 在 Windows 上 codegen 有路径 bug，暂时用手动 FFI 桥接
 // mod frb_generated;
 
+pub mod macros;
 pub mod ffi_manual;
 pub mod ffi_auth;
 pub mod database;

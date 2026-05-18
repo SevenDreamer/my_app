@@ -43,94 +43,85 @@ class AuthFFI {
 
   /// auth_init: 返回 CString 指针
   late final _authInit = _dylib.lookupFunction<
-      Pointer<Utf8> Function(Pointer<Utf8>),
-      Pointer<Utf8> Function(Pointer<Utf8>)>('auth_init');
+      ffi.Pointer<Utf8> Function(ffi.Pointer<Utf8>),
+      ffi.Pointer<Utf8> Function(ffi.Pointer<Utf8>)>('auth_init');
 
   /// auth_login: 返回 CString 指针
   late final _authLogin = _dylib.lookupFunction<
-      Pointer<Utf8> Function(Pointer<Utf8>),
-      Pointer<Utf8> Function(Pointer<Utf8>)>('auth_login');
+      ffi.Pointer<Utf8> Function(ffi.Pointer<Utf8>),
+      ffi.Pointer<Utf8> Function(ffi.Pointer<Utf8>)>('auth_login');
 
   /// auth_logout: 返回 CString 指针
   late final _authLogout = _dylib.lookupFunction<
-      Pointer<Utf8> Function(Pointer<Utf8>),
-      Pointer<Utf8> Function(Pointer<Utf8>)>('auth_logout');
+      ffi.Pointer<Utf8> Function(ffi.Pointer<Utf8>),
+      ffi.Pointer<Utf8> Function(ffi.Pointer<Utf8>)>('auth_logout');
 
   /// auth_get_current_user: 返回 CString 指针
   late final _authGetCurrentUser = _dylib.lookupFunction<
-      Pointer<Utf8> Function(Pointer<Utf8>),
-      Pointer<Utf8> Function(Pointer<Utf8>)>('auth_get_current_user');
+      ffi.Pointer<Utf8> Function(ffi.Pointer<Utf8>),
+      ffi.Pointer<Utf8> Function(ffi.Pointer<Utf8>)>('auth_get_current_user');
 
   /// auth_create_user: 返回 CString 指针
   late final _authCreateUser = _dylib.lookupFunction<
-      Pointer<Utf8> Function(Pointer<Utf8>, Pointer<Utf8>),
-      Pointer<Utf8> Function(Pointer<Utf8>, Pointer<Utf8>)>('auth_create_user');
+      ffi.Pointer<Utf8> Function(ffi.Pointer<Utf8>, ffi.Pointer<Utf8>),
+      ffi.Pointer<Utf8> Function(ffi.Pointer<Utf8>, ffi.Pointer<Utf8>)>('auth_create_user');
 
   /// auth_get_users: 返回 CString 指针
   late final _authGetUsers = _dylib.lookupFunction<
-      Pointer<Utf8> Function(Pointer<Utf8>),
-      Pointer<Utf8> Function(Pointer<Utf8>)>('auth_get_users');
+      ffi.Pointer<Utf8> Function(ffi.Pointer<Utf8>),
+      ffi.Pointer<Utf8> Function(ffi.Pointer<Utf8>)>('auth_get_users');
 
   /// auth_update_user: 返回 CString 指针
   late final _authUpdateUser = _dylib.lookupFunction<
-      Pointer<Utf8> Function(Int64, Pointer<Utf8>, Pointer<Utf8>),
-      Pointer<Utf8> Function(int, Pointer<Utf8>, Pointer<Utf8>)>('auth_update_user');
+      ffi.Pointer<Utf8> Function(ffi.Int64, ffi.Pointer<Utf8>, ffi.Pointer<Utf8>),
+      ffi.Pointer<Utf8> Function(int, ffi.Pointer<Utf8>, ffi.Pointer<Utf8>)>('auth_update_user');
 
   /// auth_delete_user: 返回 CString 指针
   late final _authDeleteUser = _dylib.lookupFunction<
-      Pointer<Utf8> Function(Int64, Pointer<Utf8>),
-      Pointer<Utf8> Function(int, Pointer<Utf8>)>('auth_delete_user');
+      ffi.Pointer<Utf8> Function(ffi.Int64, ffi.Pointer<Utf8>),
+      ffi.Pointer<Utf8> Function(int, ffi.Pointer<Utf8>)>('auth_delete_user');
 
   /// auth_register_app: 返回 CString 指针
   late final _authRegisterApp = _dylib.lookupFunction<
-      Pointer<Utf8> Function(Pointer<Utf8>, Pointer<Utf8>),
-      Pointer<Utf8> Function(Pointer<Utf8>, Pointer<Utf8>)>('auth_register_app');
+      ffi.Pointer<Utf8> Function(ffi.Pointer<Utf8>, ffi.Pointer<Utf8>),
+      ffi.Pointer<Utf8> Function(ffi.Pointer<Utf8>, ffi.Pointer<Utf8>)>('auth_register_app');
 
   /// auth_get_apps: 返回 CString 指针
   late final _authGetApps = _dylib.lookupFunction<
-      Pointer<Utf8> Function(Pointer<Utf8>),
-      Pointer<Utf8> Function(Pointer<Utf8>)>('auth_get_apps');
+      ffi.Pointer<Utf8> Function(ffi.Pointer<Utf8>),
+      ffi.Pointer<Utf8> Function(ffi.Pointer<Utf8>)>('auth_get_apps');
 
   /// auth_update_app: 返回 CString 指针
   late final _authUpdateApp = _dylib.lookupFunction<
-      Pointer<Utf8> Function(Int64, Pointer<Utf8>, Pointer<Utf8>),
-      Pointer<Utf8> Function(int, Pointer<Utf8>, Pointer<Utf8>)>('auth_update_app');
+      ffi.Pointer<Utf8> Function(ffi.Int64, ffi.Pointer<Utf8>, ffi.Pointer<Utf8>),
+      ffi.Pointer<Utf8> Function(int, ffi.Pointer<Utf8>, ffi.Pointer<Utf8>)>('auth_update_app');
 
   /// auth_delete_app: 返回 CString 指针
   late final _authDeleteApp = _dylib.lookupFunction<
-      Pointer<Utf8> Function(Int64, Pointer<Utf8>),
-      Pointer<Utf8> Function(int, Pointer<Utf8>)>('auth_delete_app');
+      ffi.Pointer<Utf8> Function(ffi.Int64, ffi.Pointer<Utf8>),
+      ffi.Pointer<Utf8> Function(int, ffi.Pointer<Utf8>)>('auth_delete_app');
 
   /// auth_assign_app_to_user: 返回 CString 指针
   late final _authAssignAppToUser = _dylib.lookupFunction<
-      Pointer<Utf8> Function(Int64, Int64, Pointer<Utf8>),
-      Pointer<Utf8> Function(int, int, Pointer<Utf8>)>('auth_assign_app_to_user');
+      ffi.Pointer<Utf8> Function(ffi.Int64, ffi.Int64, ffi.Pointer<Utf8>),
+      ffi.Pointer<Utf8> Function(int, int, ffi.Pointer<Utf8>)>('auth_assign_app_to_user');
 
   /// auth_remove_app_from_user: 返回 CString 指针
   late final _authRemoveAppFromUser = _dylib.lookupFunction<
-      Pointer<Utf8> Function(Int64, Int64, Pointer<Utf8>),
-      Pointer<Utf8> Function(int, int, Pointer<Utf8>)>('auth_remove_app_from_user');
+      ffi.Pointer<Utf8> Function(ffi.Int64, ffi.Int64, ffi.Pointer<Utf8>),
+      ffi.Pointer<Utf8> Function(int, int, ffi.Pointer<Utf8>)>('auth_remove_app_from_user');
 
   /// auth_get_user_apps: 返回 CString 指针
   late final _authGetUserApps = _dylib.lookupFunction<
-      Pointer<Utf8> Function(Int64, Pointer<Utf8>),
-      Pointer<Utf8> Function(int, Pointer<Utf8>)>('auth_get_user_apps');
+      ffi.Pointer<Utf8> Function(ffi.Int64, ffi.Pointer<Utf8>),
+      ffi.Pointer<Utf8> Function(int, ffi.Pointer<Utf8>)>('auth_get_user_apps');
 
   // ==================== Dart 封装方法 ====================
 
-  /// 辅助：调用 Rust 函数并转换结果
-  String _callRust(Pointer<Utf8> Function(Pointer<Utf8>) func,
-      Pointer<Utf8> arg) {
-    final resultPtr = func(arg);
-    final result = resultPtr.toDartString();
-    _freeString(resultPtr.cast());
-    return result;
-  }
-
   /// 辅助：释放 CString 指针
   late final _freeString = _dylib.lookupFunction<
-      Void Function(Pointer<Utf8>),
-      void Function(Pointer<Utf8>)>('free_string');
+      ffi.Void Function(ffi.Pointer<Utf8>),
+      void Function(ffi.Pointer<Utf8>)>('free_string');
 
   /// 初始化认证数据库
   /// [dbPath] 数据库路径（可为空，默认 "auth.db"）
