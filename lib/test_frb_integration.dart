@@ -2,7 +2,7 @@
 // 运行：flutter run lib/test_frb_integration.dart
 
 import 'package:flutter/material.dart';
-import 'package:my_app/rust/frb_generated.dart';
+import 'rust/frb_generated.dart';
 
 // 导入生成的 API 包装函数
 import 'rust/api/simple.dart';

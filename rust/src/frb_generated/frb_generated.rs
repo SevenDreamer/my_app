@@ -632,7 +632,7 @@ impl SseDecode for () {
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {}
 }
 
-fn pde_ffi_dispatcher_primary_impl(
+pub fn pde_ffi_dispatcher_primary_impl(
     func_id: i32,
     port: flutter_rust_bridge::for_generated::MessagePort,
     ptr: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -651,7 +651,7 @@ fn pde_ffi_dispatcher_primary_impl(
     }
 }
 
-fn pde_ffi_dispatcher_sync_impl(
+pub fn pde_ffi_dispatcher_sync_impl(
     func_id: i32,
     ptr: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len: i32,
