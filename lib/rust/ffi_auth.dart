@@ -64,7 +64,8 @@ class AuthFFI {
   /// auth_create_user: 返回 CString 指针
   late final _authCreateUser = _dylib.lookupFunction<
       ffi.Pointer<Utf8> Function(ffi.Pointer<Utf8>, ffi.Pointer<Utf8>),
-      ffi.Pointer<Utf8> Function(ffi.Pointer<Utf8>, ffi.Pointer<Utf8>)>('auth_create_user');
+      ffi.Pointer<Utf8> Function(
+          ffi.Pointer<Utf8>, ffi.Pointer<Utf8>)>('auth_create_user');
 
   /// auth_get_users: 返回 CString 指针
   late final _authGetUsers = _dylib.lookupFunction<
@@ -73,8 +74,10 @@ class AuthFFI {
 
   /// auth_update_user: 返回 CString 指针
   late final _authUpdateUser = _dylib.lookupFunction<
-      ffi.Pointer<Utf8> Function(ffi.Int64, ffi.Pointer<Utf8>, ffi.Pointer<Utf8>),
-      ffi.Pointer<Utf8> Function(int, ffi.Pointer<Utf8>, ffi.Pointer<Utf8>)>('auth_update_user');
+      ffi.Pointer<Utf8> Function(
+          ffi.Int64, ffi.Pointer<Utf8>, ffi.Pointer<Utf8>),
+      ffi.Pointer<Utf8> Function(
+          int, ffi.Pointer<Utf8>, ffi.Pointer<Utf8>)>('auth_update_user');
 
   /// auth_delete_user: 返回 CString 指针
   late final _authDeleteUser = _dylib.lookupFunction<
@@ -84,7 +87,8 @@ class AuthFFI {
   /// auth_register_app: 返回 CString 指针
   late final _authRegisterApp = _dylib.lookupFunction<
       ffi.Pointer<Utf8> Function(ffi.Pointer<Utf8>, ffi.Pointer<Utf8>),
-      ffi.Pointer<Utf8> Function(ffi.Pointer<Utf8>, ffi.Pointer<Utf8>)>('auth_register_app');
+      ffi.Pointer<Utf8> Function(
+          ffi.Pointer<Utf8>, ffi.Pointer<Utf8>)>('auth_register_app');
 
   /// auth_get_apps: 返回 CString 指针
   late final _authGetApps = _dylib.lookupFunction<
@@ -93,8 +97,10 @@ class AuthFFI {
 
   /// auth_update_app: 返回 CString 指针
   late final _authUpdateApp = _dylib.lookupFunction<
-      ffi.Pointer<Utf8> Function(ffi.Int64, ffi.Pointer<Utf8>, ffi.Pointer<Utf8>),
-      ffi.Pointer<Utf8> Function(int, ffi.Pointer<Utf8>, ffi.Pointer<Utf8>)>('auth_update_app');
+      ffi.Pointer<Utf8> Function(
+          ffi.Int64, ffi.Pointer<Utf8>, ffi.Pointer<Utf8>),
+      ffi.Pointer<Utf8> Function(
+          int, ffi.Pointer<Utf8>, ffi.Pointer<Utf8>)>('auth_update_app');
 
   /// auth_delete_app: 返回 CString 指针
   late final _authDeleteApp = _dylib.lookupFunction<
@@ -104,12 +110,14 @@ class AuthFFI {
   /// auth_assign_app_to_user: 返回 CString 指针
   late final _authAssignAppToUser = _dylib.lookupFunction<
       ffi.Pointer<Utf8> Function(ffi.Int64, ffi.Int64, ffi.Pointer<Utf8>),
-      ffi.Pointer<Utf8> Function(int, int, ffi.Pointer<Utf8>)>('auth_assign_app_to_user');
+      ffi.Pointer<Utf8> Function(
+          int, int, ffi.Pointer<Utf8>)>('auth_assign_app_to_user');
 
   /// auth_remove_app_from_user: 返回 CString 指针
   late final _authRemoveAppFromUser = _dylib.lookupFunction<
       ffi.Pointer<Utf8> Function(ffi.Int64, ffi.Int64, ffi.Pointer<Utf8>),
-      ffi.Pointer<Utf8> Function(int, int, ffi.Pointer<Utf8>)>('auth_remove_app_from_user');
+      ffi.Pointer<Utf8> Function(
+          int, int, ffi.Pointer<Utf8>)>('auth_remove_app_from_user');
 
   /// auth_get_user_apps: 返回 CString 指针
   late final _authGetUserApps = _dylib.lookupFunction<

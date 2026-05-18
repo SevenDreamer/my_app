@@ -26,7 +26,8 @@ class CoreFFI {
       // Android: library is bundled in APK, load from process
       _dylib = ffi.DynamicLibrary.process();
     } else {
-      throw UnsupportedError('Unsupported platform: ${Platform.operatingSystem}');
+      throw UnsupportedError(
+          'Unsupported platform: ${Platform.operatingSystem}');
     }
   }
 
@@ -41,35 +42,32 @@ class CoreFFI {
   // ==================== 函数签名定义 ====================
 
   /// init_my_app: 返回 CString 指针
-  late final _initMyApp = _dylib
-      .lookupFunction<Pointer<Utf8> Function(Pointer<Utf8>),
-          Pointer<Utf8> Function(Pointer<Utf8>)>('init_my_app');
+  late final _initMyApp = _dylib.lookupFunction<
+      Pointer<Utf8> Function(Pointer<Utf8>),
+      Pointer<Utf8> Function(Pointer<Utf8>)>('init_my_app');
 
   /// get_core_version: 返回 CString 指针
-  late final _getCoreVersion = _dylib
-      .lookupFunction<Pointer<Utf8> Function(),
-          Pointer<Utf8> Function()>('get_core_version');
+  late final _getCoreVersion =
+      _dylib.lookupFunction<Pointer<Utf8> Function(), Pointer<Utf8> Function()>(
+          'get_core_version');
 
   /// ping: 返回 CString 指针
-  late final _ping = _dylib
-      .lookupFunction<Pointer<Utf8> Function(),
-          Pointer<Utf8> Function()>('ping');
+  late final _ping =
+      _dylib.lookupFunction<Pointer<Utf8> Function(), Pointer<Utf8> Function()>(
+          'ping');
 
   /// free_string: 释放 CString 指针
-  late final _freeString = _dylib
-      .lookupFunction<Void Function(Pointer<Utf8>),
-          void Function(Pointer<Utf8>)>('free_string');
+  late final _freeString = _dylib.lookupFunction<Void Function(Pointer<Utf8>),
+      void Function(Pointer<Utf8>)>('free_string');
 
   /// add: 简单加法测试
-  late final _add = _dylib
-      .lookupFunction<Int32 Function(Int32, Int32),
-          int Function(int, int)>('add');
+  late final _add = _dylib.lookupFunction<Int32 Function(Int32, Int32),
+      int Function(int, int)>('add');
 
   /// llm_list_models: 返回 CString 指针（JSON）
-  late final _llmListModels = _dylib
-      .lookupFunction<Pointer<Utf8> Function(Pointer<Utf8>),
-          Pointer<Utf8> Function(Pointer<Utf8>)>(
-          'llm_list_models');
+  late final _llmListModels = _dylib.lookupFunction<
+      Pointer<Utf8> Function(Pointer<Utf8>),
+      Pointer<Utf8> Function(Pointer<Utf8>)>('llm_list_models');
 
   // ==================== Dart 封装方法 ====================
 
@@ -135,12 +133,15 @@ class CoreFFI {
   /// db_get_fields: 返回 JSON 字符串指针
   late final _dbGetFields = _dylib.lookupFunction<
       Pointer<Utf8> Function(Pointer<Utf8>, Pointer<Utf8>, Pointer<Utf8>),
-      Pointer<Utf8> Function(Pointer<Utf8>, Pointer<Utf8>, Pointer<Utf8>)>('db_get_fields');
+      Pointer<Utf8> Function(
+          Pointer<Utf8>, Pointer<Utf8>, Pointer<Utf8>)>('db_get_fields');
 
   /// db_get_table_data: 返回 JSON 字符串指针
   late final _dbGetTableData = _dylib.lookupFunction<
-      Pointer<Utf8> Function(Pointer<Utf8>, Pointer<Utf8>, Pointer<Utf8>, Int64, Int64),
-      Pointer<Utf8> Function(Pointer<Utf8>, Pointer<Utf8>, Pointer<Utf8>, int, int)>('db_get_table_data');
+      Pointer<Utf8> Function(
+          Pointer<Utf8>, Pointer<Utf8>, Pointer<Utf8>, Int64, Int64),
+      Pointer<Utf8> Function(Pointer<Utf8>, Pointer<Utf8>, Pointer<Utf8>, int,
+          int)>('db_get_table_data');
 
   /// db_test_connection: 返回 JSON 字符串指针
   late final _dbTestConnection = _dylib.lookupFunction<

@@ -1,5 +1,19 @@
+# Flutter Rust Bridge 配置
+# 文档：https://cjycode.com/flutter_rust_bridge/
+# 配置格式：https://cjycode.com/flutter_rust_bridge/config.html
+
 base_dir: "."
-rust_input: "crate::api::simple"
+
+# Rust 输入（使用 crate 语法，指向 Rust 模块）
+rust_input: "crate::api"
+
+# Rust 项目根目录
 rust_root: "rust/"
+
+# 生成的 Rust 绑定代码输出位置
 rust_output: "rust/src/frb_generated/frb_generated.rs"
+
+# 生成的 Dart 绑定代码输出目录
 dart_output: "lib/rust/"
+
+

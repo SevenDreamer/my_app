@@ -1,7 +1,8 @@
-import 'package:flutter/material.dart';
+// 解决命名冲突：隐藏 Flutter Material 中与 shadcn_flutter 冲突的组件
+import 'package:flutter/material.dart' hide Column, Scaffold, TextField, TextButton, Icon, CircularProgressIndicator;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../rust/ffi_auth.dart';
+import '../../rust/ffi_auth.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
