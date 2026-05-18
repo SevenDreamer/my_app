@@ -8,7 +8,7 @@ use tokio::sync::Mutex;
 
 use serde::{Deserialize, Serialize};
 use serde_json;
-use sqlx::{AnyPool, Connection, Executor, Row};
+use sqlx::{AnyPool, Executor, Row};
 use uuid::Uuid;
 
 // ============================ 类型定义 ============================

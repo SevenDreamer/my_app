@@ -4,8 +4,10 @@ pub mod api;
 // mod frb_generated;
 
 pub mod ffi_manual;
+pub mod ffi_auth;
 pub mod database;
+pub mod auth;
 
-// 暂时只导出 ffi_manual（手动 FFI）
-// api::simple 中的函数等 codegen 修复后再启用
+// 导出所有手动 FFI 函数
 pub use ffi_manual::*;
+pub use ffi_auth::*;
