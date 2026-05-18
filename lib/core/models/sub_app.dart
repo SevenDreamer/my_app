@@ -2,21 +2,76 @@ import 'package:flutter/material.dart';
 
 /// 子应用模型
 class SubApp {
-  final String id;
+  final String id;  // app_name，用于标识应用
+  final int dbId;  // 数据库中的 id（整数），用于数据库操作
   final String name;
   final String description;
-  final IconData icon;
+  final String iconName;
   final Color color;
-  final Widget Function() builder;
+  final String route;
   final bool isEnabled;
 
   const SubApp({
     required this.id,
+    this.dbId = 0,
     required this.name,
     required this.description,
-    required this.icon,
+    required this.iconName,
     required this.color,
-    required this.builder,
+    required this.route,
     this.isEnabled = true,
   });
+
+  /// 从 JSON 创建 SubApp
+  factory SubApp.fromJson(Map<String, dynamic> json) {
+    return SubApp(
+      id: json['app_name'] ?? '',
+      dbId: json['id'] is int ? json['id'] : int.tryParse(json['id']?.toString() ?? '0') ?? 0,
+      name: json['display_name'] ?? '',
+      description: json['description'] ?? '',
+      iconName: json['icon'] ?? 'circle',
+      color: _getAppColor(json['app_name'] ?? ''),
+      route: json['route'] ?? '',
+      isEnabled: json['is_active'] ?? true,
+    );
+  }
+
+  /// 根据应用名称获取颜色
+  static Color _getAppColor(String appName) {
+    switch (appName) {
+      case 'chat':
+        return const Color(0xFF7C5CFC);
+      case 'image':
+        return const Color(0xFF57A6FF);
+      case 'code':
+        return const Color(0xFF4ECDC4);
+      case 'database':
+        return const Color(0xFFFF6B6B);
+      case 'bar':
+        return const Color(0xFFE8AA42);
+      default:
+        return const Color(0xFF6C5CE7);
+    }
+  }
+
+  /// 获取 IconData
+  IconData get icon => _getIconData(iconName);
+
+  /// 根据图标名称获取 IconData
+  static IconData _getIconData(String name) {
+    switch (name) {
+      case 'message_circle':
+        return Icons.message;
+      case 'image':
+        return Icons.image;
+      case 'code2':
+        return Icons.code;
+      case 'database':
+        return Icons.storage;
+      case 'wine':
+        return Icons.local_bar;
+      default:
+        return Icons.circle;
+    }
+  }
 }

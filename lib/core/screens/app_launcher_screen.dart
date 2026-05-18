@@ -1,14 +1,14 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:heroui_design_system/heroui_design_system.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:my_app/core/models/sub_app.dart';
-import 'package:my_app/features/chat/chat_app.dart';
-import 'package:my_app/features/image/image_app.dart';
-import 'package:my_app/features/code/code_app.dart';
-import 'package:my_app/features/database/database_app.dart';
-import 'package:my_app/features/bar/bar_app.dart';
+import 'package:my_app/core/routing/app_router.dart';
 import 'package:my_app/core/screens/login_screen.dart';
-import '../rust/ffi_auth.dart';
+import 'package:my_app/core/screens/user_management_screen.dart';
+import 'package:my_app/core/screens/app_management_screen.dart';
+import 'package:my_app/rust/ffi_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// 子应用启动器（主界面）
@@ -28,50 +28,6 @@ class _AppLauncherScreenState extends State<AppLauncherScreen> {
   String _username = '';
   String _role = '';
 
-  // 所有可用的子应用
-  final List<SubApp> _allApps = [
-    const SubApp(
-      id: 'chat',
-      name: '聊天助手',
-      description: 'AI 智能对话助手',
-      icon: LucideIcons.messageCircle,
-      color: Color(0xFF7C5CFC),
-      builder: ChatApp.new,
-    ),
-    const SubApp(
-      id: 'image',
-      name: '图片处理',
-      description: 'AI 图片编辑工具',
-      icon: LucideIcons.image,
-      color: Color(0xFF57A6FF),
-      builder: ImageApp.new,
-    ),
-    const SubApp(
-      id: 'code',
-      name: '代码助手',
-      description: 'AI 代码生成与优化',
-      icon: LucideIcons.code2,
-      color: Color(0xFF4ECDC4),
-      builder: CodeApp.new,
-    ),
-    const SubApp(
-      id: 'database',
-      name: '数据库管理',
-      description: '数据库浏览与管理工具',
-      icon: LucideIcons.database,
-      color: Color(0xFFFF6B6B),
-      builder: DatabaseManagerApp.new,
-    ),
-    const SubApp(
-      id: 'bar',
-      name: '酒吧系统',
-      description: '酒吧点单与管理',
-      icon: LucideIcons.wine,
-      color: Color(0xFFE8AA42),
-      builder: BarApp.new,
-    ),
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -85,7 +41,6 @@ class _AppLauncherScreenState extends State<AppLauncherScreen> {
     });
 
     if (_currentToken.isEmpty) {
-      // 未登录，跳转到登录界面
       _logout();
       return;
     }
@@ -94,7 +49,6 @@ class _AppLauncherScreenState extends State<AppLauncherScreen> {
     final userResult = AuthFFI.instance.getCurrentUser(_currentToken);
     final userData = jsonDecode(userResult);
     if (userData['ok'] != true) {
-      // Token 无效，跳转到登录界面
       _logout();
       return;
     }
@@ -110,16 +64,12 @@ class _AppLauncherScreenState extends State<AppLauncherScreen> {
 
     if (data['ok'] == true) {
       final appList = data['data'] as List<dynamic>;
-      final appIds = appList.map((app) => app['app_name'] as String).toSet();
-
+      
       setState(() {
-        if (_role == 'admin') {
-          // 管理员可以看到所有应用
-          _apps = List.from(_allApps);
-        } else {
-          // 普通用户只能看到被分配的应用
-          _apps = _allApps.where((app) => appIds.contains(app.id)).toList();
-        }
+        _apps = appList
+            .map((app) => SubApp.fromJson(app as Map<String, dynamic>))
+            .where((app) => app.isEnabled)
+            .toList();
         _isLoading = false;
       });
     } else {
@@ -153,7 +103,7 @@ class _AppLauncherScreenState extends State<AppLauncherScreen> {
         title: Text('欢迎，$_username'),
         centerTitle: false,
         actions: [
-          if (_role == 'admin')
+          if (_role == 'admin') ...[
             IconButton(
               icon: const Icon(LucideIcons.users),
               onPressed: () {
@@ -161,10 +111,22 @@ class _AppLauncherScreenState extends State<AppLauncherScreen> {
                   MaterialPageRoute(
                     builder: (context) => UserManagementScreen(token: _currentToken),
                   ),
-                );
+                ).then((_) => _loadApps()); // 返回时刷新
               },
               tooltip: '用户管理',
             ),
+            IconButton(
+              icon: const Icon(LucideIcons.appWindow),
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => AppManagementScreen(token: _currentToken),
+                  ),
+                ).then((_) => _loadApps()); // 返回时刷新
+              },
+              tooltip: '应用管理',
+            ),
+          ],
           IconButton(
             icon: const Icon(LucideIcons.logOut),
             onPressed: _logout,
@@ -210,9 +172,17 @@ class _AppCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return HeroUiCard(
       onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => app.builder()),
-        );
+        // 根据路由获取对应的 Widget
+        final widget = getWidgetByRoute(app.route);
+        if (widget != null) {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => widget),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('未找到应用：${app.route}')),
+          );
+        }
       },
       borderRadius: 12,
       showShadow: false,

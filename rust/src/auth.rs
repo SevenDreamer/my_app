@@ -145,6 +145,9 @@ pub async fn init_auth_db(db_path: Option<&str>) -> anyhow::Result<String> {
     // 创建默认超级管理员账号（如果不存在）
     create_default_admin(&pool).await?;
     
+    // 创建默认子应用（如果不存在）
+    create_default_apps(&pool).await?;
+    
     // 保存连接池
     let mut db = DB_POOL.lock().await;
     *db = Some(pool);
@@ -212,7 +215,7 @@ async fn create_tables(pool: &SqlitePool) -> anyhow::Result<()> {
     Ok(())
 }
 
-/// 创建默认超级管理员账号
+/// 创建默认超级管理员账号和应用
 async fn create_default_admin(pool: &SqlitePool) -> anyhow::Result<()> {
     let count: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM users WHERE role = 'admin'")
         .fetch_one(pool)
@@ -231,6 +234,44 @@ async fn create_default_admin(pool: &SqlitePool) -> anyhow::Result<()> {
         .await?;
         
         eprintln!("Created default admin account: username=admin, password=admin123");
+    }
+    
+    Ok(())
+}
+
+/// 创建默认子应用
+async fn create_default_apps(pool: &SqlitePool) -> anyhow::Result<()> {
+    let count: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM apps")
+        .fetch_one(pool)
+        .await?;
+    
+    if count.0 == 0 {
+        let default_apps = vec![
+            ("chat", "聊天助手", "AI 智能对话助手", "message_circle", true),
+            ("image", "图片处理", "AI 图片编辑工具", "image", true),
+            ("code", "代码助手", "AI 代码生成与优化", "code2", true),
+            ("database", "数据库管理", "数据库浏览与管理工具", "database", true),
+            ("bar", "酒吧系统", "酒吧点单与管理", "wine", true),
+        ];
+        
+        let app_count = default_apps.len();
+        
+        for (app_name, display_name, description, icon, is_active) in &default_apps {
+            sqlx::query(
+                "INSERT INTO apps (app_name, display_name, description, icon, route, is_active) 
+                 VALUES (?, ?, ?, ?, ?, ?)"
+            )
+            .bind(*app_name)
+            .bind(*display_name)
+            .bind(*description)
+            .bind(*icon)
+            .bind(format!("/{}", app_name))
+            .bind(*is_active)
+            .execute(pool)
+            .await?;
+        }
+        
+        eprintln!("Created {} default apps", app_count);
     }
     
     Ok(())
@@ -561,13 +602,13 @@ pub async fn get_apps(token: &str) -> String {
     drop(current);
     
     let apps: Vec<AppInfo> = if user_role == "admin" {
-        // 管理员可以看到所有应用
-        sqlx::query_as("SELECT id, app_name, display_name, description, icon, route, is_active, created_at FROM apps WHERE is_active = 1")
+        // 管理员可以看到所有应用（包括禁用的）
+        sqlx::query_as("SELECT id, app_name, display_name, description, icon, route, is_active, created_at FROM apps")
             .fetch_all(&pool)
             .await
             .unwrap_or_default()
     } else {
-        // 普通用户只能看到被分配的应用
+        // 普通用户只能看到被分配且启用的应用
         let user_id = match *CURRENT_USER.lock().await {
             Some(ref user) if user.token == token => user.user_id,
             _ => return json_err("Not logged in"),
