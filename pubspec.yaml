@@ -50,6 +50,12 @@ dependencies:
   lucide_flutter: ^1.14.0
   shared_preferences: ^2.3.2
 
+  # 更新服务依赖
+  http: ^1.1.0
+  package_info_plus: ^4.0.0
+  path_provider: ^2.1.0
+  install_plugin: ^2.1.0
+
   # 数据库连接驱动
   sqflite_common_ffi: ^2.3.0 # SQLite (桌面端)
   postgres: ^3.4.0 # PostgreSQL (纯Dart实现)

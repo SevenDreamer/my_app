@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'src/ffi_manual.dart';
-import 'theme/app_theme.dart';
-import 'screens/app_launcher_screen.dart';
+import 'rust/ffi_manual.dart';
+import 'core/theme/app_theme.dart';
+import 'core/screens/app_launcher_screen.dart';
 
 void main() {
   HermesFFI.init();

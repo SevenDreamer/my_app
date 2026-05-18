@@ -1,5 +1,5 @@
-import '../models/database_models.dart';
-import '../widgets/db_tree_node.dart';
+import 'package:my_app/features/database/models/database_models.dart';
+import 'package:my_app/features/database/widgets/db_tree_node.dart';
 
 /// 数据库树控制器
 /// 负责处理树节点的所有交互逻辑

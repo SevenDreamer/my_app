@@ -3,126 +3,118 @@
 ## 整体架构
 
 ```
-┌──────────────────────────────────────────────────────────┐
-│                      中继服务器                            │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌────────────┐  │
-│  │ 消息路由  │ │ 离线队列  │ │ 状态同步  │ │ 模型训练    │  │
-│  │ (A2A协议) │ │          │ │          │ │ /下发服务   │  │
-│  └──────────┘ └──────────┘ └──────────┘ └────────────┘  │
-└──────────────────────────────────────────────────────────┘
-           │                    │                 │
-    WebSocket│             WebSocket│         FCM/APNs
-           │                    │                 │
-┌──────────┼────────────┐  ┌───┼─────────────────┼────────┐
-│  主手机 (Agent Alpha)  │  │  副手机 (Agent Beta)          │
-│                       │  │                                │
-│  ┌─────────────────┐  │  │  ┌─────────────────┐          │
-│  │  Flutter UI     │  │  │  │  Flutter UI     │          │
-│  │  (完整交互界面)   │  │  │  │  (极简状态面板)   │          │
-│  └────────┬────────┘  │  │  └────────┬────────┘          │
-│           │           │  │           │                    │
-│  ┌────────┴────────┐  │  │  ┌────────┴────────┐          │
-│  │  Rust Agent Core│  │  │  │  Rust Agent Core│          │
-│  │                 │  │  │  │                 │          │
-│  │  ┌───────────┐  │  │  │  │  ┌───────────┐  │          │
-│  │  │ 云端LLM   │  │  │  │  │  │ 本地小模型  │  │ ← Qwen3 4B │
-│  │  │ (深度推理) │  │  │  │  │  │ (快速响应)  │  │    Q4 量化  │
-│  │  └───────────┘  │  │  │  │  └───────────┘  │          │
-│  │                 │  │  │  │  ┌───────────┐  │          │
-│  │                 │  │  │  │  │ 云端LLM   │  │ ← 复杂问题  │
-│  │                 │  │  │  │  │ (按需调用)  │  │    兜底    │
-│  │                 │  │  │  │  └───────────┘  │          │
-│  │  ┌───────────┐  │  │  │  │                 │          │
-│  │  │ RAG 记忆  │  │  │  │  │  ┌───────────┐  │          │
-│  │  │ 技能库    │  │  │  │  │  │ RAG 记忆   │  │          │
-│  │  └───────────┘  │  │  │  │  │ 技能库     │  │          │
-│  │  ┌───────────┐  │  │  │  │  └───────────┘  │          │
-│  │  │ 手机操控  │  │  │  │  │  ┌───────────┐  │          │
-│  │  │ 系统API   │  │  │  │  │  │ 手机操控   │  │          │
-│  │  │ 无障碍服务│  │  │  │  │  │ 无障碍服务 │  │          │
-│  │  └───────────┘  │  │  │  │  └───────────┘  │          │
-│  └─────────────────┘  │  │  └─────────────────┘          │
-│                       │  │                                │
-│  前台服务保活 (Android) │  │  前台服务保活 (Android)         │
-│  推送驱动 (iOS)        │  │  推送驱动 (iOS)                 │
-└───────────────────────┘  └────────────────────────────────┘
+┌─────────────────────────────────────────────────┐
+│              Flutter (UI Layer)                 │
+│                                                 │
+│  ┌──────────────┐  ┌──────────────────────┐   │
+│  │  core/       │  │  features/           │   │
+│  │  (启动器页面) │  │  (各子应用模块)        │   │
+│  │              │  │  ├─ chat/             │   │
+│  │  theme/      │  │  ├─ image/            │   │
+│  │  models/     │  │  ├─ code/             │   │
+│  │  services/   │  │  ├─ database/         │   │
+│  │              │  │  └─ bar/              │   │
+│  └──────┬───────┘  └──────────┬───────────┘   │
+│         │                      │                  │
+│         └──────────┬───────────┘                  │
+│                    │                              │
+│         ┌──────────▼───────────┐                  │
+│         │   rust/ (FFI Layer)  │                  │
+│         │  ffi_manual.dart      │                  │
+│         │  api/simple.dart      │                  │
+│         └──────────┬───────────┘                  │
+└────────────────────┼──────────────────────────────┘
+                     │ dart:ffi
+┌────────────────────▼──────────────────────────────┐
+│              Rust (Native Library)                 │
+│                                                   │
+│  rust/                                             │
+│  ├── src/                                          │
+│  │   ├── api/  (对外接口)                          │
+│  │   └── ...                                       │
+│  └── Cargo.toml                                    │
+└───────────────────────────────────────────────────┘
 ```
+
+## 核心设计
+
+### 子应用注册机制
+
+所有子应用通过 `SubApp` 模型在 `app_launcher_screen.dart` 中集中注册：
+
+```dart
+final List<SubApp> _apps = [
+  SubApp(id: 'chat', name: '聊天助手', builder: ChatApp.new, ...),
+  // ...
+];
+```
+
+`SubApp` 模型包含：`id`、`name`、`description`、`icon`、`color`、`builder`（Widget 构建函数）。
+
+### 目录职责
+
+| 目录 | 职责 |
+|------|------|
+| `core/models/` | 公共模型（`SubApp` 等） |
+| `core/screens/` | 核心页面（启动器、设置等） |
+| `core/services/` | 全局服务（更新、配置等） |
+| `core/theme/` | 主题定义 |
+| `features/<name>/` | 各子应用的完整代码 |
+| `rust/` | Rust FFI 绑定层 |
+
+### 子应用模块结构
+
+每个 `features/<name>/` 内部可按需细分：
+
+```
+features/bar/
+├── bar_app.dart        # 子应用入口
+├── screens/            # 页面
+├── services/           # 业务逻辑
+└── widgets/            # 局部组件
+```
+
+不是所有子应用都需要 `screens/services/widgets`——简单子应用可以只有一个 `<name>_app.dart`。
 
 ## 技术选型
 
-### UI 层：Flutter
+### Flutter 端
 
-- 移动端交互体验最好（60FPS / 120Hz 动画）
-- 插件生态丰富（30000+，硬件全覆盖）
-- 一套代码 Android + iOS + Web + 桌面
-- 终端嵌入：xterm.dart + flutter_pty
-- 后台保活：flutter_foreground_task
+| 依赖 | 用途 |
+|------|------|
+| `flutter_rust_bridge` | Dart ↔ Rust FFI 桥接 |
+| `heroui_design_system` | 统一设计系统 |
+| `lucide_flutter` | 图标库 |
+| `sqflite_common_ffi` | SQLite（桌面端） |
+| `postgres` | PostgreSQL 驱动 |
+| `mysql1` | MySQL 驱动 |
+| `mongo_dart` | MongoDB 驱动 |
+| `shared_preferences` | 本地配置存储 |
 
-### Agent 核心：Rust
+### Rust 端
 
-- 编译为原生库（.so / .a），手机直接调用，无需 Python 运行时
-- 一套 Rust 代码 → Android / iOS / 桌面 / 服务端 四端复用
-- flutter_rust_bridge 桥接 Flutter ↔ Rust
+- 编译为各平台原生库（Windows `.dll`、macOS `.dylib`、Linux `.so`）
+- 通过 `flutter_rust_bridge` 自动生成 Dart 绑定
+- 适合：文件操作、系统调用、计算密集型任务
 
-### Agent 间通信：A2A Protocol
+## 数据流
 
-- Google 开源的 Agent-to-Agent 通信协议
-- 支持 Agent 发现、能力协商、任务委派、消息传递
-- 地址：https://a2a-protocol.org/
-
-### 本地模型推理：llama.cpp
-
-- 通过 llama-cpp-2 (Rust crate) 集成到 Rust Agent Core
-- 支持 GGUF 格式，Q4_K_M 量化
-- 纯 CPU 推理，手机无需 GPU
-
-### LLM API（云端兜底）
-
-- DeepSeek / OpenAI / Claude / Gemini
-- Agent Core 统一 LLM 接口，模型可切换
-
-### 中继服务器：Rust
-
-- 消息路由 + 离线队列 + 状态同步 + 推送触发
-- 与 Agent Core 共享通信协议代码
-
-## Rust Agent Core 框架备选
-
-| 框架 | 特点 | 地址 |
-|------|------|------|
-| AutoAgents | 模块化多 Agent，支持多 LLM 后端 | https://github.com/liquidos-ai/AutoAgents |
-| Rig | 统一 LLM 接口，模块化 | https://www.rig.rs/ |
-| ADK-Rust | 生产就绪，类型安全 | https://adk-rust.com/ |
-
-## Flutter 端依赖规划
-
-```yaml
-dependencies:
-  # 状态管理
-  flutter_riverpod: ^2.x
-  
-  # 路由
-  go_router: ^14.x
-  
-  # 网络
-  dio: ^5.x
-  
-  # Rust 桥接
-  flutter_rust_bridge: ^2.x
-  
-  # 后台保活 (Android)
-  flutter_foreground_task: ^8.x
-  
-  # 本地通知
-  flutter_local_notifications: ^18.x
-  
-  # 终端 (可选)
-  xterm: ^4.x
-  flutter_pty: ^0.x
-  
-  # 本地存储
-  hive: ^4.x
-  
-  # 推送
-  firebase_messaging: ^15.x
+```
+用户操作
+  │
+  ▼
+Flutter UI (features/<name>/)
+  │
+  ├── 纯 Dart 逻辑（直接处理）
+  │
+  └── 需要原生能力
+        │
+        ▼
+  rust/ffi_manual.dart 或 rust/api/simple.dart
+        │
+        ▼
+  Rust Native Library (rust/src/)
+        │
+        ▼
+  系统 API / 文件 / 计算...
 ```

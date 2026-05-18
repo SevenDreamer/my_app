@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:heroui_design_system/heroui_design_system.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
-import '../models/sub_app.dart';
-import '../apps/chat_app.dart';
-import '../apps/image_app.dart';
-import '../apps/code_app.dart';
-import '../apps/database_manager_app.dart';
-import '../apps/bar_app.dart';
+import 'package:my_app/core/models/sub_app.dart';
+import 'package:my_app/features/chat/chat_app.dart';
+import 'package:my_app/features/image/image_app.dart';
+import 'package:my_app/features/code/code_app.dart';
+import 'package:my_app/features/database/database_app.dart';
+import 'package:my_app/features/bar/bar_app.dart';
 
 /// 子应用启动器（主界面）
 class AppLauncherScreen extends StatelessWidget {
@@ -14,44 +14,44 @@ class AppLauncherScreen extends StatelessWidget {
 
   // 子应用列表
   final List<SubApp> _apps = [
-    SubApp(
+    const SubApp(
       id: 'chat',
       name: '聊天助手',
       description: 'AI 智能对话助手',
       icon: LucideIcons.messageCircle,
-      color: const Color(0xFF7C5CFC),
+      color: Color(0xFF7C5CFC),
       builder: ChatApp.new,
     ),
-    SubApp(
+    const SubApp(
       id: 'image',
       name: '图片处理',
       description: 'AI 图片编辑工具',
       icon: LucideIcons.image,
-      color: const Color(0xFF57A6FF),
+      color: Color(0xFF57A6FF),
       builder: ImageApp.new,
     ),
-    SubApp(
+    const SubApp(
       id: 'code',
       name: '代码助手',
       description: 'AI 代码生成与优化',
       icon: LucideIcons.code2,
-      color: const Color(0xFF4ECDC4),
+      color: Color(0xFF4ECDC4),
       builder: CodeApp.new,
     ),
-    SubApp(
+    const SubApp(
       id: 'database',
       name: '数据库管理',
       description: '数据库浏览与管理工具',
       icon: LucideIcons.database,
-      color: const Color(0xFFFF6B6B),
+      color: Color(0xFFFF6B6B),
       builder: DatabaseManagerApp.new,
     ),
-    SubApp(
+    const SubApp(
       id: 'bar',
       name: '酒吧系统',
       description: '酒吧点单与管理',
       icon: LucideIcons.wine,
-      color: const Color(0xFFE8AA42),
+      color: Color(0xFFE8AA42),
       builder: BarApp.new,
     ),
   ];
@@ -60,7 +60,7 @@ class AppLauncherScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Hermes Agent'),
+        title: null,
         centerTitle: false,
         actions: [
           IconButton(
@@ -77,29 +77,11 @@ class AppLauncherScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 欢迎语
-            const Text(
-              '欢迎使用 Hermes Agent',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              '选择要使用的工具',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey,
-              ),
-            ),
-            const SizedBox(height: 32),
-
             // 子应用列表
             Expanded(
               child: ListView.separated(
                 itemCount: _apps.length,
-                separatorBuilder: (context, index) => const SizedBox(height: 12),
+                separatorBuilder: (context, index) => const SizedBox(height: 4),
                 itemBuilder: (context, index) {
                   final app = _apps[index];
                   return _AppCard(app: app);
@@ -113,7 +95,7 @@ class AppLauncherScreen extends StatelessWidget {
   }
 }
 
-/// 子应用卡片（使用 HeroUI 组件）
+/// 子应用列表项（简洁风格）
 class _AppCard extends StatelessWidget {
   final SubApp app;
 
@@ -127,67 +109,31 @@ class _AppCard extends StatelessWidget {
           MaterialPageRoute(builder: (_) => app.builder()),
         );
       },
-      borderRadius: 16,
+      borderRadius: 12,
       showShadow: false,
       borderColor: Colors.transparent,
       body: Row(
         children: [
           // 图标
           Container(
-            width: 56,
-            height: 56,
+            width: 40,
+            height: 40,
             decoration: BoxDecoration(
-              color: app.color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
+              color: app.color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(
-              app.icon,
-              size: 28,
-              color: app.color,
-            ),
-          ),
-          const SizedBox(width: 20),
-
-          // 文字信息
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 应用名称
-                Text(
-                  app.name,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-
-                // 应用描述
-                Text(
-                  app.description,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withOpacity(0.6),
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
+            child: Icon(app.icon, size: 22, color: app.color),
           ),
           const SizedBox(width: 16),
 
-          // 打开箭头
-          Icon(
-            LucideIcons.arrowRight,
-            size: 20,
-            color: app.color,
+          // 应用名称
+          Expanded(
+            child: Text(
+              app.name,
+              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
         ],
       ),
