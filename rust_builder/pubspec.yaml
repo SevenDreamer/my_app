@@ -1,5 +1,5 @@
-name: hermes_agent
-description: "Utility to build Rust code"
+name: my_app_rust
+description: "Rust FFI plugin for My App"
 version: 0.0.1
 publish_to: none
 

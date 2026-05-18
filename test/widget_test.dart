@@ -5,7 +5,6 @@
 // gestures. You can also use WidgetTester to find child widgets in the widget
 // tree, read text, and verify that the values of widget properties are correct.
 
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:my_app/main.dart';
@@ -16,7 +15,7 @@ void main() {
     await tester.pumpWidget(const MyApp());
 
     // Verify that the app title is displayed.
-    expect(find.text('Hermes Agent'), findsOneWidget);
+    expect(find.text('My App'), findsOneWidget);
 
     // Verify that the FFI demo section exists.
     expect(find.textContaining('FFI Demo'), findsAtLeast(1));

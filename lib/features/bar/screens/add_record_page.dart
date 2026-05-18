@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_flutter/lucide_flutter.dart';
 import '../widgets/record_input_panel.dart';
 import '../services/tag_service.dart';
 
-/// 新增资产记录页面
+/// 新增资产记录页面（使用 shadcn_flutter，无 Scaffold）
 class AddRecordPage extends StatefulWidget {
   const AddRecordPage({super.key});
 
@@ -10,7 +11,8 @@ class AddRecordPage extends StatefulWidget {
   State<AddRecordPage> createState() => AddRecordPageState();
 }
 
-class AddRecordPageState extends State<AddRecordPage> with SingleTickerProviderStateMixin {
+class AddRecordPageState extends State<AddRecordPage>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   int _selectedIndex = 0;
   String? _selectedTag;
@@ -72,35 +74,50 @@ class AddRecordPageState extends State<AddRecordPage> with SingleTickerProviderS
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(LucideIcons.arrowLeft),
           onPressed: () => Navigator.pop(context),
         ),
-        title: SegmentedButton<int>(
-          segments: const [
-            ButtonSegment(value: 0, label: Text('支出')),
-            ButtonSegment(value: 1, label: Text('收入')),
-          ],
-          selected: {_selectedIndex},
-          onSelectionChanged: _onSegmentChanged,
-        ),
-        centerTitle: true,
+        title: const Text('记一笔'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        actions: const [],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : RecordInputPanel(
-              tags: currentTags,
-              selectedTag: _selectedTag,
-              onTagSelected: _onTagSelected,
+          : Column(
+              children: [
+                // 支出/收入 分段选择
+                Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: SegmentedButton<int>(
+                    segments: const [
+                      ButtonSegment(value: 0, label: Text('支出')),
+                      ButtonSegment(value: 1, label: Text('收入')),
+                    ],
+                    selected: {_selectedIndex},
+                    onSelectionChanged: (selected) {
+                      _onSegmentChanged(selected.first);
+                    },
+                  ),
+                ),
+                Expanded(
+                  child: RecordInputPanel(
+                    tags: currentTags,
+                    selectedTag: _selectedTag,
+                    onTagSelected: _onTagSelected,
+                  ),
+                ),
+              ],
             ),
     );
   }
 
-  void _onSegmentChanged(Set<int> selection) {
+  void _onSegmentChanged(int index) {
     setState(() {
-      _selectedIndex = selection.first;
+      _selectedIndex = index;
       _selectedTag = null;
     });
-    _tabController.animateTo(selection.first);
+    _tabController.animateTo(index);
   }
 
   void _onTagSelected(String? tag) {

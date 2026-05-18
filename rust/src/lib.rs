@@ -4,6 +4,7 @@ pub mod api;
 // mod frb_generated;
 
 pub mod ffi_manual;
+pub mod database;
 
 // 暂时只导出 ffi_manual（手动 FFI）
 // api::simple 中的函数等 codegen 修复后再启用

@@ -29,7 +29,7 @@ unsafe fn c_char_to_rust_str<'a>(s: *const c_char) -> &'a str {
 
 /// greet 函数 - FFI 导出
 #[no_mangle]
-pub extern "C" fn hermes_greet(name: *const c_char) -> *mut c_char {
+pub extern "C" fn my_app_greet(name: *const c_char) -> *mut c_char {
     let name_str = unsafe { c_char_to_rust_str(name).to_string() };
     let result = format!("Hello, {name_str}!");
     rust_str_to_c(result)
@@ -37,20 +37,20 @@ pub extern "C" fn hermes_greet(name: *const c_char) -> *mut c_char {
 
 /// ping 函数 - FFI 导出
 #[no_mangle]
-pub extern "C" fn hermes_ping() -> *mut c_char {
+pub extern "C" fn my_app_ping() -> *mut c_char {
     rust_str_to_c("pong".to_string())
 }
 
 /// get_core_version 函数 - FFI 导出
 #[no_mangle]
-pub extern "C" fn hermes_get_core_version() -> *mut c_char {
+pub extern "C" fn my_app_get_core_version() -> *mut c_char {
     let version = env!("CARGO_PKG_VERSION").to_string();
     rust_str_to_c(version)
 }
 
 /// 释放 C 字符串内存（由 Dart 侧调用）
 #[no_mangle]
-pub extern "C" fn hermes_free_string(s: *mut c_char) {
+pub extern "C" fn my_app_free_string(s: *mut c_char) {
     if !s.is_null() {
         unsafe {
             let _ = CString::from_raw(s);
@@ -58,13 +58,13 @@ pub extern "C" fn hermes_free_string(s: *mut c_char) {
     }
 }
 
-/// init_hermes 函数 - FFI 导出
+/// init_my_app 函数 - FFI 导出
 #[no_mangle]
-pub extern "C" fn hermes_init(log_level: *const c_char) -> *mut c_char {
+pub extern "C" fn my_app_init(log_level: *const c_char) -> *mut c_char {
     let level = unsafe { c_char_to_rust_str(log_level).to_string() };
     // 设置日志级别（简化版）
     let result = format!(
-        "Hermes Agent Core v{} initialized (log={level})",
+        "My App Core v{} initialized (log={level})",
         env!("CARGO_PKG_VERSION")
     );
     rust_str_to_c(result)

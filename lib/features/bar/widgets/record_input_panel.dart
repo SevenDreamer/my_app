@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart' as shadcn;
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'tag_selector_sheet.dart';
 import 'numeric_keyboard.dart';
 
-/// 记账输入面板
+/// 记账输入面板（使用 shadcn_flutter 样式）
 class RecordInputPanel extends StatefulWidget {
   final List<String> tags;
   final String? selectedTag;
@@ -142,23 +143,25 @@ class _RecordInputPanelState extends State<RecordInputPanel> {
     return SafeArea(
       child: Align(
         alignment: Alignment.bottomCenter,
-        child: Card(
-          margin: const EdgeInsets.all(12),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildInputRow(),
-              _buildTagRow(),
-              const Divider(height: 8),
-              NumericKeyboard(
-                onKeyTap: _onKeyTap,
-                onBackspace: _onBackspace,
-                onPlus: _onPlus,
-                onMinus: _onMinus,
-                onAddAnother: _onAddAnother,
-                onComplete: _onComplete,
-              ),
-            ],
+        child: shadcn.Card(
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildInputRow(),
+                _buildTagRow(),
+                const Divider(height: 8),
+                NumericKeyboard(
+                  onKeyTap: _onKeyTap,
+                  onBackspace: _onBackspace,
+                  onPlus: _onPlus,
+                  onMinus: _onMinus,
+                  onAddAnother: _onAddAnother,
+                  onComplete: _onComplete,
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -166,38 +169,30 @@ class _RecordInputPanelState extends State<RecordInputPanel> {
   }
 
   Widget _buildInputRow() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      child: Row(
-        children: [
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(LucideIcons.camera, size: 20),
-            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-            padding: EdgeInsets.zero,
-          ),
-          Expanded(
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: '备注',
-                hintStyle: TextStyle(
-                  fontSize: 14,
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4),
-                ),
-                border: InputBorder.none,
-                isDense: true,
-                contentPadding: const EdgeInsets.symmetric(vertical: 8),
-              ),
-              style: const TextStyle(fontSize: 14),
-              onChanged: (value) => _remark = value,
+    return Row(
+      children: [
+        shadcn.GhostButton(
+          onPressed: () {},
+          child: const Icon(LucideIcons.camera, size: 20),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: TextField(
+            decoration: const InputDecoration(
+              hintText: '备注',
+              border: InputBorder.none,
+              isDense: true,
+              contentPadding: EdgeInsets.symmetric(vertical: 8),
             ),
+            style: const TextStyle(fontSize: 14),
+            onChanged: (value) => _remark = value,
           ),
-          Text(
-            '¥${_expression.isEmpty ? '0' : _expression}',
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-          ),
-        ],
-      ),
+        ),
+        Text(
+          '¥${_expression.isEmpty ? '0' : _expression}',
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+        ),
+      ],
     );
   }
 
@@ -209,20 +204,22 @@ class _RecordInputPanelState extends State<RecordInputPanel> {
           Expanded(
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 4),
               itemCount: widget.tags.length,
               itemBuilder: (context, index) {
                 final tag = widget.tags[index];
                 final isSelected = widget.selectedTag == tag;
                 return Padding(
                   padding: const EdgeInsets.only(right: 6),
-                  child: FilterChip(
-                    label: Text(tag, style: const TextStyle(fontSize: 12)),
-                    selected: isSelected,
-                    onSelected: (_) => widget.onTagSelected?.call(isSelected ? null : tag),
-                    labelPadding: const EdgeInsets.symmetric(horizontal: 6),
-                    padding: EdgeInsets.zero,
-                    visualDensity: VisualDensity.compact,
+                  child: GestureDetector(
+                    onTap: () => widget.onTagSelected?.call(isSelected ? null : tag),
+                    child: isSelected
+                        ? shadcn.PrimaryBadge(
+                            child: Text(tag, style: const TextStyle(fontSize: 12)),
+                          )
+                        : shadcn.OutlineBadge(
+                            child: Text(tag, style: const TextStyle(fontSize: 12)),
+                          ),
                   ),
                 );
               },

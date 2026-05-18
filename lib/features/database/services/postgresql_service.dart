@@ -21,7 +21,7 @@ class PostgreSQLService extends DatabaseService {
 
     _connection = await Connection.open(
       endpoint,
-      settings: ConnectionSettings(
+      settings: const ConnectionSettings(
         sslMode: SslMode.disable,
       ),
     );
@@ -66,7 +66,7 @@ class PostgreSQLService extends DatabaseService {
 
     _connection = await Connection.open(
       endpoint,
-      settings: ConnectionSettings(sslMode: SslMode.disable),
+      settings: const ConnectionSettings(sslMode: SslMode.disable),
     );
 
     final result = await _connection!.execute('''
@@ -152,7 +152,7 @@ class PostgreSQLService extends DatabaseService {
       username: config.username ?? 'postgres',
       password: config.password ?? '',
     );
-    _connection = await Connection.open(endpoint, settings: ConnectionSettings(sslMode: SslMode.disable));
+    _connection = await Connection.open(endpoint, settings: const ConnectionSettings(sslMode: SslMode.disable));
 
     final result = await _connection!.execute(
       'SELECT * FROM "$tableName" LIMIT $limit OFFSET $offset',

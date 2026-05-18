@@ -45,7 +45,7 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.6
-  hermes_agent:
+  my_app_rust:
     path: rust_builder
   lucide_flutter: ^1.14.0
   shared_preferences: ^2.3.2
@@ -70,6 +70,7 @@ dependencies:
     git:
       url: https://github.com/tereshin/the-blank.git
       path: packages/heroui_design_system
+  shadcn_flutter: ^0.0.52
 
 dev_dependencies:
   flutter_test:

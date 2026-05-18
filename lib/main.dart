@@ -1,10 +1,10 @@
-import 'package:flutter/material.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'rust/ffi_manual.dart';
 import 'core/theme/app_theme.dart';
 import 'core/screens/app_launcher_screen.dart';
 
 void main() {
-  HermesFFI.init();
+  CoreFFI.init();
   runApp(const MyApp());
 }
 
@@ -13,9 +13,10 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Hermes Agent',
-      theme: obsidianTheme(),
+    return ShadcnApp(
+      title: 'My App',
+      theme: const ThemeData.dark(),
+      materialTheme: obsidianTheme(),
       home: AppLauncherScreen(),
       debugShowCheckedModeBanner: false,
     );

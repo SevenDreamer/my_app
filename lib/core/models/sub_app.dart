@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_flutter/lucide_flutter.dart';
 
 /// 子应用模型
 class SubApp {

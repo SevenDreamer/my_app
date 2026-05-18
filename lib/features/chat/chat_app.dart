@@ -31,7 +31,7 @@ class ChatApp extends StatelessWidget {
                 color: Color(0xFF7C5CFC),
               ),
               const SizedBox(height: 16),
-              Text(
+              const Text(
                 '聊天助手',
                 style: HeroUiTypography.heading3,
               ),

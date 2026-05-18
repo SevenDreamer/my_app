@@ -81,15 +81,15 @@ install(FILES "${FLUTTER_ICU_DATA_FILE}" DESTINATION "${INSTALL_BUNDLE_DATA_DIR}
 install(FILES "${FLUTTER_LIBRARY}" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
   COMPONENT Runtime)
 
-# Copy hermes_agent.dll (Rust FFI library)
-set(HERMES_DLL_SOURCE "${CMAKE_SOURCE_DIR}/../rust/target/release/hermes_agent.dll")
-if(EXISTS "${HERMES_DLL_SOURCE}")
-  install(FILES "${HERMES_DLL_SOURCE}"
+# Copy my_app.dll (Rust FFI library)
+set(MY_APP_DLL_SOURCE "${CMAKE_SOURCE_DIR}/../rust/target/release/my_app.dll")
+if(EXISTS "${MY_APP_DLL_SOURCE}")
+  install(FILES "${MY_APP_DLL_SOURCE}"
     DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
     COMPONENT Runtime)
-  message(STATUS "Found hermes_agent.dll at ${HERMES_DLL_SOURCE}")
+  message(STATUS "Found my_app.dll at ${MY_APP_DLL_SOURCE}")
 else()
-  message(WARNING "hermes_agent.dll not found at ${HERMES_DLL_SOURCE}. Run 'cargo build --release' in rust/ directory.")
+  message(WARNING "my_app.dll not found at ${MY_APP_DLL_SOURCE}. Run 'cargo build --release' in rust/ directory.")
 endif()
 
 if(PLUGIN_BUNDLED_LIBRARIES)

@@ -31,7 +31,7 @@ class CodeApp extends StatelessWidget {
                 color: Color(0xFF4ECDC4),
               ),
               const SizedBox(height: 16),
-              Text(
+              const Text(
                 '代码助手',
                 style: HeroUiTypography.heading3,
               ),

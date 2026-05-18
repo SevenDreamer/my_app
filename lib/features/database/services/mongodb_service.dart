@@ -56,10 +56,10 @@ class MongoDBService extends DatabaseService {
       final sample = await collection.findOne();
       List<FieldInfo> fields = [];
       
-      if (sample != null && sample is Map) {
+      if (sample != null) {
         sample.forEach((key, value) {
           fields.add(FieldInfo(
-            name: key as String,
+            name: key,
             type: _inferType(value),
             isNullable: true,
           ));
@@ -88,7 +88,7 @@ class MongoDBService extends DatabaseService {
     List<FieldInfo> fields = [];
     sample.forEach((key, value) {
       fields.add(FieldInfo(
-        name: key as String,
+        name: key,
         type: _inferType(value),
         isNullable: true,
       ));

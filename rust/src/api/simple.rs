@@ -1,5 +1,5 @@
 //!
-//! Hermes Agent - 对外 FFI API
+//! My App - 对外 FFI API
 //!
 //! 此文件由 flutter_rust_bridge_codegen 处理，自动生成 Dart 侧绑定。
 
@@ -78,12 +78,12 @@ pub struct AgentConfig {
 // Core 初始化
 // ============================
 
-/// 初始化 Hermes Agent Core
+/// 初始化 My App Core
 #[flutter_rust_bridge::frb(sync)]
-pub fn init_hermes(log_level: String) -> String {
+pub fn init_my_app(log_level: String) -> String {
     std::env::set_var("RUST_LOG", &log_level);
     format!(
-        "Hermes Agent Core v{} initialized (log={})",
+        "My App Core v{} initialized (log={})",
         env!("CARGO_PKG_VERSION"),
         log_level
     )

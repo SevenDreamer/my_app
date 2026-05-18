@@ -31,7 +31,7 @@ class ImageApp extends StatelessWidget {
                 color: Color(0xFF57A6FF),
               ),
               const SizedBox(height: 16),
-              Text(
+              const Text(
                 '图片处理',
                 style: HeroUiTypography.heading3,
               ),

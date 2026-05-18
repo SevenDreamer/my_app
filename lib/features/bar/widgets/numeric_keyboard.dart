@@ -61,7 +61,7 @@ class NumericKeyboard extends StatelessWidget {
         builder: (context) => Icon(
           LucideIcons.delete,
           size: 16,
-          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
         ),
       );
     }

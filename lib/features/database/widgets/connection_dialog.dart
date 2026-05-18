@@ -161,7 +161,7 @@ class _ConnectionDialogState extends State<ConnectionDialog> {
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<DbType>(
-                  value: _selectedType,
+                  initialValue: _selectedType,
                   decoration: const InputDecoration(labelText: '数据库类型'),
                   items: DbType.values.map((type) {
                     return DropdownMenuItem(

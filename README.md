@@ -1,4 +1,4 @@
-# Hermes Agent
+# My App
 
 内置多子应用的 Flutter + Rust 桌面应用平台。所有子应用内置在主应用中，通过启动器页面选择切换。
 

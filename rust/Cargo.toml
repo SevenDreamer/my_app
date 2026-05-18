@@ -1,8 +1,8 @@
 [package]
-name = "hermes_agent"
+name = "my_app"
 version = "0.1.0"
 edition = "2021"
-description = "Hermes Agent - Rust Core"
+description = "My App - Rust Core"
 
 [lib]
 crate-type = ["staticlib", "cdylib"]
@@ -16,6 +16,18 @@ log = "0.4"
 reqwest = { version = "0.12", features = ["json", "rustls-tls"], default-features = false }
 anyhow = "1"
 thiserror = "2"
+
+# 数据库
+sqlx = { version = "0.8", features = [
+  "runtime-tokio-rustls",  # 使用 tokio + rustls（原生 TLS）
+  "sqlite",                   # SQLite
+  "mysql",                   # MySQL
+  "postgres",                # PostgreSQL
+] }
+mongodb = { version = "3" }  # tokio runtime 是默认内置的
+uuid = { version = "1", features = ["v4", "serde"] }
+urlencoding = "2"
+once_cell = "1"
 
 [profile.release]
 lto = true

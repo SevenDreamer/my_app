@@ -22,8 +22,6 @@ ThemeData obsidianTheme() {
       primary: obsidianAccent,
       secondary: obsidianAccentAlt,
       surface: obsidianSurface,
-      background: obsidianBg,
-      onBackground: obsidianText,
       onSurface: obsidianText,
     ),
     scaffoldBackgroundColor: obsidianBg,
@@ -63,12 +61,12 @@ ThemeData obsidianTheme() {
         ),
       ),
     ),
-    navigationRailTheme: NavigationRailThemeData(
+    navigationRailTheme: const NavigationRailThemeData(
       backgroundColor: obsidianBg,
-      selectedIconTheme: const IconThemeData(color: obsidianAccent),
-      unselectedIconTheme: const IconThemeData(color: obsidianTextMuted),
-      selectedLabelTextStyle: const TextStyle(color: obsidianAccent),
-      unselectedLabelTextStyle: const TextStyle(color: obsidianTextMuted),
+      selectedIconTheme: IconThemeData(color: obsidianAccent),
+      unselectedIconTheme: IconThemeData(color: obsidianTextMuted),
+      selectedLabelTextStyle: TextStyle(color: obsidianAccent),
+      unselectedLabelTextStyle: TextStyle(color: obsidianTextMuted),
     ),
     dividerTheme: const DividerThemeData(
       color: obsidianBorder,

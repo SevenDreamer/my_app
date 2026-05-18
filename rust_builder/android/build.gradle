@@ -1,4 +1,4 @@
-group 'com.flutter_rust_bridge.hermes_agent'
+group 'com.flutter_rust_bridge.my_app'
 version '1.0'
 
 rootProject.allprojects {
@@ -13,7 +13,7 @@ rootProject.allprojects {
 apply plugin: 'com.android.library'
 
 android {
-    namespace 'com.flutter_rust_bridge.hermes_agent'
+    namespace 'com.flutter_rust_bridge.my_app'
 
     compileSdk 34
     ndkVersion "26.3.11579264"
@@ -32,5 +32,5 @@ android {
 apply from: "../cargokit/gradle/plugin.gradle"
 cargokit {
     manifestDir = "../../rust"
-    libname = "hermes_agent"
+    libname = "my_app"
 }

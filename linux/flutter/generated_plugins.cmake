@@ -6,8 +6,8 @@ list(APPEND FLUTTER_PLUGIN_LIST
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST
-  hermes_agent
   jni
+  my_app_rust
 )
 
 set(PLUGIN_BUNDLED_LIBRARIES)

@@ -10,18 +10,18 @@ import 'dart:io' show Platform;
 import 'package:ffi/ffi.dart';
 
 /// FFI 绑定类（单例模式）
-class HermesFFI {
-  static late final HermesFFI _instance;
+class CoreFFI {
+  static late final CoreFFI _instance;
   late final ffi.DynamicLibrary _dylib;
 
   /// 私有构造函数
-  HermesFFI._() {
+  CoreFFI._() {
     if (Platform.isWindows) {
-      _dylib = ffi.DynamicLibrary.open('hermes_agent.dll');
+      _dylib = ffi.DynamicLibrary.open('my_app.dll');
     } else if (Platform.isLinux) {
-      _dylib = ffi.DynamicLibrary.open('libhermes_agent.so');
+      _dylib = ffi.DynamicLibrary.open('libmy_app.so');
     } else if (Platform.isMacOS) {
-      _dylib = ffi.DynamicLibrary.open('libhermes_agent.dylib');
+      _dylib = ffi.DynamicLibrary.open('libmy_app.dylib');
     } else if (Platform.isAndroid) {
       // Android: library is bundled in APK, load from process
       _dylib = ffi.DynamicLibrary.process();
@@ -32,18 +32,18 @@ class HermesFFI {
 
   /// 初始化 FFI（必须在调用任何方法前调用）
   static void init() {
-    _instance = HermesFFI._();
+    _instance = CoreFFI._();
   }
 
   /// 获取单例实例
-  static HermesFFI get instance => _instance;
+  static CoreFFI get instance => _instance;
 
   // ==================== 函数签名定义 ====================
 
-  /// init_hermes: 返回 CString 指针
-  late final _initHermes = _dylib
+  /// init_my_app: 返回 CString 指针
+  late final _initMyApp = _dylib
       .lookupFunction<Pointer<Utf8> Function(Pointer<Utf8>),
-          Pointer<Utf8> Function(Pointer<Utf8>)>('init_hermes');
+          Pointer<Utf8> Function(Pointer<Utf8>)>('init_my_app');
 
   /// get_core_version: 返回 CString 指针
   late final _getCoreVersion = _dylib
@@ -73,10 +73,10 @@ class HermesFFI {
 
   // ==================== Dart 封装方法 ====================
 
-  /// 初始化 Hermes
-  String initHermes({String logLevel = 'info'}) {
+  /// 初始化 My App
+  String initMyApp({String logLevel = 'info'}) {
     final logLevelC = logLevel.toNativeUtf8();
-    final resultPtr = _initHermes(logLevelC);
+    final resultPtr = _initMyApp(logLevelC);
     final result = resultPtr.toDartString();
     _freeString(resultPtr.cast());
     return result;
@@ -105,6 +105,116 @@ class HermesFFI {
   String llmListModels({String provider = 'deepseek'}) {
     final providerC = provider.toNativeUtf8();
     final resultPtr = _llmListModels(providerC);
+    final result = resultPtr.toDartString();
+    _freeString(resultPtr.cast());
+    return result;
+  }
+
+  // ==================== 数据库 FFI 函数 ====================
+
+  /// db_connect: 返回 JSON 字符串指针
+  late final _dbConnect = _dylib.lookupFunction<
+      Pointer<Utf8> Function(Pointer<Utf8>),
+      Pointer<Utf8> Function(Pointer<Utf8>)>('db_connect');
+
+  /// db_disconnect: 返回 JSON 字符串指针
+  late final _dbDisconnect = _dylib.lookupFunction<
+      Pointer<Utf8> Function(Pointer<Utf8>),
+      Pointer<Utf8> Function(Pointer<Utf8>)>('db_disconnect');
+
+  /// db_get_databases: 返回 JSON 字符串指针
+  late final _dbGetDatabases = _dylib.lookupFunction<
+      Pointer<Utf8> Function(Pointer<Utf8>),
+      Pointer<Utf8> Function(Pointer<Utf8>)>('db_get_databases');
+
+  /// db_get_tables: 返回 JSON 字符串指针
+  late final _dbGetTables = _dylib.lookupFunction<
+      Pointer<Utf8> Function(Pointer<Utf8>, Pointer<Utf8>),
+      Pointer<Utf8> Function(Pointer<Utf8>, Pointer<Utf8>)>('db_get_tables');
+
+  /// db_get_fields: 返回 JSON 字符串指针
+  late final _dbGetFields = _dylib.lookupFunction<
+      Pointer<Utf8> Function(Pointer<Utf8>, Pointer<Utf8>, Pointer<Utf8>),
+      Pointer<Utf8> Function(Pointer<Utf8>, Pointer<Utf8>, Pointer<Utf8>)>('db_get_fields');
+
+  /// db_get_table_data: 返回 JSON 字符串指针
+  late final _dbGetTableData = _dylib.lookupFunction<
+      Pointer<Utf8> Function(Pointer<Utf8>, Pointer<Utf8>, Pointer<Utf8>, Int64, Int64),
+      Pointer<Utf8> Function(Pointer<Utf8>, Pointer<Utf8>, Pointer<Utf8>, int, int)>('db_get_table_data');
+
+  /// db_test_connection: 返回 JSON 字符串指针
+  late final _dbTestConnection = _dylib.lookupFunction<
+      Pointer<Utf8> Function(Pointer<Utf8>),
+      Pointer<Utf8> Function(Pointer<Utf8>)>('db_test_connection');
+
+  // ==================== 数据库 Dart 封装 ====================
+
+  /// 连接数据库
+  /// [configJson] DbConnectionConfig 的 JSON 字符串
+  /// 返回：{"ok": true, "conn_id": "..."} 或 {"ok": false, "error": "..."}
+  String dbConnect(String configJson) {
+    final configC = configJson.toNativeUtf8();
+    final resultPtr = _dbConnect(configC);
+    final result = resultPtr.toDartString();
+    _freeString(resultPtr.cast());
+    return result;
+  }
+
+  /// 断开连接
+  String dbDisconnect(String connId) {
+    final cidC = connId.toNativeUtf8();
+    final resultPtr = _dbDisconnect(cidC);
+    final result = resultPtr.toDartString();
+    _freeString(resultPtr.cast());
+    return result;
+  }
+
+  /// 获取数据库列表
+  String dbGetDatabases(String connId) {
+    final cidC = connId.toNativeUtf8();
+    final resultPtr = _dbGetDatabases(cidC);
+    final result = resultPtr.toDartString();
+    _freeString(resultPtr.cast());
+    return result;
+  }
+
+  /// 获取表列表
+  String dbGetTables(String connId, String databaseName) {
+    final cidC = connId.toNativeUtf8();
+    final dbC = databaseName.toNativeUtf8();
+    final resultPtr = _dbGetTables(cidC, dbC);
+    final result = resultPtr.toDartString();
+    _freeString(resultPtr.cast());
+    return result;
+  }
+
+  /// 获取表字段信息
+  String dbGetFields(String connId, String databaseName, String tableName) {
+    final cidC = connId.toNativeUtf8();
+    final dbC = databaseName.toNativeUtf8();
+    final tableC = tableName.toNativeUtf8();
+    final resultPtr = _dbGetFields(cidC, dbC, tableC);
+    final result = resultPtr.toDartString();
+    _freeString(resultPtr.cast());
+    return result;
+  }
+
+  /// 获取表数据（分页）
+  String dbGetTableData(String connId, String databaseName, String tableName,
+      {int limit = 100, int offset = 0}) {
+    final cidC = connId.toNativeUtf8();
+    final dbC = databaseName.toNativeUtf8();
+    final tableC = tableName.toNativeUtf8();
+    final resultPtr = _dbGetTableData(cidC, dbC, tableC, limit, offset);
+    final result = resultPtr.toDartString();
+    _freeString(resultPtr.cast());
+    return result;
+  }
+
+  /// 测试连接
+  String dbTestConnection(String configJson) {
+    final configC = configJson.toNativeUtf8();
+    final resultPtr = _dbTestConnection(configC);
     final result = resultPtr.toDartString();
     _freeString(resultPtr.cast());
     return result;

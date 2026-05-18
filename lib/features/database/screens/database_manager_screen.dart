@@ -6,10 +6,6 @@ import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/database_models.dart';
-import '../services/sqlite_service.dart' show SQLiteService;
-import '../services/postgresql_service.dart' show PostgreSQLService;
-import '../services/mysql_service.dart' show MySQLService;
-import '../services/mongodb_service.dart' show MongoDBService;
 import '../services/database_service.dart';
 import '../widgets/connection_dialog.dart';
 import '../widgets/database_tree_widget.dart';
@@ -133,16 +129,22 @@ class _DatabaseManagerScreenState extends State<DatabaseManagerScreen> {
   }
 
   /// 创建数据库服务
+  /// 使用混合模式：优先 Rust FFI，未实现则降级到 Dart
   DatabaseService _createService(DbConnectionConfig config) {
-    switch (config.type) {
+    return HybridDatabaseService(config);
+  }
+
+  /// DbType → 字符串
+  String _dbTypeToString(DbType type) {
+    switch (type) {
       case DbType.sqlite:
-        return SQLiteService(config);
+        return 'sqlite';
       case DbType.mysql:
-        return MySQLService(config);
+        return 'mysql';
       case DbType.postgresql:
-        return PostgreSQLService(config);
+        return 'postgresql';
       case DbType.mongodb:
-        return MongoDBService(config);
+        return 'mongodb';
     }
   }
 
@@ -277,7 +279,7 @@ class _DatabaseManagerScreenState extends State<DatabaseManagerScreen> {
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              Text('数据库连接', style: HeroUiTypography.heading4),
+              const Text('数据库连接', style: HeroUiTypography.heading4),
               const Spacer(),
               IconButton(
                 icon: const Icon(LucideIcons.plus),
@@ -453,12 +455,12 @@ class _DatabaseManagerScreenState extends State<DatabaseManagerScreen> {
   /// 右侧内容区
   Widget _buildContent() {
     if (_isConnecting) {
-      return Center(
+      return const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const CircularProgressIndicator(),
-            const SizedBox(height: 16),
+            CircularProgressIndicator(),
+            SizedBox(height: 16),
             Text('正在连接数据库...', style: HeroUiTypography.bodySm),
           ],
         ),
@@ -485,7 +487,7 @@ class _DatabaseManagerScreenState extends State<DatabaseManagerScreen> {
                 .withOpacity(0.2),
           ),
           const SizedBox(height: 24),
-          Text('数据库管理', style: HeroUiTypography.heading3),
+          const Text('数据库管理', style: HeroUiTypography.heading3),
           const SizedBox(height: 8),
           Text(
             '连接数据库以开始管理',
@@ -696,7 +698,7 @@ class _DatabaseManagerScreenState extends State<DatabaseManagerScreen> {
           children: [
             Icon(LucideIcons.alertCircle, size: 48, color: Colors.red.withOpacity(0.5)),
             const SizedBox(height: 16),
-            Text('加载失败', style: HeroUiTypography.bodySmMedium),
+            const Text('加载失败', style: HeroUiTypography.bodySmMedium),
             const SizedBox(height: 8),
             Text(_tableDataError!, style: HeroUiTypography.bodyXs, textAlign: TextAlign.center),
             const SizedBox(height: 16),
@@ -718,7 +720,7 @@ class _DatabaseManagerScreenState extends State<DatabaseManagerScreen> {
           children: [
             Icon(LucideIcons.inbox, size: 48, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.3)),
             const SizedBox(height: 16),
-            Text('表中没有数据', style: HeroUiTypography.bodySm),
+            const Text('表中没有数据', style: HeroUiTypography.bodySm),
           ],
         ),
       );
@@ -751,7 +753,7 @@ class _DatabaseManagerScreenState extends State<DatabaseManagerScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   if (field.isPrimaryKey) ...[
-                    Icon(LucideIcons.key, size: 12, color: Colors.amber),
+                    const Icon(LucideIcons.key, size: 12, color: Colors.amber),
                     const SizedBox(width: 4),
                   ],
                   Flexible(

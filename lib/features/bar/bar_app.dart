@@ -1,57 +1,124 @@
 import 'package:flutter/material.dart';
-import 'package:heroui_design_system/heroui_design_system.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart' as shadcn;
+import 'screens/inventory_page.dart';
+import 'screens/settings_page.dart';
 
-/// 酒吧系统子应用
-class BarApp extends StatelessWidget {
-  const BarApp({super.key});
+/// 底部导航栏（使用 shadcn_flutter 样式）
+class _BottomNavBar extends StatelessWidget {
+  const _BottomNavBar({
+    required this.currentIndex,
+    required this.onTap,
+  });
+
+  final int currentIndex;
+  final ValueChanged<int> onTap;
+
+  static const _items = [
+    _BottomNavItem(icon: LucideIcons.wallet, label: '库存管理'),
+    _BottomNavItem(icon: LucideIcons.settings, label: '设置'),
+  ];
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('酒吧系统'),
-        leading: IconButton(
-          icon: const Icon(LucideIcons.arrowLeft),
-          onPressed: () => Navigator.of(context).pop(),
+    return Container(
+      decoration: BoxDecoration(
+        border: Border(
+          top: BorderSide(
+            color: Theme.of(context).dividerColor,
+            width: 0.5,
+          ),
         ),
       ),
-      body: Center(
-        child: HeroUiCard(
-          borderRadius: 24,
-          showShadow: true,
-          surfaceVariant: HeroUiSurfaceVariant.defaultVariant,
-          body: Column(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          for (var i = 0; i < _items.length; i++)
+            _BottomNavItemWidget(
+              item: _items[i],
+              selected: i == currentIndex,
+              onTap: () => onTap(i),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _BottomNavItem {
+  const _BottomNavItem({required this.icon, required this.label});
+  final IconData icon;
+  final String label;
+}
+
+class _BottomNavItemWidget extends StatelessWidget {
+  const _BottomNavItemWidget({
+    required this.item,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final _BottomNavItem item;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final color = selected
+        ? colorScheme.primary
+        : colorScheme.onSurface.withValues(alpha: 0.6);
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Column(
             mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(
-                LucideIcons.wine,
-                size: 64,
-                color: Color(0xFFE8AA42),
-              ),
-              const SizedBox(height: 16),
+              Icon(item.icon, size: 24, color: color),
+              const SizedBox(height: 2),
               Text(
-                '酒吧系统',
-                style: HeroUiTypography.heading3,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                '酒吧点单与管理',
-                style: HeroUiTypography.bodySm.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
-                ),
-              ),
-              const SizedBox(height: 32),
-              Text(
-                '功能开发中...',
-                style: HeroUiTypography.bodyXs.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4),
+                item.label,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: color,
+                  fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
                 ),
               ),
             ],
           ),
-          padding: const EdgeInsets.all(32),
+        ),
+      ),
+    );
+  }
+}
+
+/// 酒吧系统主页面（底部导航壳，使用 shadcn_flutter）
+class BarApp extends StatefulWidget {
+  const BarApp({super.key});
+
+  @override
+  State<BarApp> createState() => _BarAppState();
+}
+
+class _BarAppState extends State<BarApp> {
+  int _currentIndex = 0;
+
+  final _pages = const [
+    InventoryPage(),
+    SettingsPage(),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return shadcn.ShadcnLayer(
+      theme: const shadcn.ThemeData.dark(),
+      child: Scaffold(
+        body: _pages[_currentIndex],
+        bottomNavigationBar: _BottomNavBar(
+          currentIndex: _currentIndex,
+          onTap: (index) => setState(() => _currentIndex = index),
         ),
       ),
     );

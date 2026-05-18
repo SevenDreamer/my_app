@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:heroui_design_system/heroui_design_system.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart' as shadcn;
 import 'package:lucide_flutter/lucide_flutter.dart';
 
-/// 标签选择弹窗
+/// 标签选择弹窗（使用 shadcn_flutter）
 class TagSelectorSheet extends StatefulWidget {
   final List<String> tags;
   final String? selectedTag;
@@ -54,22 +54,16 @@ class _TagSelectorSheetState extends State<TagSelectorSheet> {
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
-                HeroUiButton(
-                  variant: HeroUiButtonVariant.ghost,
-                  size: HeroUiButtonSize.sm,
-                  leading: const Icon(LucideIcons.search, size: 18),
-                  label: '',
+                shadcn.GhostButton(
                   onPressed: () => setState(() => _isSearching = true),
+                  child: const Icon(LucideIcons.search, size: 18),
                 ),
                 const Expanded(
-                  child: Text('标签列表', style: HeroUiTypography.bodySmMedium, textAlign: TextAlign.center),
+                  child: Text('标签列表', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.w500)),
                 ),
-                HeroUiButton(
-                  variant: HeroUiButtonVariant.ghost,
-                  size: HeroUiButtonSize.sm,
-                  leading: const Icon(LucideIcons.plus, size: 18),
-                  label: '',
+                shadcn.GhostButton(
                   onPressed: () {},
+                  child: const Icon(LucideIcons.plus, size: 18),
                 ),
               ],
             ),
@@ -78,8 +72,12 @@ class _TagSelectorSheetState extends State<TagSelectorSheet> {
           if (_isSearching)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: HeroUiSearchField(
-                placeholder: '输入标签关键词',
+              child: TextField(
+                decoration: const InputDecoration(
+                  hintText: '输入标签关键词',
+                  border: InputBorder.none,
+                  isDense: true,
+                ),
                 onChanged: (value) => setState(() => _searchQuery = value),
               ),
             ),
@@ -92,12 +90,29 @@ class _TagSelectorSheetState extends State<TagSelectorSheet> {
               runSpacing: 10,
               children: _filteredTags.map((tag) {
                 final isSelected = _localSelectedTag == tag;
-                return HeroUiChip(
-                  variant: isSelected ? HeroUiChipVariant.primary : HeroUiChipVariant.tertiary,
-                  isSelected: isSelected,
-                  startIcon: const Icon(LucideIcons.tag, size: 14),
-                  label: tag,
+                return GestureDetector(
                   onTap: () => setState(() => _localSelectedTag = isSelected ? null : tag),
+                  child: isSelected
+                      ? shadcn.PrimaryBadge(
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(LucideIcons.tag, size: 14),
+                              const SizedBox(width: 4),
+                              Text(tag),
+                            ],
+                          ),
+                        )
+                      : shadcn.OutlineBadge(
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(LucideIcons.tag, size: 14),
+                              const SizedBox(width: 4),
+                              Text(tag),
+                            ],
+                          ),
+                        ),
                 );
               }).toList(),
             ),
@@ -106,12 +121,9 @@ class _TagSelectorSheetState extends State<TagSelectorSheet> {
           // 确认按钮
           Padding(
             padding: const EdgeInsets.all(16),
-            child: HeroUiButton(
-              label: '确认',
-              variant: HeroUiButtonVariant.primary,
-              size: HeroUiButtonSize.lg,
-              expand: true,
+            child: shadcn.PrimaryButton(
               onPressed: () => widget.onTagSelected?.call(_localSelectedTag),
+              child: const Text('确认'),
             ),
           ),
         ],
