@@ -1,60 +1,77 @@
 # Flutter Rust Bridge 使用指南
 
-## Windows 路径 Bug 已修复！✅
+## ✅ Windows 支持已完全修复！
 
-### 问题回顾
-`flutter_rust_bridge_codegen v2.12.0` 在 Windows 上运行时会报错：
+### 修复内容
+
+我们在 fork 中修复了两个 Windows 关键问题：
+
+**1. Windows 路径 Bug（已修复）**
+- **问题**：`std::fs::canonicalize` 在 Windows 上返回 `\\?\` 前缀路径
+- **修复**：使用 `dunce::canonicalize` 替代
+- **Commit**: `ff1ccf4` - "fix: Windows path handling with dunce crate"
+
+**2. FFI 符号导出问题（已修复）**
+- **问题**：自动生成的代码缺少 `#[no_mangle] pub extern "C"` 导出，导致 Flutter FFI 找不到符号
+- **修复**：修改 `frb_codegen` 模板，生成正确的 FFI 导出函数
+- **Commit**: `0e0a858` - "fix: export FFI symbols for Flutter FFI on Windows"
+
+---
+
+## 🍴 使用我们的 Fork
+
+### Fork 地址
 ```
-Error: When compute_mod_from_rust_path(code_path=..., base_dir="\\\\?\\D:\\Projects\\my_app\\rust\\src")
-    prefix not found
+https://github.com/SevenDreamer/flutter_rust_bridge
 ```
 
-**问题原因**：Rust 的 `std::fs::canonicalize` 在 Windows 上返回 `\\?\` 前缀的路径（extended-length path prefix），但 `flutter_rust_bridge_codegen` 无法正确处理这个前缀。
+### 安装自定义版本
 
-### 已修复！
-我们修改了 `flutter_rust_bridge_codegen` 源码，使用 `dunce::canonicalize` 代替 `std::fs::canonicalize`，彻底解决了 Windows 路径前缀问题。
+**方法 1：从源码安装（推荐）**
+```bash
+# 1. 克隆我们的 fork
+git clone git@github.com:SevenDreamer/flutter_rust_bridge.git
+cd flutter_rust_bridge/frb_codegen
 
-**修复后的版本已安装到 `~/.cargo/bin/`，可以直接使用。**
+# 2. 安装到 ~/.cargo/bin/
+cargo install --path .
+```
+
+**方法 2：作为依赖使用**
+在 `my_app/rust/Cargo.toml` 中：
+```toml
+[dependencies]
+flutter_rust_bridge = { git = "https://github.com/SevenDreamer/flutter_rust_bridge", version = "2.12.0" }
+```
+
+### 验证安装
+```bash
+flutter_rust_bridge_codegen --version
+# 应输出：flutter_rust_bridge_codegen 2.12.0
+```
 
 ---
 
 ## 使用步骤
 
-### 1. 确认安装
-```bash
-flutter_rust_bridge_codegen --version
-# 应输出：flutter_rust_bridge_codegen 2.12.0（修复版）
-```
-
-### 2. 配置 `flutter_rust_bridge.yaml`
-项目根目录下的配置：
-```yaml
-base_dir: "."
-rust_input: "crate::api"
-rust_root: "rust/"
-rust_output: "rust/src/frb_generated/frb_generated.rs"
-dart_output: "lib/rust/"
-```
-
-### 3. 编写 Rust API
+### 1. 编写 Rust API
 在 `rust/src/api/` 目录下创建 Rust 文件，使用 `#[flutter_rust_bridge::frb]` 注解：
 
 ```rust
 // rust/src/api/simple.rs
 use flutter_rust_bridge::frb;
 
-#[frb]
+#[frb(sync)]
 pub fn simple_add(a: i32, b: i32) -> i32 {
     a + b
 }
 
-#[frb]
 pub async fn get_user_info(user_id: i32) -> String {
     format!("User {}", user_id)
 }
 ```
 
-### 4. 生成绑定代码
+### 2. 生成绑定代码
 ```bash
 cd d:\Projects\my_app
 flutter_rust_bridge_codegen generate
@@ -62,28 +79,23 @@ flutter_rust_bridge_codegen generate
 
 生成的文件：
 - `rust/src/frb_generated/frb_generated.rs` (Rust 绑定)
-- `lib/rust/rust_generated.dart` (Dart 绑定)
-- `lib/rust/rust_generated.io.dart` (Dart 绑定 - IO)
-- `lib/rust/rust_generated.web.dart` (Dart 绑定 - Web)
+- `lib/rust/frb_generated.dart` (Dart 绑定)
+- `lib/rust/frb_generated.io.dart` (Dart 绑定 - IO)
+- `lib/rust/frb_generated.web.dart` (Dart 绑定 - Web)
 
-### 5. 在 Rust 中集成生成的代码
-修改 `rust/src/lib.rs`：
+### 3. 在 Rust 中集成生成的代码
+`rust/src/lib.rs` 已配置好：
 ```rust
-// 引入生成的代码
+pub mod api;
 mod frb_generated;
 
-// 引入 API 模块
-pub mod api;
-
-// 初始化函数（供 Dart 调用）
-pub fn init_app() {
-    flutter_rust_bridge::setup();
-}
+pub mod ffi_manual;  // 手动 FFI（备用）
+pub mod ffi_auth;    // 手动 FFI（备用）
 ```
 
-### 6. 在 Dart 中调用
+### 4. 在 Dart 中调用
 ```dart
-import 'rust/rust_generated.dart';
+import 'rust/frb_generated.dart';
 
 void main() async {
   // 初始化
@@ -99,62 +111,69 @@ void main() async {
 
 ## 修复详情
 
-### 修改的文件（`d:\Projects\flutter_rust_bridge\`）
-1. **`frb_codegen/Cargo.toml`** - 添加 `dunce = "1.0"` 依赖
-2. **`frb_codegen/src/library/utils/path_utils.rs`** - 修改 `canonicalize_with_error_message` 使用 `dunce::canonicalize`
-3. **`frb_codegen/src/library/codegen/config/internal_config_parser/mod.rs`** - 修改第 30 行使用 `dunce::canonicalize`
-4. **`frb_codegen/src/library/commands/cbindgen.rs`** - 修改第 95 行使用 `dunce::canonicalize`
-5. **`frb_codegen/src/library/utils/test_utils.rs`** - 修改第 12 行使用 `dunce::canonicalize`
-6. **`frb_codegen/src/library/build_web/mod.rs`** - 修改第 30 行使用 `dunce::canonicalize`
-7. **`frb_codegen/src/library/utils/rust_project_utils.rs`** - 添加 `dunce::simplified` 作为双重保险
+### Fork 中的修改
 
-### 编译并安装修复版
-```bash
-# 1. 编译
-cd d:\Projects\flutter_rust_bridge\frb_codegen
-cargo build --release
+#### Commit 1: `ff1ccf4` - Windows 路径修复
+修改的文件（`d:\Projects\flutter_rust_bridge\`）：
+1. `frb_codegen/Cargo.toml` - 添加 `dunce = "1.0"` 依赖
+2. `frb_codegen/src/library/utils/path_utils.rs` - 使用 `dunce::canonicalize`
+3. `frb_codegen/src/library/codegen/config/internal_config_parser/mod.rs` - 使用 `dunce::canonicalize`
+4. `frb_codegen/src/library/commands/cbindgen.rs` - 使用 `dunce::canonicalize`
+5. `frb_codegen/src/library/utils/test_utils.rs` - 使用 `dunce::canonicalize`
+6. `frb_codegen/src/library/build_web/mod.rs` - 使用 `dunce::canonicalize`
+7. `frb_codegen/src/library/utils/rust_project_utils.rs` - 添加 `dunce::simplified`
 
-# 2. 复制到 ~/.cargo/bin/
-Copy-Item -Path "target\release\flutter_rust_bridge_codegen.exe" `
-         -Destination "$env:USERPROFILE\.cargo\bin\" -Force
-```
+#### Commit 2: `0e0a858` - FFI 符号导出修复
+修改的文件：
+1. `frb_codegen/src/library/codegen/generator/wire/rust/spec_generator/misc/mod.rs`
+   - 将 `FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH` 从 `pub(crate)` 改为 `pub`
+   - 添加 `#[no_mangle] pub extern "C"` 包装函数
+
+2. `frb_codegen/src/library/codegen/generator/wire/rust/spec_generator/codec/pde/entrypoint.rs`
+   - 将 `fn pde_ffi_dispatcher_{name}_impl` 从私有改为 `pub fn`
 
 ---
 
-## 项目迁移计划
+## 当前状态（2026-05-19）
 
-### 当前状态
-- ✅ `flutter_rust_bridge` Dart 包已安装 (v2.12.0)
-- ✅ `flutter_rust_bridge_codegen` 工具已修复并安装 (v2.12.0 修复版)
-- ✅ 测试运行 `flutter_rust_bridge_codegen generate` 成功（输出 `Done!`）
-- ⚠️ 手动 FFI 绑定仍在使用（`ffi_auth.rs`, `ffi_auth.dart`）
-- ⚠️ `frb_generated.rs` 已被生成，但尚未被引用
+- ✅ **Fork 已创建**：`SevenDreamer/flutter_rust_bridge`
+- ✅ **Windows 路径修复**：已推送（commit `ff1ccf4`）
+- ✅ **FFI 符号导出修复**：已推送（commit `0e0a858`）
+- ✅ **自动生成绑定已启用**：`my_app` 项目已启用 `flutter_rust_bridge` 自动生成
+- ✅ **编译测试通过**：Rust DLL 成功编译（3.7MB）
+- ⚠️ **手动 FFI 仍保留**：作为备用方案
 
-### 迁移步骤
-1. **测试 codegen 输出**
-   - 检查生成的 `rust/src/frb_generated/frb_generated.rs`
-   - 检查生成的 `lib/rust/rust_generated.dart`
+---
 
-2. **迁移认证模块**
-   - 将 `rust/src/auth.rs` 中的函数迁移到 `rust/src/api/auth.rs`
-   - 添加 `#[frb]` 注解
-   - 运行 codegen 生成绑定
+## 迁移计划
 
-3. **更新 Dart 代码**
-   - 删除 `lib/rust/ffi_auth.dart`（手动绑定）
-   - 使用生成的 `RustLib` 类
+### 已完成
+- [x] Fork `flutter_rust_bridge` 到 `SevenDreamer`
+- [x] 修复 Windows 路径问题
+- [x] 修复 FFI 符号导出问题
+- [x] 启用自动生成绑定
+- [x] 测试编译通过
 
-4. **清理**
-   - 删除 `rust/src/ffi_auth.rs`（手动 FFI）
-   - 删除 `rust/src/ffi_manual.rs`（手动 FFI）
-   - 删除 `rust/src/macros.rs`（不再需要）
+### 待完成
+- [ ] 将手动 FFI 函数逐步迁移到 `flutter_rust_bridge`
+- [ ] 测试自动生成绑定的运行时功能
+- [ ] 删除手动 FFI 代码（`ffi_manual.rs`, `ffi_auth.rs`）
+- [ ] 向官方提交 PR（可选）
 
 ---
 
 ## 常见问题
 
-### Q: 修复会合并到官方版本吗？
-A: 我们建议向 `flutter_rust_bridge` 提交 PR，将 `dunce` 集成到官方版本中。
+### Q: 为什么需要 Fork？
+A: 因为 `flutter_rust_bridge` v2.12.0 在 Windows 上有两处关键 bug：
+1. 路径处理使用 `std::fs::canonicalize` 导致 `\\?\` 前缀问题
+2. 生成的代码缺少 FFI 符号导出，导致运行时错误
+
+### Q: Fork 和官方版本会同步吗？
+A: 我们会定期从 `fzyzcjy/flutter_rust_bridge` 拉取更新，并保留我们的修复。
+
+### Q: 可以向官方提交 PR 吗？
+A: 可以！我们的修复已经比较稳定，可以向官方提交 PR。
 
 ### Q: codegen 可以自动监控文件变化吗？
 A: 可以！使用 `--watch` 参数：
@@ -168,7 +187,22 @@ A: 不需要！每次运行 codegen 都会重新生成，所以不要手动修�
 ---
 
 ## 参考资料
-- 官方文档：https://cjycode.com/flutter_rust_bridge/quickstart
-- Pub.dev 包：https://pub.dev/packages/flutter_rust_bridge
-- GitHub：https://github.com/fzyzcjy/flutter_rust_bridge
-- `dunce` crate：https://crates.io/crates/dunce
+- **我们的 Fork**: https://github.com/SevenDreamer/flutter_rust_bridge
+- **官方仓库**: https://github.com/fzyzcjy/flutter_rust_bridge
+- **官方文档**: https://cjycode.com/flutter_rust_bridge/quickstart
+- **Pub.dev 包**: https://pub.dev/packages/flutter_rust_bridge
+- **dunce crate**: https://crates.io/crates/dunce
+
+---
+
+## 更新日志
+
+### 2026-05-19
+- ✅ 启用 `flutter_rust_bridge` 自动生成绑定
+- ✅ 修复 FFI 符号导出问题（commit `0e0a858`）
+- ✅ 推送到 fork `SevenDreamer/flutter_rust_bridge`
+
+### 2026-05-18
+- ✅ Fork `flutter_rust_bridge` 到 `SevenDreamer`
+- ✅ 修复 Windows 路径问题（commit `ff1ccf4`）
+- ✅ 手动 FFI 集成成功（临时方案）
