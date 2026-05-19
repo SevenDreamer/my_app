@@ -49,7 +49,8 @@ class HybridDatabaseService extends DatabaseService {
         DbType.mongodb => 'mongodb',
       };
 
-  static DatabaseService _createDartService(DbConnectionConfig c) => switch (c.type) {
+  static DatabaseService _createDartService(DbConnectionConfig c) =>
+      switch (c.type) {
         DbType.sqlite => SQLiteService(c),
         DbType.mysql => MySQLService(c),
         DbType.postgresql => PostgreSQLService(c),
@@ -99,7 +100,8 @@ class HybridDatabaseService extends DatabaseService {
       if (result.isNotEmpty) return result;
       throw Exception('empty');
     } catch (_) {
-      if (_dartFallback != null) return await _dartFallback.getTables(databaseName);
+      if (_dartFallback != null)
+        return await _dartFallback.getTables(databaseName);
       return [];
     }
   }
@@ -114,7 +116,8 @@ class HybridDatabaseService extends DatabaseService {
       if (result.isNotEmpty) return result;
       throw Exception('empty');
     } catch (_) {
-      if (_dartFallback != null) return await _dartFallback.getFields(databaseName, tableName);
+      if (_dartFallback != null)
+        return await _dartFallback.getFields(databaseName, tableName);
       return [];
     }
   }

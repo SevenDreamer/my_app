@@ -7,15 +7,15 @@ import '../../features/database/database_app.dart';
 import '../../features/bar/bar_app.dart';
 
 /// 应用路由映射表
-/// 
+///
 /// 将路由路径映射到对应的 Widget 构建器
 Map<String, Widget Function()> get appRoutes => {
-  '/chat': () => const ChatApp(),
-  '/image': () => const ImageApp(),
-  '/code': () => const CodeApp(),
-  '/database': () => const DatabaseManagerApp(),
-  '/bar': () => const BarApp(),
-};
+      '/chat': () => const ChatApp(),
+      '/image': () => const ImageApp(),
+      '/code': () => const CodeApp(),
+      '/database': () => const DatabaseManagerApp(),
+      '/bar': () => const BarApp(),
+    };
 
 /// 根据路由获取对应的 Widget
 Widget? getWidgetByRoute(String route) {

@@ -40,7 +40,9 @@ class _TagSelectorSheetState extends State<TagSelectorSheet> {
 
   List<String> get _filteredTags {
     if (_searchQuery.isEmpty) return widget.tags;
-    return widget.tags.where((tag) => tag.toLowerCase().contains(_searchQuery.toLowerCase())).toList();
+    return widget.tags
+        .where((tag) => tag.toLowerCase().contains(_searchQuery.toLowerCase()))
+        .toList();
   }
 
   @override
@@ -59,7 +61,9 @@ class _TagSelectorSheetState extends State<TagSelectorSheet> {
                   child: const Icon(LucideIcons.search, size: 18),
                 ),
                 const Expanded(
-                  child: Text('标签列表', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.w500)),
+                  child: Text('标签列表',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontWeight: FontWeight.w500)),
                 ),
                 shadcn.GhostButton(
                   onPressed: () {},
@@ -91,7 +95,8 @@ class _TagSelectorSheetState extends State<TagSelectorSheet> {
               children: _filteredTags.map((tag) {
                 final isSelected = _localSelectedTag == tag;
                 return GestureDetector(
-                  onTap: () => setState(() => _localSelectedTag = isSelected ? null : tag),
+                  onTap: () => setState(
+                      () => _localSelectedTag = isSelected ? null : tag),
                   child: isSelected
                       ? shadcn.PrimaryBadge(
                           child: Row(

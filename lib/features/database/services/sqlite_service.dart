@@ -57,8 +57,9 @@ class SQLiteService extends DatabaseService {
       final fields = await getFields(databaseName, tableName);
 
       // 获取行数
-      final countResult = await _db!.rawQuery('SELECT COUNT(*) as count FROM $tableName');
-      final rowCount = countResult.first[0] as int? ?? 0;
+      final countResult =
+          await _db!.rawQuery('SELECT COUNT(*) as count FROM $tableName');
+      final rowCount = countResult.first['count'] as int? ?? 0;
 
       tables.add(TableInfo(
         name: tableName,
@@ -71,7 +72,8 @@ class SQLiteService extends DatabaseService {
   }
 
   @override
-  Future<List<FieldInfo>> getFields(String databaseName, String tableName) async {
+  Future<List<FieldInfo>> getFields(
+      String databaseName, String tableName) async {
     if (_db == null) await connect();
 
     final result = await _db!.rawQuery('PRAGMA table_info($tableName)');
@@ -102,8 +104,11 @@ class SQLiteService extends DatabaseService {
   }
 
   @override
-  Future<List<Map<String, dynamic>>> getTableData(String databaseName, String tableName, {int limit = 100, int offset = 0}) async {
+  Future<List<Map<String, dynamic>>> getTableData(
+      String databaseName, String tableName,
+      {int limit = 100, int offset = 0}) async {
     if (_db == null) await connect();
-    return await _db!.rawQuery('SELECT * FROM $tableName LIMIT $limit OFFSET $offset');
+    return await _db!
+        .rawQuery('SELECT * FROM $tableName LIMIT $limit OFFSET $offset');
   }
 }

@@ -23,6 +23,7 @@ class RecordInputPanel extends StatefulWidget {
 
 class _RecordInputPanelState extends State<RecordInputPanel> {
   String _expression = ''; // 存储完整表达式，如 "100+50-20"
+  // ignore: unused_field
   String _remark = '';
 
   // 判断最后一个字符是否是运算符
@@ -103,7 +104,6 @@ class _RecordInputPanelState extends State<RecordInputPanel> {
   }
 
   void _onComplete() {
-    final result = _calculate();
     // TODO: 保存记录
     Navigator.pop(context);
   }
@@ -121,7 +121,7 @@ class _RecordInputPanelState extends State<RecordInputPanel> {
   }
 
   void _showTagSelector() {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
@@ -212,13 +212,16 @@ class _RecordInputPanelState extends State<RecordInputPanel> {
                 return Padding(
                   padding: const EdgeInsets.only(right: 6),
                   child: GestureDetector(
-                    onTap: () => widget.onTagSelected?.call(isSelected ? null : tag),
+                    onTap: () =>
+                        widget.onTagSelected?.call(isSelected ? null : tag),
                     child: isSelected
                         ? shadcn.PrimaryBadge(
-                            child: Text(tag, style: const TextStyle(fontSize: 12)),
+                            child:
+                                Text(tag, style: const TextStyle(fontSize: 12)),
                           )
                         : shadcn.OutlineBadge(
-                            child: Text(tag, style: const TextStyle(fontSize: 12)),
+                            child:
+                                Text(tag, style: const TextStyle(fontSize: 12)),
                           ),
                   ),
                 );
@@ -239,7 +242,8 @@ class _RecordInputPanelState extends State<RecordInputPanel> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(LucideIcons.tag, size: 14, color: Theme.of(context).colorScheme.primary),
+            Icon(LucideIcons.tag,
+                size: 14, color: Theme.of(context).colorScheme.primary),
             const SizedBox(width: 4),
             Text(
               '标签',

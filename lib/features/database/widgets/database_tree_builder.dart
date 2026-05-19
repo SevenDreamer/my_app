@@ -17,7 +17,8 @@ class DatabaseTreeBuilder {
 
     for (final connection in connections) {
       final isConnected = currentConnection?.id == connection.id;
-      final connNode = DbTreeNode.connection(connection, isConnected: isConnected);
+      final connNode =
+          DbTreeNode.connection(connection, isConnected: isConnected);
 
       if (isConnected && databases.isNotEmpty) {
         // 已连接，展开数据库列表
@@ -45,7 +46,8 @@ class DatabaseTreeBuilder {
               tableNode.children = fieldNodes;
               return tableNode;
             }).toList();
-            final tablesFolder = DbTreeNode.folder('Tables', LucideIcons.list, tableNodes);
+            final tablesFolder =
+                DbTreeNode.folder('Tables', LucideIcons.list, tableNodes);
             tablesFolder.parent = dbNode;
             folderChildren.add(tablesFolder);
           }
@@ -56,12 +58,14 @@ class DatabaseTreeBuilder {
           folderChildren.add(viewsFolder);
 
           // Functions 文件夹（模拟）
-          final functionsFolder = DbTreeNode.folder('Functions', LucideIcons.functionSquare, []);
+          final functionsFolder =
+              DbTreeNode.folder('Functions', LucideIcons.functionSquare, []);
           functionsFolder.parent = dbNode;
           folderChildren.add(functionsFolder);
 
           // Procedures 文件夹（模拟）
-          final proceduresFolder = DbTreeNode.folder('Procedures', LucideIcons.settings, []);
+          final proceduresFolder =
+              DbTreeNode.folder('Procedures', LucideIcons.settings, []);
           proceduresFolder.parent = dbNode;
           folderChildren.add(proceduresFolder);
 

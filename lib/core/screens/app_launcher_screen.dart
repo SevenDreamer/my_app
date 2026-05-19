@@ -54,8 +54,8 @@ class _AppLauncherScreenState extends State<AppLauncherScreen> {
     }
 
     setState(() {
-      _username = userData['username'] ?? '';
-      _role = userData['role'] ?? 'user';
+      _username = (userData['username'] ?? '') as String;
+      _role = (userData['role'] ?? 'user') as String;
     });
 
     // 获取应用列表
@@ -64,7 +64,7 @@ class _AppLauncherScreenState extends State<AppLauncherScreen> {
 
     if (data['ok'] == true) {
       final appList = data['data'] as List<dynamic>;
-      
+
       setState(() {
         _apps = appList
             .map((app) => SubApp.fromJson(app as Map<String, dynamic>))
@@ -89,8 +89,8 @@ class _AppLauncherScreenState extends State<AppLauncherScreen> {
     await prefs.remove('auth_token');
 
     if (mounted) {
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => const LoginScreen()),
+      Navigator.of(context).pushAndRemoveUntil<void>(
+        MaterialPageRoute<void>(builder: (context) => const LoginScreen()),
         (route) => false,
       );
     }
@@ -107,22 +107,27 @@ class _AppLauncherScreenState extends State<AppLauncherScreen> {
             IconButton(
               icon: const Icon(LucideIcons.users),
               onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => const UserManagementScreen(),
-                  ),
-                ).then((_) => _loadApps()); // 返回时刷新
+                Navigator.of(context)
+                    .push<void>(
+                      MaterialPageRoute<void>(
+                        builder: (context) => const UserManagementScreen(),
+                      ),
+                    )
+                    .then((_) => _loadApps()); // 返回时刷新
               },
               tooltip: '用户管理',
             ),
             IconButton(
               icon: const Icon(LucideIcons.appWindow),
               onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => AppManagementScreen(token: _currentToken),
-                  ),
-                ).then((_) => _loadApps()); // 返回时刷新
+                Navigator.of(context)
+                    .push<void>(
+                      MaterialPageRoute<void>(
+                        builder: (context) =>
+                            AppManagementScreen(token: _currentToken),
+                      ),
+                    )
+                    .then((_) => _loadApps()); // 返回时刷新
               },
               tooltip: '应用管理',
             ),
@@ -175,8 +180,8 @@ class _AppCard extends StatelessWidget {
         // 根据路由获取对应的 Widget
         final widget = getWidgetByRoute(app.route);
         if (widget != null) {
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => widget),
+          Navigator.of(context).push<void>(
+            MaterialPageRoute<void>(builder: (_) => widget),
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(

@@ -96,7 +96,8 @@ class PostgreSQLService extends DatabaseService {
   }
 
   @override
-  Future<List<FieldInfo>> getFields(String databaseName, String tableName) async {
+  Future<List<FieldInfo>> getFields(
+      String databaseName, String tableName) async {
     final result = await _connection!.execute('''
       SELECT 
         c.column_name, 
@@ -140,7 +141,9 @@ class PostgreSQLService extends DatabaseService {
   }
 
   @override
-  Future<List<Map<String, dynamic>>> getTableData(String databaseName, String tableName, {int limit = 100, int offset = 0}) async {
+  Future<List<Map<String, dynamic>>> getTableData(
+      String databaseName, String tableName,
+      {int limit = 100, int offset = 0}) async {
     if (_connection == null) await connect();
 
     // 切换到目标数据库
@@ -152,7 +155,8 @@ class PostgreSQLService extends DatabaseService {
       username: config.username ?? 'postgres',
       password: config.password ?? '',
     );
-    _connection = await Connection.open(endpoint, settings: const ConnectionSettings(sslMode: SslMode.disable));
+    _connection = await Connection.open(endpoint,
+        settings: const ConnectionSettings(sslMode: SslMode.disable));
 
     final result = await _connection!.execute(
       'SELECT * FROM "$tableName" LIMIT $limit OFFSET $offset',

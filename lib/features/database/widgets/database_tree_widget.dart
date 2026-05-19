@@ -12,12 +12,12 @@ class DatabaseTreeWidget extends StatefulWidget {
   final List<DbConnectionConfig> connections;
   final DbConnectionConfig? currentConnection;
   final List<DatabaseInfo> databases;
-  final Function(DbConnectionConfig)? onConnectionTap;
-  final Function(DbTreeNode)? onNodeSelected;
-  final Function(DbTreeNode)? onNodeExpand;
-  final Function(DbTreeNode)? onNodeCollapse;
-  final Function(DbConnectionConfig)? onConnectionDelete;
-  final Function(DbConnectionConfig)? onConnectionRefresh;
+  final void Function(DbConnectionConfig)? onConnectionTap;
+  final void Function(DbTreeNode)? onNodeSelected;
+  final void Function(DbTreeNode)? onNodeExpand;
+  final void Function(DbTreeNode)? onNodeCollapse;
+  final void Function(DbConnectionConfig)? onConnectionDelete;
+  final void Function(DbConnectionConfig)? onConnectionRefresh;
 
   const DatabaseTreeWidget({
     super.key,
@@ -38,7 +38,6 @@ class DatabaseTreeWidget extends StatefulWidget {
 
 class _DatabaseTreeWidgetState extends State<DatabaseTreeWidget> {
   List<DbTreeNode> _treeNodes = [];
-  DbTreeNode? _selectedNode;
 
   @override
   void initState() {
@@ -73,7 +72,6 @@ class _DatabaseTreeWidgetState extends State<DatabaseTreeWidget> {
       // 清除之前的选择
       _clearSelection(_treeNodes);
       node.isSelected = true;
-      _selectedNode = node;
     });
 
     // 回调
@@ -162,7 +160,10 @@ class _DatabaseTreeWidgetState extends State<DatabaseTreeWidget> {
             Text(
               '暂无数据库连接',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withOpacity(0.5),
                   ),
             ),
           ],

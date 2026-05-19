@@ -39,14 +39,16 @@ class ImageApp extends StatelessWidget {
               Text(
                 'AI 图片编辑工具',
                 style: HeroUiTypography.bodySm.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                  color:
+                      Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                 ),
               ),
               const SizedBox(height: 32),
               Text(
                 '功能开发中...',
                 style: HeroUiTypography.bodyXs.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4),
+                  color:
+                      Theme.of(context).colorScheme.onSurface.withOpacity(0.4),
                 ),
               ),
               const SizedBox(height: 24),

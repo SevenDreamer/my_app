@@ -63,7 +63,7 @@ class _AppManagementScreenState extends State<AppManagementScreen> {
     final routeController = TextEditingController(text: app?.route ?? '');
     bool isActive = app?.isEnabled ?? true;
 
-    await showDialog(
+    await showDialog<void>(
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
@@ -135,9 +135,9 @@ class _AppManagementScreenState extends State<AppManagementScreen> {
 
                 // 生成 app_name（从 route 中提取）
                 final appName = routeController.text.replaceAll('/', '');
-                
+
                 Map<String, dynamic> result;
-                
+
                 if (isEditing) {
                   // 更新应用
                   final updateResult = AuthFFI.instance.updateApp(
@@ -151,7 +151,7 @@ class _AppManagementScreenState extends State<AppManagementScreen> {
                     }),
                     widget.token,
                   );
-                  result = jsonDecode(updateResult);
+                  result = jsonDecode(updateResult) as Map<String, dynamic>;
                 } else {
                   // 创建应用
                   final createResult = AuthFFI.instance.registerApp(
@@ -165,7 +165,7 @@ class _AppManagementScreenState extends State<AppManagementScreen> {
                     }),
                     widget.token,
                   );
-                  result = jsonDecode(createResult);
+                  result = jsonDecode(createResult) as Map<String, dynamic>;
                 }
 
                 if (result['ok'] == true) {
@@ -173,7 +173,8 @@ class _AppManagementScreenState extends State<AppManagementScreen> {
                   _loadApps(); // 刷新列表
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('操作失败：${result['error'] ?? '未知错误'}')),
+                    SnackBar(
+                        content: Text('操作失败：${result['error'] ?? '未知错误'}')),
                   );
                 }
               },
@@ -243,7 +244,8 @@ class _AppManagementScreenState extends State<AppManagementScreen> {
               : ListView.separated(
                   padding: const EdgeInsets.all(16),
                   itemCount: _apps.length,
-                  separatorBuilder: (context, index) => const SizedBox(height: 8),
+                  separatorBuilder: (context, index) =>
+                      const SizedBox(height: 8),
                   itemBuilder: (context, index) {
                     final app = _apps[index];
                     return _AppManagementCard(
@@ -296,7 +298,8 @@ class _AppManagementCard extends StatelessWidget {
               children: [
                 Text(
                   app.name,
-                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                  style: const TextStyle(
+                      fontSize: 15, fontWeight: FontWeight.w600),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -315,7 +318,9 @@ class _AppManagementCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
-              color: app.isEnabled ? Colors.green.withValues(alpha: 0.12) : Colors.grey.withValues(alpha: 0.12),
+              color: app.isEnabled
+                  ? Colors.green.withValues(alpha: 0.12)
+                  : Colors.grey.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(4),
             ),
             child: Text(

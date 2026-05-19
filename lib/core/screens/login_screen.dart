@@ -143,7 +143,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: const BorderSide(color: Color(0xFF2563EB), width: 2),
+                    borderSide:
+                        const BorderSide(color: Color(0xFF2563EB), width: 2),
                   ),
                 ),
                 enabled: !_isLoading,
@@ -168,7 +169,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: const BorderSide(color: Color(0xFF2563EB), width: 2),
+                    borderSide:
+                        const BorderSide(color: Color(0xFF2563EB), width: 2),
                   ),
                 ),
                 obscureText: true,
@@ -195,12 +197,14 @@ class _LoginScreenState extends State<LoginScreen> {
                         height: 20,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(Colors.white),
                         ),
                       )
                     : const Text(
                         '登录',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w500),
                       ),
               ),
 
@@ -209,7 +213,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 16),
                 Text(
                   _errorMessage!,
-                  style: const TextStyle(color: Color(0xFFDC2626)), // shadcn red
+                  style:
+                      const TextStyle(color: Color(0xFFDC2626)), // shadcn red
                   textAlign: TextAlign.center,
                 ),
               ],

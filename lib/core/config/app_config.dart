@@ -10,8 +10,10 @@ import 'package:flutter/foundation.dart' show kReleaseMode;
 enum AppEnvironment {
   /// 本地开发（连 localhost）
   dev,
+
   /// 测试环境
   staging,
+
   /// 生产环境
   prod,
 }

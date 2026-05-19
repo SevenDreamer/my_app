@@ -20,9 +20,9 @@ class InventoryPage extends StatelessWidget {
           bottom: 16,
           child: shadcn.PrimaryButton(
             onPressed: () {
-              Navigator.push(
+              Navigator.push<void>(
                 context,
-                MaterialPageRoute(builder: (_) => const AddRecordPage()),
+                MaterialPageRoute<void>(builder: (_) => const AddRecordPage()),
               );
             },
             child: const Icon(LucideIcons.plus, size: 20),

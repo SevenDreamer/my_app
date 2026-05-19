@@ -1,4 +1,4 @@
-import 'package:mysql1/mysql1.dart' hide DatabaseInfo;
+import 'package:mysql1/mysql1.dart';
 import '../models/database_models.dart';
 import 'database_service.dart';
 
@@ -37,8 +37,10 @@ class MySQLService extends DatabaseService {
     List<DatabaseInfo> databases = [];
     for (var row in result) {
       final dbName = row[0] as String;
-      if (dbName == 'information_schema' || dbName == 'mysql' || 
-          dbName == 'performance_schema' || dbName == 'sys') {
+      if (dbName == 'information_schema' ||
+          dbName == 'mysql' ||
+          dbName == 'performance_schema' ||
+          dbName == 'sys') {
         continue;
       }
       final tables = await getTables(dbName);
@@ -62,7 +64,8 @@ class MySQLService extends DatabaseService {
       final fields = await getFields(databaseName, tableName);
 
       // 获取行数
-      final countResult = await _connection!.query('SELECT COUNT(*) as count FROM `$tableName`');
+      final countResult = await _connection!
+          .query('SELECT COUNT(*) as count FROM `$tableName`');
       final rowCount = countResult.first[0] as int? ?? 0;
 
       tables.add(TableInfo(
@@ -76,7 +79,8 @@ class MySQLService extends DatabaseService {
   }
 
   @override
-  Future<List<FieldInfo>> getFields(String databaseName, String tableName) async {
+  Future<List<FieldInfo>> getFields(
+      String databaseName, String tableName) async {
     final result = await _connection!.query('''
       SELECT 
         column_name,
@@ -112,11 +116,14 @@ class MySQLService extends DatabaseService {
   }
 
   @override
-  Future<List<Map<String, dynamic>>> getTableData(String databaseName, String tableName, {int limit = 100, int offset = 0}) async {
+  Future<List<Map<String, dynamic>>> getTableData(
+      String databaseName, String tableName,
+      {int limit = 100, int offset = 0}) async {
     if (_connection == null) await connect();
     await _connection!.query('USE `$databaseName`');
 
-    final result = await _connection!.query('SELECT * FROM `$tableName` LIMIT $limit OFFSET $offset');
+    final result = await _connection!
+        .query('SELECT * FROM `$tableName` LIMIT $limit OFFSET $offset');
 
     return result.map((row) {
       final map = <String, dynamic>{};

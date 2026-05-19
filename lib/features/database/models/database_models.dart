@@ -59,19 +59,19 @@ class DbConnectionConfig {
   /// 从 JSON 创建
   factory DbConnectionConfig.fromJson(Map<String, dynamic> json) {
     return DbConnectionConfig(
-      id: json['id'],
-      name: json['name'],
+      id: json['id'] as String,
+      name: json['name'] as String,
       type: DbType.values.firstWhere(
         (e) => e.name == json['type'],
         orElse: () => DbType.sqlite,
       ),
-      host: json['host'],
-      port: json['port'],
-      username: json['username'],
-      password: json['password'],
-      databaseName: json['databaseName'],
-      filePath: json['filePath'],
-      lastConnected: DateTime.parse(json['lastConnected']),
+      host: json['host'] as String?,
+      port: json['port'] as int?,
+      username: json['username'] as String?,
+      password: json['password'] as String?,
+      databaseName: json['databaseName'] as String?,
+      filePath: json['filePath'] as String?,
+      lastConnected: DateTime.parse(json['lastConnected'] as String),
     );
   }
 }

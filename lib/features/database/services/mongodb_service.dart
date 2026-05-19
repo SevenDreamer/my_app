@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:mongo_dart/mongo_dart.dart' hide DatabaseInfo, Connection;
+import 'package:mongo_dart/mongo_dart.dart' hide Connection;
 import '../models/database_models.dart';
 import 'database_service.dart';
 
@@ -51,11 +51,11 @@ class MongoDBService extends DatabaseService {
     for (var collectionName in collections.whereType<String>()) {
       final collection = _db!.collection(collectionName);
       final count = await collection.count();
-      
+
       // MongoDB 是 schema-less，尝试从样本文档推断字段
       final sample = await collection.findOne();
       List<FieldInfo> fields = [];
-      
+
       if (sample != null) {
         sample.forEach((key, value) {
           fields.add(FieldInfo(
@@ -77,12 +77,13 @@ class MongoDBService extends DatabaseService {
   }
 
   @override
-  Future<List<FieldInfo>> getFields(String databaseName, String tableName) async {
+  Future<List<FieldInfo>> getFields(
+      String databaseName, String tableName) async {
     if (_db == null) await connect();
 
     final collection = _db!.collection(tableName);
     final sample = await collection.findOne();
-    
+
     if (sample == null) return [];
 
     List<FieldInfo> fields = [];
@@ -122,7 +123,9 @@ class MongoDBService extends DatabaseService {
   }
 
   @override
-  Future<List<Map<String, dynamic>>> getTableData(String databaseName, String tableName, {int limit = 100, int offset = 0}) async {
+  Future<List<Map<String, dynamic>>> getTableData(
+      String databaseName, String tableName,
+      {int limit = 100, int offset = 0}) async {
     if (_db == null) await connect();
     final collection = _db!.collection(tableName);
     final cursor = collection.find(where.skip(offset).limit(limit));

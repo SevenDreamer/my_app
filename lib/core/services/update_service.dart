@@ -61,7 +61,8 @@ class UpdateService {
             final file = File('${dir.path}/update.apk');
 
             // 下载 APK
-            final apkResponse = await http.get(Uri.parse(downloadUrl));
+            final apkResponse =
+                await http.get(Uri.parse(downloadUrl as String));
             await file.writeAsBytes(apkResponse.bodyBytes);
 
             return file.path;

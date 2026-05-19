@@ -10,8 +10,8 @@ import '../services/mongodb_service.dart' show MongoDBService;
 
 /// 新建连接对话框
 class ConnectionDialog extends StatefulWidget {
-  final Function(DbConnectionConfig) onConnect;
-  final Function(DbConnectionConfig) onSave;
+  final void Function(DbConnectionConfig) onConnect;
+  final void Function(DbConnectionConfig) onSave;
 
   const ConnectionDialog({
     super.key,
@@ -284,9 +284,8 @@ class _ConnectionDialogState extends State<ConnectionDialog> {
                               ? LucideIcons.checkCircle
                               : LucideIcons.xCircle,
                           size: 18,
-                          color: _testResult == true
-                              ? Colors.green
-                              : Colors.red,
+                          color:
+                              _testResult == true ? Colors.green : Colors.red,
                         ),
                         const SizedBox(width: 8),
                         Expanded(

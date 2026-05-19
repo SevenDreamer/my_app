@@ -7,12 +7,12 @@ import 'db_tree_node.dart';
 /// 数据库文件树视图
 class DbTreeView extends StatefulWidget {
   final List<DbTreeNode> nodes;
-  final Function(DbTreeNode)? onNodeTap;
-  final Function(DbTreeNode)? onNodeExpand;
-  final Function(DbTreeNode)? onNodeCollapse;
-  final Function(DbTreeNode)? onNodeDelete;
-  final Function(DbTreeNode)? onNodeRefresh;
-  final Function(DbTreeNode)? onNodeEdit;
+  final void Function(DbTreeNode)? onNodeTap;
+  final void Function(DbTreeNode)? onNodeExpand;
+  final void Function(DbTreeNode)? onNodeCollapse;
+  final void Function(DbTreeNode)? onNodeDelete;
+  final void Function(DbTreeNode)? onNodeRefresh;
+  final void Function(DbTreeNode)? onNodeEdit;
   final double indent;
   final EdgeInsets padding;
 
@@ -47,7 +47,10 @@ class _DbTreeViewState extends State<DbTreeView> {
 
   Widget _buildNode(DbTreeNode node, int depth) {
     final hasChildren = node.children.isNotEmpty;
-    final isExpandable = hasChildren || node.type == TreeNodeType.connection || node.type == TreeNodeType.database || node.type == TreeNodeType.table;
+    final isExpandable = hasChildren ||
+        node.type == TreeNodeType.connection ||
+        node.type == TreeNodeType.database ||
+        node.type == TreeNodeType.table;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -61,8 +64,6 @@ class _DbTreeViewState extends State<DbTreeView> {
 
   Widget _buildNodeItem(DbTreeNode node, int depth, bool isExpandable) {
     final isConnection = node.type == TreeNodeType.connection;
-    final isDatabase = node.type == TreeNodeType.database;
-    final isFolder = node.type == TreeNodeType.folder;
 
     return InkWell(
       onTap: () {
@@ -99,7 +100,10 @@ class _DbTreeViewState extends State<DbTreeView> {
                   child: Icon(
                     LucideIcons.chevronRight,
                     size: 14,
-                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withOpacity(0.5),
                   ),
                 ),
               )
@@ -134,12 +138,16 @@ class _DbTreeViewState extends State<DbTreeView> {
                     ),
                   ),
                   // 显示表的行数
-                  if (node.type == TreeNodeType.table && node.table != null) ...[
+                  if (node.type == TreeNodeType.table &&
+                      node.table != null) ...[
                     const SizedBox(width: 6),
                     Text(
                       '(${node.table!.rowCount})',
                       style: HeroUiTypography.bodyXs.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4),
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withOpacity(0.4),
                       ),
                     ),
                   ],
@@ -177,8 +185,7 @@ class _DbTreeViewState extends State<DbTreeView> {
               ),
 
             // 操作按钮（悬停时显示）
-            if (isConnection)
-              _buildConnectionActions(node),
+            if (isConnection) _buildConnectionActions(node),
           ],
         ),
       ),
@@ -225,7 +232,8 @@ class _DbTreeViewState extends State<DbTreeView> {
           child: Icon(
             icon,
             size: 12,
-            color: color ?? Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+            color: color ??
+                Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
           ),
         ),
       ),

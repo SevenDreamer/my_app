@@ -5,11 +5,11 @@ import '../models/database_models.dart';
 
 /// 树节点类型
 enum TreeNodeType {
-  connection,   // 连接节点
-  database,     // 数据库节点
-  table,        // 表节点
-  folder,       // 文件夹节点（如 Tables, Views, Functions）
-  field,        // 字段节点
+  connection, // 连接节点
+  database, // 数据库节点
+  table, // 表节点
+  folder, // 文件夹节点（如 Tables, Views, Functions）
+  field, // 字段节点
 }
 
 /// 数据库树节点
@@ -47,7 +47,8 @@ class DbTreeNode {
   });
 
   /// 创建连接节点
-  factory DbTreeNode.connection(DbConnectionConfig config, {bool isConnected = false}) {
+  factory DbTreeNode.connection(DbConnectionConfig config,
+      {bool isConnected = false}) {
     return DbTreeNode(
       id: 'conn_${config.id}',
       label: config.name,
@@ -72,7 +73,8 @@ class DbTreeNode {
   }
 
   /// 创建文件夹节点（Tables, Views, Functions 等）
-  factory DbTreeNode.folder(String name, IconData icon, List<DbTreeNode> children) {
+  factory DbTreeNode.folder(
+      String name, IconData icon, List<DbTreeNode> children) {
     return DbTreeNode(
       id: 'folder_${name}_${DateTime.now().millisecondsSinceEpoch}',
       label: name,

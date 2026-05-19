@@ -9,16 +9,14 @@ import 'package:flutter/material.dart';
 final DynamicLibrary _dylib = DynamicLibrary.open('my_app.dll');
 
 // 绑定 Rust 函数
-final _ping = _dylib.lookupFunction<
-    Pointer<Utf8> Function(),
-    Pointer<Utf8> Function()>('ping');
+final _ping = _dylib
+    .lookupFunction<Pointer<Utf8> Function(), Pointer<Utf8> Function()>('ping');
 
-final _getCoreVersion = _dylib.lookupFunction<
-    Pointer<Utf8> Function(),
-    Pointer<Utf8> Function()>('get_core_version');
+final _getCoreVersion =
+    _dylib.lookupFunction<Pointer<Utf8> Function(), Pointer<Utf8> Function()>(
+        'get_core_version');
 
-final _freeString = _dylib.lookupFunction<
-    Void Function(Pointer<Utf8>),
+final _freeString = _dylib.lookupFunction<Void Function(Pointer<Utf8>),
     void Function(Pointer<Utf8>)>('free_string');
 
 String _fromCString(Pointer<Utf8> ptr) {

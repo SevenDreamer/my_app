@@ -49,7 +49,8 @@ class _DatabaseManagerScreenState extends State<DatabaseManagerScreen> {
 
     setState(() {
       _savedConnections = connectionsJson
-          .map((json) => DbConnectionConfig.fromJson(jsonDecode(json)))
+          .map((json) => DbConnectionConfig.fromJson(
+              jsonDecode(json) as Map<String, dynamic>))
           .toList()
         ..sort((a, b) => b.lastConnected.compareTo(a.lastConnected));
     });
@@ -98,7 +99,9 @@ class _DatabaseManagerScreenState extends State<DatabaseManagerScreen> {
 
   /// 加载表数据
   Future<void> _loadTableData() async {
-    if (_currentConnection == null || _selectedDatabase == null || _selectedTable == null) return;
+    if (_currentConnection == null ||
+        _selectedDatabase == null ||
+        _selectedTable == null) return;
 
     setState(() {
       _isLoadingTableData = true;
@@ -132,20 +135,6 @@ class _DatabaseManagerScreenState extends State<DatabaseManagerScreen> {
   /// 使用混合模式：优先 Rust FFI，未实现则降级到 Dart
   DatabaseService _createService(DbConnectionConfig config) {
     return HybridDatabaseService(config);
-  }
-
-  /// DbType → 字符串
-  String _dbTypeToString(DbType type) {
-    switch (type) {
-      case DbType.sqlite:
-        return 'sqlite';
-      case DbType.mysql:
-        return 'mysql';
-      case DbType.postgresql:
-        return 'postgresql';
-      case DbType.mongodb:
-        return 'mongodb';
-    }
   }
 
   /// 处理连接删除
@@ -380,10 +369,14 @@ class _DatabaseManagerScreenState extends State<DatabaseManagerScreen> {
             padding: const EdgeInsets.all(12),
             child: Row(
               children: [
-                Text('DATABASE', style: HeroUiTypography.bodyXsMedium.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
-                  letterSpacing: 1,
-                )),
+                Text('DATABASE',
+                    style: HeroUiTypography.bodyXsMedium.copyWith(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withOpacity(0.5),
+                      letterSpacing: 1,
+                    )),
                 const Spacer(),
                 _buildToolbarButton(
                   icon: LucideIcons.settings,
@@ -481,10 +474,7 @@ class _DatabaseManagerScreenState extends State<DatabaseManagerScreen> {
           Icon(
             LucideIcons.database,
             size: 64,
-            color: Theme.of(context)
-                .colorScheme
-                .onSurface
-                .withOpacity(0.2),
+            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.2),
           ),
           const SizedBox(height: 24),
           const Text('数据库管理', style: HeroUiTypography.heading3),
@@ -492,10 +482,7 @@ class _DatabaseManagerScreenState extends State<DatabaseManagerScreen> {
           Text(
             '连接数据库以开始管理',
             style: HeroUiTypography.bodySm.copyWith(
-              color: Theme.of(context)
-                  .colorScheme
-                  .onSurface
-                  .withOpacity(0.5),
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
             ),
           ),
           const SizedBox(height: 32),
@@ -546,10 +533,8 @@ class _DatabaseManagerScreenState extends State<DatabaseManagerScreen> {
               Text(
                 '${_selectedDatabase!.tables.length} 个表',
                 style: HeroUiTypography.bodySm.copyWith(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .onSurface
-                      .withOpacity(0.5),
+                  color:
+                      Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
                 ),
               ),
             ],
@@ -610,10 +595,7 @@ class _DatabaseManagerScreenState extends State<DatabaseManagerScreen> {
           Text(
             '${table.fields.length} 个字段 • ${table.rowCount} 条数据',
             style: HeroUiTypography.bodyXs.copyWith(
-              color: Theme.of(context)
-                  .colorScheme
-                  .onSurface
-                  .withOpacity(0.5),
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
             ),
           ),
         ],
@@ -645,17 +627,16 @@ class _DatabaseManagerScreenState extends State<DatabaseManagerScreen> {
                   icon: const Icon(LucideIcons.arrowLeft),
                   onPressed: () => setState(() => _selectedTable = null),
                 ),
-              Icon(LucideIcons.table, size: 20, color: Theme.of(context).colorScheme.primary),
+              Icon(LucideIcons.table,
+                  size: 20, color: Theme.of(context).colorScheme.primary),
               const SizedBox(width: 8),
               Text(_selectedTable!.name, style: HeroUiTypography.heading4),
               const SizedBox(width: 12),
               Text(
                 '${_selectedTable!.rowCount} 条数据',
                 style: HeroUiTypography.bodyXs.copyWith(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .onSurface
-                      .withOpacity(0.5),
+                  color:
+                      Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
                 ),
               ),
               const Spacer(),
@@ -679,8 +660,7 @@ class _DatabaseManagerScreenState extends State<DatabaseManagerScreen> {
           child: _buildDataTable(),
         ),
         // 分页控件
-        if (_selectedTable!.rowCount > _pageSize)
-          _buildPagination(),
+        if (_selectedTable!.rowCount > _pageSize) _buildPagination(),
       ],
     );
   }
@@ -696,11 +676,13 @@ class _DatabaseManagerScreenState extends State<DatabaseManagerScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(LucideIcons.alertCircle, size: 48, color: Colors.red.withOpacity(0.5)),
+            Icon(LucideIcons.alertCircle,
+                size: 48, color: Colors.red.withOpacity(0.5)),
             const SizedBox(height: 16),
             const Text('加载失败', style: HeroUiTypography.bodySmMedium),
             const SizedBox(height: 8),
-            Text(_tableDataError!, style: HeroUiTypography.bodyXs, textAlign: TextAlign.center),
+            Text(_tableDataError!,
+                style: HeroUiTypography.bodyXs, textAlign: TextAlign.center),
             const SizedBox(height: 16),
             HeroUiButton(
               label: '重试',
@@ -718,7 +700,10 @@ class _DatabaseManagerScreenState extends State<DatabaseManagerScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(LucideIcons.inbox, size: 48, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.3)),
+            Icon(LucideIcons.inbox,
+                size: 48,
+                color:
+                    Theme.of(context).colorScheme.onSurface.withOpacity(0.3)),
             const SizedBox(height: 16),
             const Text('表中没有数据', style: HeroUiTypography.bodySm),
           ],
@@ -735,7 +720,10 @@ class _DatabaseManagerScreenState extends State<DatabaseManagerScreen> {
         scrollDirection: Axis.horizontal,
         child: DataTable(
           headingRowColor: WidgetStateProperty.all(
-            Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.5),
+            Theme.of(context)
+                .colorScheme
+                .surfaceContainerHighest
+                .withOpacity(0.5),
           ),
           headingTextStyle: HeroUiTypography.bodyXsMedium.copyWith(
             color: Theme.of(context).colorScheme.onSurface,
@@ -836,7 +824,7 @@ class _DatabaseManagerScreenState extends State<DatabaseManagerScreen> {
 
   /// 显示字段信息对话框
   void _showFieldInfo() {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
         title: Text('${_selectedTable!.name} - 字段信息'),
@@ -846,7 +834,8 @@ class _DatabaseManagerScreenState extends State<DatabaseManagerScreen> {
             shrinkWrap: true,
             itemCount: _selectedTable!.fields.length,
             separatorBuilder: (context, index) => const Divider(height: 1),
-            itemBuilder: (context, index) => _buildFieldItem(_selectedTable!.fields[index]),
+            itemBuilder: (context, index) =>
+                _buildFieldItem(_selectedTable!.fields[index]),
           ),
         ),
         actions: [
@@ -882,7 +871,8 @@ class _DatabaseManagerScreenState extends State<DatabaseManagerScreen> {
           else
             const SizedBox(width: 32),
           const SizedBox(width: 12),
-          Expanded(child: Text(field.name, style: HeroUiTypography.bodyXsMedium)),
+          Expanded(
+              child: Text(field.name, style: HeroUiTypography.bodyXsMedium)),
           Text(
             field.type,
             style: HeroUiTypography.bodyXs.copyWith(
@@ -894,10 +884,7 @@ class _DatabaseManagerScreenState extends State<DatabaseManagerScreen> {
             Text(
               'NOT NULL',
               style: HeroUiTypography.navLabel.copyWith(
-                color: Theme.of(context)
-                    .colorScheme
-                    .onSurface
-                    .withOpacity(0.4),
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4),
               ),
             ),
         ],
@@ -907,7 +894,7 @@ class _DatabaseManagerScreenState extends State<DatabaseManagerScreen> {
 
   /// 显示连接对话框
   void _showConnectionDialog() {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) => ConnectionDialog(
         onConnect: (config) {

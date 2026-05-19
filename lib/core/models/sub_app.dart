@@ -2,15 +2,6 @@ import 'package:flutter/material.dart';
 
 /// 子应用模型
 class SubApp {
-  final String id;  // app_name，用于标识应用
-  final int dbId;  // 数据库中的 id（整数），用于数据库操作
-  final String name;
-  final String description;
-  final String iconName;
-  final Color color;
-  final String route;
-  final bool isEnabled;
-
   const SubApp({
     required this.id,
     this.dbId = 0,
@@ -25,16 +16,26 @@ class SubApp {
   /// 从 JSON 创建 SubApp
   factory SubApp.fromJson(Map<String, dynamic> json) {
     return SubApp(
-      id: json['app_name'] ?? '',
-      dbId: json['id'] is int ? json['id'] : int.tryParse(json['id']?.toString() ?? '0') ?? 0,
-      name: json['display_name'] ?? '',
-      description: json['description'] ?? '',
-      iconName: json['icon'] ?? 'circle',
-      color: _getAppColor(json['app_name'] ?? ''),
-      route: json['route'] ?? '',
-      isEnabled: json['is_active'] ?? true,
+      id: (json['app_name'] ?? '') as String,
+      dbId: json['id'] is int
+          ? json['id'] as int
+          : int.tryParse(json['id']?.toString() ?? '0') ?? 0,
+      name: (json['display_name'] ?? '') as String,
+      description: (json['description'] ?? '') as String,
+      iconName: (json['icon'] ?? 'circle') as String,
+      color: _getAppColor((json['app_name'] ?? '') as String),
+      route: (json['route'] ?? '') as String,
+      isEnabled: (json['is_active'] ?? true) as bool,
     );
   }
+  final String id; // app_name，用于标识应用
+  final int dbId; // 数据库中的 id（整数），用于数据库操作
+  final String name;
+  final String description;
+  final String iconName;
+  final Color color;
+  final String route;
+  final bool isEnabled;
 
   /// 根据应用名称获取颜色
   static Color _getAppColor(String appName) {

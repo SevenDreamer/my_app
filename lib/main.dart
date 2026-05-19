@@ -31,7 +31,7 @@ void main() async {
 
 class MyApp extends StatelessWidget {
   final String? initialToken;
-  
+
   const MyApp({super.key, this.initialToken});
 
   @override
@@ -44,7 +44,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
     );
   }
-  
+
   Widget _getHomeScreen() {
     if (initialToken != null) {
       // 验证 token 是否有效
