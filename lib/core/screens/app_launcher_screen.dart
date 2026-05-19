@@ -109,7 +109,7 @@ class _AppLauncherScreenState extends State<AppLauncherScreen> {
               onPressed: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (context) => UserManagementScreen(token: _currentToken),
+                    builder: (context) => const UserManagementScreen(),
                   ),
                 ).then((_) => _loadApps()); // 返回时刷新
               },
