@@ -3,6 +3,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:my_app/core/auth_state.dart';
+import 'package:my_app/core/config/app_config.dart';
 import 'package:my_app/rust/api/auth.dart' as auth_api;
 
 class LoginScreen extends StatefulWidget {
@@ -15,9 +16,6 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
-
-  // 后端基础 URL
-  static const String _baseUrl = 'http://localhost:5000';
 
   // 加载状态
   bool _isLoading = false;
@@ -53,19 +51,19 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       // 调用 Rust `login()` 函数（通过 flutter_rust_bridge）
       final token = auth_api.login(
-        baseUrl: _baseUrl,
+        baseUrl: AppConfig.baseUrl,
         username: username,
         password: password,
       );
 
       // 登录成功，验证 token 并获取用户信息
       final userInfo = auth_api.verifyToken(
-        baseUrl: _baseUrl,
+        baseUrl: AppConfig.baseUrl,
         token: token,
       );
 
       // 存储到全局状态
-      AuthState().login(token, userInfo, _baseUrl);
+      AuthState().login(token, userInfo, AppConfig.baseUrl);
 
       // 跳转到主界面
       if (mounted) {
