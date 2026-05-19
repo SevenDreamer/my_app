@@ -10,9 +10,21 @@ allprojects {
 rootProject.buildDir = '../build'
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
-}
-subprojects {
-    project.evaluationDependsOn(':app')
+    
+    // 在子项目配置阶段统一编译选项
+    afterEvaluate { sub ->
+        if (sub.hasProperty('android')) {
+            sub.android.compileOptions {
+                sourceCompatibility JavaVersion.VERSION_17
+                targetCompatibility JavaVersion.VERSION_17
+            }
+            sub.tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+                kotlinOptions {
+                    jvmTarget = '17'
+                }
+            }
+        }
+    }
 }
 
 tasks.register("clean", Delete) {
