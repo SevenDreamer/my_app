@@ -10,8 +10,8 @@ rust_input: "crate::api"
 # Rust 项目根目录
 rust_root: "rust/"
 
-# 生成的 Rust 绑定代码输出位置
-rust_output: "rust/src/frb_generated/frb_generated.rs"
+# 生成的 Rust 绑定代码输出位置（必须是单个文件，不能用目录形式）
+rust_output: "rust/src/frb_generated.rs"
 
 # 生成的 Dart 绑定代码输出目录
 dart_output: "lib/rust/"

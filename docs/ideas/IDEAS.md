@@ -91,6 +91,115 @@ dependencies:
 
 ---
 
+### 🔄 Rust 端数据库迁移（sqlx-cli）
+
+**提出日期**: 2026-05-19  
+**优先级**: 高  
+**状态**: 待实现
+
+#### 功能描述
+
+在 Rust 端集成数据库迁移机制，使用 **sqlx-cli** 管理 SQLite 数据库的 schema 变更，类似后端使用 Alembic/SQLAlchemy 的体验。
+
+此功能是 my_app 数据存储层的基础，为后续所有功能模块（用户系统、设置、Hermes Agent 数据等）提供数据库版本管理能力。
+
+#### 技术实现
+
+**工具选型**: sqlx-cli（最成熟的 Rust 数据库迁移方案）
+
+**项目结构**:
+```
+my_app/
+├── Cargo.toml
+├── migrations/              ← 迁移文件目录
+│   ├── 20260519000000_initial.sql
+│   ├── 20260520000000_add_settings.sql
+│   └── ...
+├── src/
+│   ├── main.rs
+│   ├── db.rs               ← 数据库逻辑
+│   └── ...
+└── .env                    ← DATABASE_URL=sqlite:my_app.db
+```
+
+**Rust 代码集成**:
+```rust
+// src/db.rs
+use sqlx::{SqlitePool, migrate::MigrateDatabase};
+
+pub async fn init_db(db_url: &str) -> Result<SqlitePool, sqlx::Error> {
+    // 自动创建数据库（如果不存在）
+    if !sqlx::Sqlite::database_exists(db_url).await.unwrap_or(false) {
+        sqlx::Sqlite::create_database(db_url).await?;
+    }
+    
+    // 建立连接池
+    let pool = SqlitePool::connect(db_url).await?;
+    
+    // 执行迁移（自动读取 migrations/ 目录）
+    sqlx::migrate!("./migrations")
+        .run(&pool)
+        .await?;
+    
+    println!("数据库迁移完成！");
+    Ok(pool)
+}
+```
+
+**常用命令**:
+```bash
+# 安装 sqlx-cli
+cargo install sqlx-cli --no-default-features --features sqlite
+
+# 创建新迁移
+sqlx migrate add create_users_table
+
+# 执行所有待迁移
+sqlx migrate run
+
+# 回滚一步
+sqlx migrate revert
+
+# 查看迁移状态
+sqlx migrate info
+
+# 编译时检查 SQL（需要在 .env 中配置 DATABASE_URL）
+sqlx prepare
+```
+
+#### 使用场景
+
+1. **初始化数据库 schema**（创建用户表、设置表等）
+2. **版本升级时自动迁移**（新增表、新增字段）
+3. **多环境管理**（开发、测试、生产环境数据库版本一致）
+4. **回滚能力**（出错时可回退到上一个版本）
+
+#### 依赖
+
+```toml
+# Cargo.toml
+[dependencies]
+sqlx = { version = "0.7", features = ["sqlite", "runtime-tokio-native-tls"] }
+
+[dev-dependencies]
+sqlx-cli = { version = "0.7", features = ["sqlite"] }
+```
+
+#### 待解决问题
+
+- [ ] 确定数据库文件存储位置（应用数据目录）
+- [ ] 设计初始 schema（用户、设置、各功能模块数据表）
+- [ ] 考虑数据库加密（敏感数据保护）
+- [ ] 迁移测试策略（如何测试迁移的正确性）
+
+#### 参考资料
+
+- [sqlx-cli GitHub](https://github.com/launchbadge/sqlx/tree/main/sqlx-cli)
+- [sqlx Rust 文档](https://docs.rs/sqlx/latest/sqlx/)
+- 详细技术方案见 `docs/TECH_DECISIONS.md` (TDR-001)
+
+---
+
 ### 📝 [功能名称]
 
 **提出日期**: YYYY-MM-DD  

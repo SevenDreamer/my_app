@@ -8,7 +8,7 @@ pub mod macros;
 pub mod ffi_manual;
 pub mod ffi_auth;
 pub mod database;
-pub mod auth;
+pub mod local_auth;  // 原 auth.rs，本地数据库认证
 
 // 导出手动 FFI 函数（与自动生成共存）
 pub use ffi_manual::*;

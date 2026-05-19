@@ -1,4 +1,4 @@
-//! 认证相关 FFI 桥接
+// 认证相关 FFI 桥接
 //!
 //! 用户管理、应用管理、权限管理的 C ABI 接口
 
@@ -28,9 +28,9 @@ fn to_c_str(s: &str) -> *mut c_char {
 pub extern "C" fn auth_init(db_path: *const c_char) -> *mut c_char {
     let path = from_c_str(db_path);
     let path_opt = if path.is_empty() { None } else { Some(path.as_str()) };
-    
+
     let rt = tokio::runtime::Runtime::new().unwrap();
-    let result = rt.block_on(crate::auth::init_auth_db(path_opt));
+    let result = rt.block_on(crate::local_auth::init_auth_db(path_opt));
     match result {
         Ok(s) => to_c_str(&s),
         Err(e) => to_c_str(&format!("{{\"ok\": false, \"error\": \"{}\"}}", e)),
@@ -45,7 +45,7 @@ pub extern "C" fn auth_init(db_path: *const c_char) -> *mut c_char {
 #[no_mangle]
 pub extern "C" fn auth_login(request_json: *const c_char) -> *mut c_char {
     let req_str = from_c_str(request_json);
-    
+
     // 解析请求
     let req: serde_json::Value = match serde_json::from_str(&req_str) {
         Ok(v) => v,
@@ -54,12 +54,12 @@ pub extern "C" fn auth_login(request_json: *const c_char) -> *mut c_char {
             e
         )),
     };
-    
+
     let username = req["username"].as_str().unwrap_or("");
     let password = req["password"].as_str().unwrap_or("");
-    
+
     let rt = tokio::runtime::Runtime::new().unwrap();
-    let result = rt.block_on(crate::auth::login(username, password));
+    let result = rt.block_on(crate::local_auth::login(username, password));
     to_c_str(&result)
 }
 
@@ -69,9 +69,9 @@ pub extern "C" fn auth_login(request_json: *const c_char) -> *mut c_char {
 #[no_mangle]
 pub extern "C" fn auth_logout(token: *const c_char) -> *mut c_char {
     let token_str = from_c_str(token);
-    
+
     let rt = tokio::runtime::Runtime::new().unwrap();
-    let result = rt.block_on(crate::auth::logout(&token_str));
+    let result = rt.block_on(crate::local_auth::logout(&token_str));
     to_c_str(&result)
 }
 
@@ -81,9 +81,9 @@ pub extern "C" fn auth_logout(token: *const c_char) -> *mut c_char {
 #[no_mangle]
 pub extern "C" fn auth_get_current_user(token: *const c_char) -> *mut c_char {
     let token_str = from_c_str(token);
-    
+
     let rt = tokio::runtime::Runtime::new().unwrap();
-    let result = rt.block_on(crate::auth::get_current_user(&token_str));
+    let result = rt.block_on(crate::local_auth::get_current_user(&token_str));
     to_c_str(&result)
 }
 
@@ -99,9 +99,9 @@ pub extern "C" fn auth_create_user(
 ) -> *mut c_char {
     let req_str = from_c_str(request_json);
     let token_str = from_c_str(token);
-    
+
     let rt = tokio::runtime::Runtime::new().unwrap();
-    let result = rt.block_on(crate::auth::create_user(&req_str, &token_str));
+    let result = rt.block_on(crate::local_auth::create_user(&req_str, &token_str));
     to_c_str(&result)
 }
 
@@ -111,9 +111,9 @@ pub extern "C" fn auth_create_user(
 #[no_mangle]
 pub extern "C" fn auth_get_users(token: *const c_char) -> *mut c_char {
     let token_str = from_c_str(token);
-    
+
     let rt = tokio::runtime::Runtime::new().unwrap();
-    let result = rt.block_on(crate::auth::get_users(&token_str));
+    let result = rt.block_on(crate::local_auth::get_users(&token_str));
     to_c_str(&result)
 }
 
@@ -128,9 +128,9 @@ pub extern "C" fn auth_update_user(
 ) -> *mut c_char {
     let req_str = from_c_str(request_json);
     let token_str = from_c_str(token);
-    
+
     let rt = tokio::runtime::Runtime::new().unwrap();
-    let result = rt.block_on(crate::auth::update_user(user_id, &req_str, &token_str));
+    let result = rt.block_on(crate::local_auth::update_user(user_id, &req_str, &token_str));
     to_c_str(&result)
 }
 
@@ -143,9 +143,9 @@ pub extern "C" fn auth_delete_user(
     token: *const c_char,
 ) -> *mut c_char {
     let token_str = from_c_str(token);
-    
+
     let rt = tokio::runtime::Runtime::new().unwrap();
-    let result = rt.block_on(crate::auth::delete_user(user_id, &token_str));
+    let result = rt.block_on(crate::local_auth::delete_user(user_id, &token_str));
     to_c_str(&result)
 }
 
@@ -161,9 +161,9 @@ pub extern "C" fn auth_register_app(
 ) -> *mut c_char {
     let req_str = from_c_str(request_json);
     let token_str = from_c_str(token);
-    
+
     let rt = tokio::runtime::Runtime::new().unwrap();
-    let result = rt.block_on(crate::auth::register_app(&req_str, &token_str));
+    let result = rt.block_on(crate::local_auth::register_app(&req_str, &token_str));
     to_c_str(&result)
 }
 
@@ -173,9 +173,9 @@ pub extern "C" fn auth_register_app(
 #[no_mangle]
 pub extern "C" fn auth_get_apps(token: *const c_char) -> *mut c_char {
     let token_str = from_c_str(token);
-    
+
     let rt = tokio::runtime::Runtime::new().unwrap();
-    let result = rt.block_on(crate::auth::get_apps(&token_str));
+    let result = rt.block_on(crate::local_auth::get_apps(&token_str));
     to_c_str(&result)
 }
 
@@ -190,9 +190,9 @@ pub extern "C" fn auth_update_app(
 ) -> *mut c_char {
     let req_str = from_c_str(request_json);
     let token_str = from_c_str(token);
-    
+
     let rt = tokio::runtime::Runtime::new().unwrap();
-    let result = rt.block_on(crate::auth::update_app(app_id, &req_str, &token_str));
+    let result = rt.block_on(crate::local_auth::update_app(app_id, &req_str, &token_str));
     to_c_str(&result)
 }
 
@@ -205,9 +205,9 @@ pub extern "C" fn auth_delete_app(
     token: *const c_char,
 ) -> *mut c_char {
     let token_str = from_c_str(token);
-    
+
     let rt = tokio::runtime::Runtime::new().unwrap();
-    let result = rt.block_on(crate::auth::delete_app(app_id, &token_str));
+    let result = rt.block_on(crate::local_auth::delete_app(app_id, &token_str));
     to_c_str(&result)
 }
 
@@ -223,9 +223,9 @@ pub extern "C" fn auth_assign_app_to_user(
     token: *const c_char,
 ) -> *mut c_char {
     let token_str = from_c_str(token);
-    
+
     let rt = tokio::runtime::Runtime::new().unwrap();
-    let result = rt.block_on(crate::auth::assign_app_to_user(user_id, app_id, &token_str));
+    let result = rt.block_on(crate::local_auth::assign_app_to_user(user_id, app_id, &token_str));
     to_c_str(&result)
 }
 
@@ -239,9 +239,9 @@ pub extern "C" fn auth_remove_app_from_user(
     token: *const c_char,
 ) -> *mut c_char {
     let token_str = from_c_str(token);
-    
+
     let rt = tokio::runtime::Runtime::new().unwrap();
-    let result = rt.block_on(crate::auth::remove_app_from_user(user_id, app_id, &token_str));
+    let result = rt.block_on(crate::local_auth::remove_app_from_user(user_id, app_id, &token_str));
     to_c_str(&result)
 }
 
@@ -254,8 +254,8 @@ pub extern "C" fn auth_get_user_apps(
     token: *const c_char,
 ) -> *mut c_char {
     let token_str = from_c_str(token);
-    
+
     let rt = tokio::runtime::Runtime::new().unwrap();
-    let result = rt.block_on(crate::auth::get_user_apps(user_id, &token_str));
+    let result = rt.block_on(crate::local_auth::get_user_apps(user_id, &token_str));
     to_c_str(&result)
 }
