@@ -91,140 +91,140 @@ class _LoginScreenState extends State<LoginScreen> {
         padding: const EdgeInsets.symmetric(vertical: 48),
         child: Center(
           child: Container(
-          width: 400,
-          padding: const EdgeInsets.all(32),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFFE2E8F0)), // shadcn 边框色
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Logo/图标
-              const Icon(
-                Icons.lock_person,
-                size: 48,
-                color: Color(0xFF2563EB), // shadcn blue
-              ),
-              const SizedBox(height: 24),
-
-              // 标题
-              const Text(
-                'My App',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w600, // shadcn 使用中等粗细
-                  color: Color(0xFF0F172A), // shadcn slate-900
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 32),
-
-              // 用户名输入框（shadcn 风格）
-              TextField(
-                controller: _usernameController,
-                decoration: InputDecoration(
-                  labelText: '用户名',
-                  hintText: '请输入用户名',
-                  prefixIcon: const Icon(Icons.person_outline),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide:
-                        const BorderSide(color: Color(0xFF2563EB), width: 2),
-                  ),
-                ),
-                enabled: !_isLoading,
-                onSubmitted: (_) => _doLogin(),
-              ),
-              const SizedBox(height: 16),
-
-              // 密码输入框（shadcn 风格）
-              TextField(
-                controller: _passwordController,
-                decoration: InputDecoration(
-                  labelText: '密码',
-                  hintText: '请输入密码',
-                  prefixIcon: const Icon(Icons.lock_outline),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide:
-                        const BorderSide(color: Color(0xFF2563EB), width: 2),
-                  ),
-                ),
-                obscureText: true,
-                enabled: !_isLoading,
-                onSubmitted: (_) => _doLogin(),
-              ),
-              const SizedBox(height: 24),
-
-              // 登录按钮（shadcn 风格）
-              ElevatedButton(
-                onPressed: _isLoading ? null : _doLogin,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2563EB), // shadcn blue
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  elevation: 0,
-                ),
-                child: _isLoading
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor:
-                              AlwaysStoppedAnimation<Color>(Colors.white),
-                        ),
-                      )
-                    : const Text(
-                        '登录',
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w500),
-                      ),
-              ),
-
-              // 错误信息
-              if (_errorMessage != null) ...[
-                const SizedBox(height: 16),
-                Text(
-                  _errorMessage!,
-                  style:
-                      const TextStyle(color: Color(0xFFDC2626)), // shadcn red
-                  textAlign: TextAlign.center,
+            width: 400,
+            padding: const EdgeInsets.all(32),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFE2E8F0)), // shadcn 边框色
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 2),
                 ),
               ],
-            ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Logo/图标
+                const Icon(
+                  Icons.lock_person,
+                  size: 48,
+                  color: Color(0xFF2563EB), // shadcn blue
+                ),
+                const SizedBox(height: 24),
+
+                // 标题
+                const Text(
+                  'My App',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w600, // shadcn 使用中等粗细
+                    color: Color(0xFF0F172A), // shadcn slate-900
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 32),
+
+                // 用户名输入框（shadcn 风格）
+                TextField(
+                  controller: _usernameController,
+                  decoration: InputDecoration(
+                    labelText: '用户名',
+                    hintText: '请输入用户名',
+                    prefixIcon: const Icon(Icons.person_outline),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide:
+                          const BorderSide(color: Color(0xFF2563EB), width: 2),
+                    ),
+                  ),
+                  enabled: !_isLoading,
+                  onSubmitted: (_) => _doLogin(),
+                ),
+                const SizedBox(height: 16),
+
+                // 密码输入框（shadcn 风格）
+                TextField(
+                  controller: _passwordController,
+                  decoration: InputDecoration(
+                    labelText: '密码',
+                    hintText: '请输入密码',
+                    prefixIcon: const Icon(Icons.lock_outline),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide:
+                          const BorderSide(color: Color(0xFF2563EB), width: 2),
+                    ),
+                  ),
+                  obscureText: true,
+                  enabled: !_isLoading,
+                  onSubmitted: (_) => _doLogin(),
+                ),
+                const SizedBox(height: 24),
+
+                // 登录按钮（shadcn 风格）
+                ElevatedButton(
+                  onPressed: _isLoading ? null : _doLogin,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF2563EB), // shadcn blue
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: _isLoading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        )
+                      : const Text(
+                          '登录',
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.w500),
+                        ),
+                ),
+
+                // 错误信息
+                if (_errorMessage != null) ...[
+                  const SizedBox(height: 16),
+                  Text(
+                    _errorMessage!,
+                    style:
+                        const TextStyle(color: Color(0xFFDC2626)), // shadcn red
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ],
+            ),
           ),
         ),
-      ),
       ),
     );
   }
