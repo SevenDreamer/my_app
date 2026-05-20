@@ -1,175 +1,195 @@
 //! 认证相关 API
 //!
-//! 此文件由 flutter_rust_bridge_codegen 处理，自动生成 Dart 侧绑定。
+//! 直接连接 PostgreSQL 数据库进行用户认证
 
 use serde::{Deserialize, Serialize};
-use reqwest;
+use sqlx::postgres::PgPoolOptions;
+use sqlx::PgPool;
+use std::sync::Arc;
+use tokio::sync::Mutex;
+use once_cell::sync::Lazy;
+use bcrypt::{verify, DEFAULT_COST};
+use uuid::Uuid;
 
 // ============================
-// 请求/响应类型定义
+// 类型定义
 // ============================
 
-/// 登录请求
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LoginRequest {
-    pub username: String,
-    pub password: String,
-}
-
-/// 登录响应（后端返回格式）
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LoginResponse {
-    pub ok: bool,
-    pub data: Option<LoginData>,
-    pub error: Option<String>,
-}
-
-/// 登录成功后的数据
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LoginData {
-    pub token: String,
-    pub user_id: i64,
-    pub username: String,
-    pub role: String,
-}
-
-/// 用户信息
+/// 登录成功后的用户信息
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UserInfo {
-    pub user_id: i64,
+    pub user_id: i32,
     pub username: String,
     pub role: String,
 }
 
+/// 数据库用户记录
+#[derive(Debug, sqlx::FromRow)]
+struct DbUser {
+    id: i32,
+    username: String,
+    password_hash: String,
+    role: String,
+}
+
 // ============================
-// 认证 API 函数
+// 全局状态
 // ============================
 
-/// 登录
-///
-/// - `base_url`: 后端基础 URL（如 `https://api.example.com`）
-/// - `username`: 用户名
-/// - `password`: 密码
-/// - 返回：token 字符串，或错误信息
-#[flutter_rust_bridge::frb(sync)]  // 使用 sync 因为在 Rust 内部用 reqwest blocking
-pub fn login(base_url: String, username: String, password: String) -> Result<String, String> {
-    // 构造完整的登录 URL
-    let url = format!("{}/api/auth/login", base_url.trim_end_matches('/'));
+/// PostgreSQL 连接池
+static DB_POOL: Lazy<Arc<Mutex<Option<PgPool>>>> =
+    Lazy::new(|| Arc::new(Mutex::new(None)));
 
-    // 创建登录请求体
-    let request = LoginRequest { username, password };
+/// 当前登录用户（内存中保存 token）
+static CURRENT_USER: Lazy<Arc<Mutex<Option<LoggedInUser>>>> =
+    Lazy::new(|| Arc::new(Mutex::new(None)));
 
-    // 发送 HTTP POST 请求（使用 reqwest 异步，但这里用 block_on 转换为同步）
+#[derive(Debug, Clone)]
+struct LoggedInUser {
+    user_id: i32,
+    username: String,
+    role: String,
+    token: String,
+}
+
+// ============================
+// 初始化
+// ============================
+
+/// 初始化 PostgreSQL 连接池
+#[flutter_rust_bridge::frb(sync)]
+pub fn init_auth_db() -> Result<String, String> {
     let runtime = tokio::runtime::Runtime::new()
         .map_err(|e| format!("创建 tokio runtime 失败: {}", e))?;
 
     runtime.block_on(async {
-        let client = reqwest::Client::new();
-        
-        match client.post(&url).json(&request).send().await {
-            Ok(resp) => {
-                let status = resp.status();
-                if !status.is_success() {
-                    return Err(format!("HTTP 错误: {}", status));
+        let db_url = "postgres://seven:dQt6yMsCgu@159.75.98.152:5433/my_app";
+
+        let pool = PgPoolOptions::new()
+            .max_connections(5)
+            .connect(db_url)
+            .await
+            .map_err(|e| format!("连接 PostgreSQL 失败: {}", e))?;
+
+        // 测试连接
+        sqlx::query("SELECT 1")
+            .fetch_one(&pool)
+            .await
+            .map_err(|e| format!("数据库连接测试失败: {}", e))?;
+
+        // 保存连接池
+        let mut db = DB_POOL.lock().await;
+        *db = Some(pool);
+
+        Ok("PostgreSQL 连接成功".to_string())
+    })
+}
+
+/// 获取数据库连接池
+async fn get_db_pool() -> Result<PgPool, String> {
+    let db = DB_POOL.lock().await;
+    match *db {
+        Some(ref pool) => Ok(pool.clone()),
+        None => Err("数据库未初始化，请先调用 init_auth_db".to_string()),
+    }
+}
+
+// ============================
+// 认证 API
+// ============================
+
+/// 用户登录
+#[flutter_rust_bridge::frb(sync)]
+pub fn login(username: String, password: String) -> Result<UserInfo, String> {
+    let runtime = tokio::runtime::Runtime::new()
+        .map_err(|e| format!("创建 tokio runtime 失败: {}", e))?;
+
+    runtime.block_on(async {
+        let pool = get_db_pool().await?;
+
+        // 查询用户
+        let user: Option<DbUser> = sqlx::query_as(
+            "SELECT id, username, password_hash, role FROM users WHERE username = $1"
+        )
+        .bind(&username)
+        .fetch_optional(&pool)
+        .await
+        .map_err(|e| format!("查询用户失败: {}", e))?;
+
+        match user {
+            Some(user) => {
+                // 验证密码
+                let valid = verify(&password, &user.password_hash)
+                    .map_err(|e| format!("密码验证失败: {}", e))?;
+
+                if !valid {
+                    return Err("用户名或密码错误".to_string());
                 }
 
-                match resp.json::<LoginResponse>().await {
-                    Ok(data) => {
-                        if data.ok {
-                            match data.data {
-                                Some(login_data) => Ok(login_data.token),
-                                None => Err("登录成功但未返回 token".to_string()),
-                            }
-                        } else {
-                            Err(data.error.unwrap_or_else(|| "登录失败".to_string()))
-                        }
-                    }
-                    Err(e) => Err(format!("解析响应失败: {}", e)),
-                }
+                // 生成 token
+                let token = Uuid::new_v4().to_string();
+
+                // 保存当前登录用户
+                let mut current = CURRENT_USER.lock().await;
+                *current = Some(LoggedInUser {
+                    user_id: user.id,
+                    username: user.username.clone(),
+                    role: user.role.clone(),
+                    token: token.clone(),
+                });
+
+                Ok(UserInfo {
+                    user_id: user.id,
+                    username: user.username,
+                    role: user.role,
+                })
             }
-            Err(e) => Err(format!("请求失败: {}", e)),
+            None => Err("用户名或密码错误".to_string()),
         }
     })
 }
 
 /// 验证 token 是否有效
-///
-/// - `base_url`: 后端基础 URL
-/// - `token`: 要验证的 token
-/// - 返回：用户信息，或错误信息
 #[flutter_rust_bridge::frb(sync)]
-pub fn verify_token(base_url: String, token: String) -> Result<UserInfo, String> {
-    let url = format!("{}/api/auth/verify", base_url.trim_end_matches('/'));
-
+pub fn verify_token(token: String) -> Result<UserInfo, String> {
     let runtime = tokio::runtime::Runtime::new()
         .map_err(|e| format!("创建 tokio runtime 失败: {}", e))?;
 
     runtime.block_on(async {
-        let client = reqwest::Client::new();
-        
-        match client
-            .get(&url)
-            .header("Authorization", format!("Bearer {}", token))
-            .send()
-            .await
-        {
-            Ok(resp) => {
-                let status = resp.status();
-                if !status.is_success() {
-                    return Err(format!("HTTP 错误: {}", status));
-                }
-
-                match resp.json::<LoginResponse>().await {
-                    Ok(data) => {
-                        if data.ok {
-                            match data.data {
-                                Some(login_data) => Ok(UserInfo {
-                                    user_id: login_data.user_id,
-                                    username: login_data.username,
-                                    role: login_data.role,
-                                }),
-                                None => Err("验证成功但未返回用户信息".to_string()),
-                            }
-                        } else {
-                            Err(data.error.unwrap_or_else(|| "token 无效".to_string()))
-                        }
-                    }
-                    Err(e) => Err(format!("解析响应失败: {}", e)),
-                }
+        let current = CURRENT_USER.lock().await;
+        match *current {
+            Some(ref user) if user.token == token => {
+                Ok(UserInfo {
+                    user_id: user.user_id,
+                    username: user.username.clone(),
+                    role: user.role.clone(),
+                })
             }
-            Err(e) => Err(format!("请求失败: {}", e)),
+            _ => Err("token 无效或已过期".to_string()),
         }
     })
 }
 
-/// 登出（可选：让后端失效 token）
-///
-/// - `base_url`: 后端基础 URL
-/// - `token`: 要登出的 token
+/// 用户登出
 #[flutter_rust_bridge::frb(sync)]
-pub fn logout(base_url: String, token: String) -> Result<String, String> {
-    let url = format!("{}/api/auth/logout", base_url.trim_end_matches('/'));
-
+pub fn logout(token: String) -> Result<String, String> {
     let runtime = tokio::runtime::Runtime::new()
         .map_err(|e| format!("创建 tokio runtime 失败: {}", e))?;
 
     runtime.block_on(async {
-        let client = reqwest::Client::new();
-        
-        match client
-            .post(&url)
-            .header("Authorization", format!("Bearer {}", token))
-            .send()
-            .await
-        {
-            Ok(resp) => {
-                let status = resp.status();
-                if !status.is_success() {
-                    return Err(format!("HTTP 错误: {}", status));
-                }
+        let mut current = CURRENT_USER.lock().await;
+        match *current {
+            Some(ref user) if user.token == token => {
+                *current = None;
                 Ok("登出成功".to_string())
             }
-            Err(e) => Err(format!("请求失败: {}", e)),
+            _ => Err("无效的 token".to_string()),
         }
     })
+}
+
+/// 获取当前登录用户
+#[flutter_rust_bridge::frb(sync)]
+pub fn get_current_user(token: String) -> Result<UserInfo, String> {
+    verify_token(token)
 }

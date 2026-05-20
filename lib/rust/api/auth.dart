@@ -3,44 +3,36 @@
 
 // ignore_for_file: invalid_use_of_internal_member, unused_import, unnecessary_import
 
-import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
+import 'package:my_app/rust/frb_generated.dart';
 
-// These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `LoginData`, `LoginRequest`, `LoginResponse`
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `clone`, `clone`, `fmt`, `fmt`, `fmt`, `fmt`
+// These functions are ignored because they are not marked as `pub`: `get_db_pool`
+// These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `DbUser`, `LoggedInUser`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `fmt`, `fmt`, `fmt`, `from_row`
 
-/// 登录
-///
-/// - `base_url`: 后端基础 URL（如 `https://api.example.com`）
-/// - `username`: 用户名
-/// - `password`: 密码
-/// - 返回：token 字符串，或错误信息
-String login(
-        {required String baseUrl,
-        required String username,
-        required String password}) =>
-    RustLib.instance.api.crateApiAuthLogin(
-        baseUrl: baseUrl, username: username, password: password);
+/// 初始化 PostgreSQL 连接池
+String initAuthDb() => RustLib.instance.api.crateApiAuthInitAuthDb();
+
+/// 用户登录
+UserInfo login({required String username, required String password}) =>
+    RustLib.instance.api
+        .crateApiAuthLogin(username: username, password: password);
 
 /// 验证 token 是否有效
-///
-/// - `base_url`: 后端基础 URL
-/// - `token`: 要验证的 token
-/// - 返回：用户信息，或错误信息
-UserInfo verifyToken({required String baseUrl, required String token}) =>
-    RustLib.instance.api
-        .crateApiAuthVerifyToken(baseUrl: baseUrl, token: token);
+UserInfo verifyToken({required String token}) =>
+    RustLib.instance.api.crateApiAuthVerifyToken(token: token);
 
-/// 登出（可选：让后端失效 token）
-///
-/// - `base_url`: 后端基础 URL
-/// - `token`: 要登出的 token
-String logout({required String baseUrl, required String token}) =>
-    RustLib.instance.api.crateApiAuthLogout(baseUrl: baseUrl, token: token);
+/// 用户登出
+String logout({required String token}) =>
+    RustLib.instance.api.crateApiAuthLogout(token: token);
 
-/// 用户信息
+/// 获取当前登录用户
+UserInfo getCurrentUser({required String token}) =>
+    RustLib.instance.api.crateApiAuthGetCurrentUser(token: token);
+
+/// 登录成功后的用户信息
 class UserInfo {
-  final PlatformInt64 userId;
+  final int userId;
   final String username;
   final String role;
 

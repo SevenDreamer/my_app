@@ -1,10 +1,9 @@
-// 登录界面 - 使用 flutter_rust_bridge 自动生成的 API
-// 样式：shadcn 风格（简洁、边框、适当间距）
+// 登录界面 - 使用 PostgreSQL 数据库认证
 
 import 'package:flutter/material.dart';
-import 'package:my_app/core/auth_state.dart';
-import 'package:my_app/core/config/app_config.dart';
 import 'package:my_app/rust/api/auth.dart' as auth_api;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:my_app/core/screens/app_launcher_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -17,10 +16,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  // 加载状态
   bool _isLoading = false;
-
-  // 错误信息
   String? _errorMessage;
 
   @override
@@ -30,9 +26,7 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  // 执行登录
   Future<void> _doLogin() async {
-    // 验证输入
     final username = _usernameController.text.trim();
     final password = _passwordController.text;
 
@@ -49,29 +43,31 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      // 调用 Rust `login()` 函数（通过 flutter_rust_bridge）
-      final token = auth_api.login(
-        baseUrl: AppConfig.baseUrl,
+      // 调用 Rust 登录 API
+      final userInfo = auth_api.login(
         username: username,
         password: password,
       );
 
-      // 登录成功，验证 token 并获取用户信息
-      final userInfo = auth_api.verifyToken(
-        baseUrl: AppConfig.baseUrl,
-        token: token,
-      );
+      // 保存 token（使用 UUID 作为临时 token）
+      // TODO: 后续可以从 Rust 返回真正的 token
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('auth_token', 'temp_token_${userInfo.userId}');
 
-      // 存储到全局状态
-      AuthState().login(token, userInfo, AppConfig.baseUrl);
-
-      // 跳转到主界面
       if (mounted) {
-        Navigator.of(context).pushReplacementNamed('/home');
+        Navigator.of(context).pushReplacement<void, void>(
+          MaterialPageRoute<void>(
+            builder: (context) => AppLauncherScreen(
+              token: 'temp_token_${userInfo.userId}',
+              username: userInfo.username,
+              role: userInfo.role,
+            ),
+          ),
+        );
       }
     } catch (e) {
       setState(() {
-        _errorMessage = '登录失败：$e';
+        _errorMessage = e.toString().replaceAll('Exception: ', '');
       });
     } finally {
       if (mounted) {
@@ -85,7 +81,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5), // shadcn 风格浅灰背景
+      backgroundColor: const Color(0xFFF5F5F5),
       resizeToAvoidBottomInset: true,
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(vertical: 48),
@@ -96,7 +92,7 @@ class _LoginScreenState extends State<LoginScreen> {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFE2E8F0)), // shadcn 边框色
+              border: Border.all(color: const Color(0xFFE2E8F0)),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: 0.05),
@@ -109,27 +105,22 @@ class _LoginScreenState extends State<LoginScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Logo/图标
                 const Icon(
                   Icons.lock_person,
                   size: 48,
-                  color: Color(0xFF2563EB), // shadcn blue
+                  color: Color(0xFF2563EB),
                 ),
                 const SizedBox(height: 24),
-
-                // 标题
                 const Text(
                   'My App',
                   style: TextStyle(
                     fontSize: 24,
-                    fontWeight: FontWeight.w600, // shadcn 使用中等粗细
-                    color: Color(0xFF0F172A), // shadcn slate-900
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF0F172A),
                   ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 32),
-
-                // 用户名输入框（shadcn 风格）
                 TextField(
                   controller: _usernameController,
                   decoration: InputDecoration(
@@ -154,8 +145,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   onSubmitted: (_) => _doLogin(),
                 ),
                 const SizedBox(height: 16),
-
-                // 密码输入框（shadcn 风格）
                 TextField(
                   controller: _passwordController,
                   decoration: InputDecoration(
@@ -181,12 +170,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   onSubmitted: (_) => _doLogin(),
                 ),
                 const SizedBox(height: 24),
-
-                // 登录按钮（shadcn 风格）
                 ElevatedButton(
                   onPressed: _isLoading ? null : _doLogin,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2563EB), // shadcn blue
+                    backgroundColor: const Color(0xFF2563EB),
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
@@ -210,14 +197,11 @@ class _LoginScreenState extends State<LoginScreen> {
                               fontSize: 16, fontWeight: FontWeight.w500),
                         ),
                 ),
-
-                // 错误信息
                 if (_errorMessage != null) ...[
                   const SizedBox(height: 16),
                   Text(
                     _errorMessage!,
-                    style:
-                        const TextStyle(color: Color(0xFFDC2626)), // shadcn red
+                    style: const TextStyle(color: Color(0xFFDC2626)),
                     textAlign: TextAlign.center,
                   ),
                 ],
