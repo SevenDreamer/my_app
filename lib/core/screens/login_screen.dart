@@ -86,8 +86,11 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5), // shadcn 风格浅灰背景
-      body: Center(
-        child: Container(
+      resizeToAvoidBottomInset: true,
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(vertical: 48),
+        child: Center(
+          child: Container(
           width: 400,
           padding: const EdgeInsets.all(32),
           decoration: BoxDecoration(
@@ -221,6 +224,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ],
           ),
         ),
+      ),
       ),
     );
   }

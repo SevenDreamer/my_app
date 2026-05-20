@@ -10,10 +10,28 @@ allprojects {
 rootProject.buildDir = '../build'
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
-    
-    // 在子项目配置阶段统一编译选项
+
+    // 为缺少 namespace 的插件自动添加
     afterEvaluate { sub ->
         if (sub.hasProperty('android')) {
+            if (sub.android.namespace == null) {
+                def manifest = file("${sub.projectDir}/src/main/AndroidManifest.xml")
+                if (manifest.exists()) {
+                    def pkg = new groovy.xml.XmlSlurper().parse(manifest).@package.text()
+                    if (pkg) {
+                        sub.android.namespace = pkg
+                    }
+                }
+            }
+            if (sub.android.hasProperty('compileSdkVersion')) {
+                def currentSdk = sub.android.compileSdkVersion?.toString() ?: "0"
+                def sdkNum = currentSdk.replaceAll(/[^0-9]/, "") as int
+                if (sdkNum < 34) {
+                    sub.android.compileSdk 34
+                }
+            } else {
+                sub.android.compileSdk 34
+            }
             sub.android.compileOptions {
                 sourceCompatibility JavaVersion.VERSION_17
                 targetCompatibility JavaVersion.VERSION_17

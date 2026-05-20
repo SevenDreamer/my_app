@@ -80,6 +80,19 @@ abstract class CargoKitBuildTask extends DefaultTask {
             environment "CARGOKIT_MIN_SDK_VERSION", minSdkVersion
             environment "CARGOKIT_TARGET_PLATFORMS", targetPlatforms.join(",")
             environment "CARGOKIT_JAVA_HOME", System.properties['java.home']
+            // Pass proxy environment variables
+            if (System.getenv('HTTP_PROXY') != null) {
+                environment "HTTP_PROXY", System.getenv('HTTP_PROXY')
+            }
+            if (System.getenv('HTTPS_PROXY') != null) {
+                environment "HTTPS_PROXY", System.getenv('HTTPS_PROXY')
+            }
+            if (System.getenv('http_proxy') != null) {
+                environment "http_proxy", System.getenv('http_proxy')
+            }
+            if (System.getenv('https_proxy') != null) {
+                environment "https_proxy", System.getenv('https_proxy')
+            }
         }
     }
 }

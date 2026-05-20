@@ -132,9 +132,8 @@ class _DatabaseManagerScreenState extends State<DatabaseManagerScreen> {
   }
 
   /// 创建数据库服务
-  /// 使用混合模式：优先 Rust FFI，未实现则降级到 Dart
   DatabaseService _createService(DbConnectionConfig config) {
-    return HybridDatabaseService(config);
+    return DatabaseServiceFactory.create(config);
   }
 
   /// 处理连接删除
