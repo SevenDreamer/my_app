@@ -72,3 +72,10 @@ arm64/
 
 # FVM Version Cache
 .fvm/
+
+# Project specific ignores
+*.zip
+*.patch
+rust/examples/
+rust/hash_output.txt
+test_pg_connect.dart
