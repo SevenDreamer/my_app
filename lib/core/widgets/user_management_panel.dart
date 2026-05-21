@@ -1,4 +1,5 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:my_app/core/widgets/app_card.dart';
 
 /// 用户管理面板
 class UserManagementPanel extends StatelessWidget {
@@ -25,7 +26,7 @@ class UserManagementPanel extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 24),
-          Card(
+          AppCard.low(
             child: Padding(
               padding: const EdgeInsets.all(40),
               child: Center(

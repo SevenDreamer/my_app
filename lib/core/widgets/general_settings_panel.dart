@@ -1,5 +1,6 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:my_app/core/models/app_language.dart';
+import 'package:my_app/core/widgets/app_card.dart';
 import 'package:my_app/core/widgets/settings_row.dart';
 
 /// 通用设置面板
@@ -34,7 +35,7 @@ class _GeneralSettingsPanelState extends State<GeneralSettingsPanel> {
             style: Theme.of(context).typography.h3,
           ),
           const SizedBox(height: 24),
-          Card(
+          AppCard.low(
             child: Column(
               children: [
                 SettingsRow(

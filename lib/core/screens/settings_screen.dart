@@ -2,6 +2,7 @@ import 'package:go_router/go_router.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:my_app/core/router/app_router.dart';
+import 'package:my_app/core/widgets/app_card.dart';
 import 'package:my_app/core/widgets/settings_nav_item.dart';
 import 'package:my_app/core/widgets/general_settings_panel.dart';
 import 'package:my_app/core/widgets/user_management_panel.dart';
@@ -75,14 +76,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             // 左侧导航栏
             SizedBox(
               width: 280,
-              child: Card(
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withAlpha(25),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
+              child: AppCard(
                 child: Column(
                   children: [
                     // 用户信息
@@ -176,14 +170,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(width: 16),
             // 右侧内容区
             Expanded(
-              child: Card(
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withAlpha(25),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
+              child: AppCard(
                 child: _buildContent(),
               ),
             ),
