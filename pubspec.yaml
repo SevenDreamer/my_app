@@ -46,6 +46,7 @@ dependencies:
     path: rust_builder
   lucide_flutter: ^1.14.0
   shared_preferences: ^2.3.2
+  uuid: ^4.5.3
 
   # 更新服务依赖
   http: ^1.1.0

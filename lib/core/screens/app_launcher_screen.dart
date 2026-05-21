@@ -117,6 +117,9 @@ class _AppLauncherScreenState extends State<AppLauncherScreen> {
   Future<void> _logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('auth_token');
+    await prefs.remove('user_id');
+    await prefs.remove('username');
+    await prefs.remove('role');
 
     if (mounted) {
       await Navigator.of(context).pushAndRemoveUntil<void>(

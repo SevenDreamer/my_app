@@ -22,18 +22,39 @@ void main() async {
     print('DB init failed: $e');
   }
 
-  // 检查登录状态
+  // 从本地持久化存储恢复登录态（不依赖 Rust 内存中的 CURRENT_USER）
   final prefs = await SharedPreferences.getInstance();
   final token = prefs.getString('auth_token');
+  final userId = prefs.getInt('user_id');
+  final username = prefs.getString('username');
+  final role = prefs.getString('role');
 
-  runApp(MyApp(initialToken: token, dbError: dbError));
+  runApp(
+    MyApp(
+      initialToken: token,
+      initialUserId: userId,
+      initialUsername: username,
+      initialRole: role,
+      dbError: dbError,
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
   final String? initialToken;
+  final int? initialUserId;
+  final String? initialUsername;
+  final String? initialRole;
   final String? dbError;
 
-  const MyApp({super.key, this.initialToken, this.dbError});
+  const MyApp({
+    super.key,
+    this.initialToken,
+    this.initialUserId,
+    this.initialUsername,
+    this.initialRole,
+    this.dbError,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -72,17 +93,16 @@ class MyApp extends StatelessWidget {
         ),
       );
     }
-    if (initialToken != null) {
-      try {
-        final userInfo = auth_api.verifyToken(token: initialToken!);
-        return AppLauncherScreen(
-          token: initialToken,
-          username: userInfo.username,
-          role: userInfo.role,
-        );
-      } catch (_) {
-        // token 无效，跳转登录页
-      }
+    // 本地持久化数据完整 → 直接恢复登录态，无需调用 Rust verify_token
+    if (initialToken != null &&
+        initialUserId != null &&
+        initialUsername != null &&
+        initialRole != null) {
+      return AppLauncherScreen(
+        token: initialToken,
+        username: initialUsername!,
+        role: initialRole!,
+      );
     }
     return const LoginScreen();
   }

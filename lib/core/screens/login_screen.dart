@@ -6,6 +6,7 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:my_app/rust/api/auth.dart' as auth_api;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
 import 'package:my_app/core/screens/app_launcher_screen.dart';
 import 'package:my_app/core/widgets/login_card.dart';
 
@@ -64,13 +65,19 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       final userInfo = await _callLoginApi(username, password);
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('auth_token', 'temp_token_${userInfo.userId}');
+      // 生成并保存真实 token（UUID），同时持久化用户信息
+      // ignore: prefer_const_constructors
+      final token = Uuid().v4();
+      await prefs.setString('auth_token', token);
+      await prefs.setInt('user_id', userInfo.userId);
+      await prefs.setString('username', userInfo.username);
+      await prefs.setString('role', userInfo.role);
 
       if (!mounted) return;
-      Navigator.of(context).pushReplacement(
+      await Navigator.of(context).pushReplacement(
         MaterialPageRoute<void>(
           builder: (_) => AppLauncherScreen(
-            token: 'temp_token_${userInfo.userId}',
+            token: token,
             username: userInfo.username,
             role: userInfo.role,
           ),
