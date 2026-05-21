@@ -1,10 +1,9 @@
-import 'package:flutter/material.dart';
-
-import '../../features/chat/chat_app.dart';
-import '../../features/image/image_app.dart';
-import '../../features/code/code_app.dart';
-import '../../features/database/database_app.dart';
-import '../../features/bar/bar_app.dart';
+import 'package:my_app/features/chat/chat_app.dart';
+import 'package:my_app/features/image/image_app.dart';
+import 'package:my_app/features/code/code_app.dart';
+import 'package:my_app/features/database/database_app.dart';
+import 'package:my_app/features/bar/bar_app.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// 应用路由映射表
 ///

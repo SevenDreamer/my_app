@@ -1,6 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:heroui_design_system/heroui_design_system.dart';
-import 'package:lucide_flutter/lucide_flutter.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// 聊天助手子应用
 class ChatApp extends StatelessWidget {
@@ -9,60 +7,46 @@ class ChatApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('聊天助手'),
-        leading: IconButton(
-          icon: const Icon(LucideIcons.arrowLeft),
-          onPressed: () => Navigator.of(context).pop(),
+      headers: [
+        AppBar(
+          leading: [
+            IconButton(
+              variance: ButtonVariance.ghost,
+              icon: const Icon(LucideIcons.arrowLeft),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ],
+          title: const Text('聊天助手'),
         ),
-      ),
-      body: Center(
-        child: HeroUiCard(
-          borderRadius: 24,
-          showShadow: true,
-          surfaceVariant: HeroUiSurfaceVariant.defaultVariant,
-          body: Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(
-                LucideIcons.messageCircle,
-                size: 64,
-                color: Color(0xFF7C5CFC),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                '聊天助手',
-                style: HeroUiTypography.heading3,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'AI 智能对话助手',
-                style: HeroUiTypography.bodySm.copyWith(
-                  color:
-                      Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+      ],
+      child: Center(
+        child: Card(
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  LucideIcons.messageCircle,
+                  size: 64,
                 ),
-              ),
-              const SizedBox(height: 32),
-              Text(
-                '功能开发中...',
-                style: HeroUiTypography.bodyXs.copyWith(
-                  color:
-                      Theme.of(context).colorScheme.onSurface.withOpacity(0.4),
+                const SizedBox(height: 16),
+                const Text('聊天助手').h2(),
+                const SizedBox(height: 8),
+                const Text('AI 智能对话助手').muted(),
+                const SizedBox(height: 32),
+                const Text('功能开发中...').small(),
+                const SizedBox(height: 24),
+                PrimaryButton(
+                  onPressed: () {
+                    // TODO: 实现聊天功能
+                  },
+                  child: const Text('开始对话'),
                 ),
-              ),
-              const SizedBox(height: 24),
-              HeroUiButton(
-                label: '开始对话',
-                onPressed: () {
-                  // TODO: 实现聊天功能
-                },
-                variant: HeroUiButtonVariant.primary,
-                size: HeroUiButtonSize.lg,
-              ),
-            ],
+              ],
+            ),
           ),
-          padding: const EdgeInsets.all(32),
         ),
       ),
     );

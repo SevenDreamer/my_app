@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// 子应用模型
 class SubApp {
@@ -62,17 +62,17 @@ class SubApp {
   static IconData _getIconData(String name) {
     switch (name) {
       case 'message_circle':
-        return Icons.message;
+        return LucideIcons.messageCircle;
       case 'image':
-        return Icons.image;
+        return LucideIcons.image;
       case 'code2':
-        return Icons.code;
+        return LucideIcons.code;
       case 'database':
-        return Icons.storage;
+        return LucideIcons.database;
       case 'wine':
-        return Icons.local_bar;
+        return LucideIcons.wine;
       default:
-        return Icons.circle;
+        return LucideIcons.circle;
     }
   }
 }

@@ -3,7 +3,7 @@
 // 文件职责：仅负责状态和登录逻辑
 // UI 组件已拆分到 lib/core/widgets/ 下独立文件
 
-import 'package:flutter/material.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:my_app/rust/api/auth.dart' as auth_api;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:my_app/core/screens/app_launcher_screen.dart';
@@ -67,7 +67,7 @@ class _LoginScreenState extends State<LoginScreen> {
       await prefs.setString('auth_token', 'temp_token_${userInfo.userId}');
 
       if (!mounted) return;
-      Navigator.of(context).pushReplacement<void, void>(
+      Navigator.of(context).pushReplacement(
         MaterialPageRoute<void>(
           builder: (_) => AppLauncherScreen(
             token: 'temp_token_${userInfo.userId}',
@@ -86,9 +86,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-      resizeToAvoidBottomInset: true,
-      body: Center(
+      child: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 24),
           child: LoginCard(

@@ -1,6 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:lucide_flutter/lucide_flutter.dart';
-import 'package:heroui_design_system/heroui_design_system.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import 'db_tree_node.dart';
 
@@ -65,7 +63,7 @@ class _DbTreeViewState extends State<DbTreeView> {
   Widget _buildNodeItem(DbTreeNode node, int depth, bool isExpandable) {
     final isConnection = node.type == TreeNodeType.connection;
 
-    return InkWell(
+    return GestureDetector(
       onTap: () {
         if (isExpandable) {
           setState(() {
@@ -102,8 +100,8 @@ class _DbTreeViewState extends State<DbTreeView> {
                     size: 14,
                     color: Theme.of(context)
                         .colorScheme
-                        .onSurface
-                        .withOpacity(0.5),
+                        .foreground
+                        .withValues(alpha: 0.5),
                   ),
                 ),
               )
@@ -126,14 +124,14 @@ class _DbTreeViewState extends State<DbTreeView> {
                   Flexible(
                     child: Text(
                       node.label,
-                      style: HeroUiTypography.bodyXs.copyWith(
-                        color: node.isSelected
-                            ? Theme.of(context).colorScheme.primary
-                            : Theme.of(context).colorScheme.onSurface,
-                        fontWeight: node.isSelected || isConnection
-                            ? FontWeight.w500
-                            : FontWeight.normal,
-                      ),
+                      style: Theme.of(context).typography.small.copyWith(
+                            color: node.isSelected
+                                ? Theme.of(context).colorScheme.primary
+                                : Theme.of(context).colorScheme.foreground,
+                            fontWeight: node.isSelected || isConnection
+                                ? FontWeight.w500
+                                : FontWeight.normal,
+                          ),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
@@ -143,12 +141,12 @@ class _DbTreeViewState extends State<DbTreeView> {
                     const SizedBox(width: 6),
                     Text(
                       '(${node.table!.rowCount})',
-                      style: HeroUiTypography.bodyXs.copyWith(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withOpacity(0.4),
-                      ),
+                      style: Theme.of(context).typography.small.copyWith(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .foreground
+                                .withValues(alpha: 0.4),
+                          ),
                     ),
                   ],
                 ],
@@ -222,19 +220,18 @@ class _DbTreeViewState extends State<DbTreeView> {
     required String tooltip,
     Color? color,
   }) {
-    return Tooltip(
-      message: tooltip,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(4),
-        child: Container(
-          padding: const EdgeInsets.all(4),
-          child: Icon(
-            icon,
-            size: 12,
-            color: color ??
-                Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
-          ),
+    return GestureDetector(
+      onTap: onTap,
+      onLongPress: () {
+        // TODO: 显示工具提示
+      },
+      child: Container(
+        padding: const EdgeInsets.all(4),
+        child: Icon(
+          icon,
+          size: 12,
+          color: color ??
+              Theme.of(context).colorScheme.foreground.withValues(alpha: 0.6),
         ),
       ),
     );
@@ -263,11 +260,11 @@ class _DbTreeViewState extends State<DbTreeView> {
       case TreeNodeType.database:
         return Colors.blue;
       case TreeNodeType.folder:
-        return theme.colorScheme.onSurface.withOpacity(0.6);
+        return theme.colorScheme.foreground.withValues(alpha: 0.6);
       case TreeNodeType.table:
         return Colors.orange;
       case TreeNodeType.field:
-        return theme.colorScheme.onSurface.withOpacity(0.5);
+        return theme.colorScheme.foreground.withValues(alpha: 0.5);
     }
   }
 }

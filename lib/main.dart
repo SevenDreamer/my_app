@@ -1,9 +1,8 @@
-import 'package:shadcn_flutter/shadcn_flutter.dart' hide Scaffold;
-import 'package:flutter/material.dart' show Scaffold;
+import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:flutter/material.dart' show Icons;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:my_app/rust/frb_generated.dart';
 import 'package:my_app/rust/api/auth.dart' as auth_api;
-import 'package:my_app/core/theme/app_theme.dart';
 import 'package:my_app/core/screens/login_screen.dart';
 import 'package:my_app/core/screens/app_launcher_screen.dart';
 
@@ -40,8 +39,10 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return ShadcnApp(
       title: 'My App',
-      theme: const ThemeData.dark(),
-      materialTheme: obsidianTheme(),
+      theme: ThemeData(
+        colorScheme: LegacyColorSchemes.darkZinc(),
+        radius: 0.7,
+      ),
       home: _getHomeScreen(),
       debugShowCheckedModeBanner: false,
     );
@@ -50,17 +51,21 @@ class MyApp extends StatelessWidget {
   Widget _getHomeScreen() {
     if (dbError != null) {
       return Scaffold(
-        body: Center(
+        child: Center(
           child: Padding(
             padding: const EdgeInsets.all(32),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                const Icon(
+                  Icons.error_outline,
+                  size: 48,
+                  color: Colors.red,
+                ),
                 const SizedBox(height: 16),
-                const Text('数据库连接失败', style: TextStyle(fontSize: 18)),
+                const Text('数据库连接失败').large().bold(),
                 const SizedBox(height: 8),
-                Text(dbError!, style: const TextStyle(color: Color(0xFF9E9E9E))),
+                Text(dbError!).muted(),
               ],
             ),
           ),

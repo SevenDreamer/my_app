@@ -1,10 +1,8 @@
-import 'package:flutter/material.dart';
-import 'package:lucide_flutter/lucide_flutter.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart' as shadcn;
-import 'screens/inventory_page.dart';
-import 'screens/settings_page.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:my_app/features/bar/screens/inventory_page.dart';
+import 'package:my_app/features/bar/screens/settings_page.dart';
 
-/// 底部导航栏（使用 shadcn_flutter 样式）
+/// 底部导航栏
 class _BottomNavBar extends StatelessWidget {
   const _BottomNavBar({
     required this.currentIndex,
@@ -25,7 +23,7 @@ class _BottomNavBar extends StatelessWidget {
       decoration: BoxDecoration(
         border: Border(
           top: BorderSide(
-            color: Theme.of(context).dividerColor,
+            color: Theme.of(context).colorScheme.border,
             width: 0.5,
           ),
         ),
@@ -66,9 +64,7 @@ class _BottomNavItemWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final color = selected
-        ? colorScheme.primary
-        : colorScheme.onSurface.withValues(alpha: 0.6);
+    final color = selected ? colorScheme.primary : colorScheme.foreground.withValues(alpha: 0.6);
     return Expanded(
       child: GestureDetector(
         onTap: onTap,
@@ -81,7 +77,7 @@ class _BottomNavItemWidget extends StatelessWidget {
               const SizedBox(height: 2),
               Text(
                 item.label,
-                style: theme.textTheme.labelSmall?.copyWith(
+                style: theme.typography.small.copyWith(
                   color: color,
                   fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
                 ),
@@ -94,7 +90,7 @@ class _BottomNavItemWidget extends StatelessWidget {
   }
 }
 
-/// 酒吧系统主页面（底部导航壳，使用 shadcn_flutter）
+/// 酒吧系统主页面（底部导航壳）
 class BarApp extends StatefulWidget {
   const BarApp({super.key});
 
@@ -112,14 +108,15 @@ class _BarAppState extends State<BarApp> {
 
   @override
   Widget build(BuildContext context) {
-    return shadcn.ShadcnLayer(
-      theme: const shadcn.ThemeData.dark(),
-      child: Scaffold(
-        body: _pages[_currentIndex],
-        bottomNavigationBar: _BottomNavBar(
-          currentIndex: _currentIndex,
-          onTap: (index) => setState(() => _currentIndex = index),
-        ),
+    return Scaffold(
+      child: Column(
+        children: [
+          Expanded(child: _pages[_currentIndex]),
+          _BottomNavBar(
+            currentIndex: _currentIndex,
+            onTap: (index) => setState(() => _currentIndex = index),
+          ),
+        ],
       ),
     );
   }

@@ -1,5 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:lucide_flutter/lucide_flutter.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:my_app/core/screens/login_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -25,28 +24,27 @@ class _AppLauncherScreenState extends State<AppLauncherScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('欢迎，${widget.username}'),
-        centerTitle: false,
-        actions: [
-          if (widget.role == 'admin')
+      headers: [
+        AppBar(
+          title: Text('欢迎，${widget.username}'),
+          trailing: [
+            if (widget.role == 'admin')
+              IconButton(
+                variance: ButtonVariance.ghost,
+                icon: const Icon(LucideIcons.settings),
+                onPressed: () {
+                  // TODO: 实现管理功能
+                },
+              ),
             IconButton(
-              icon: const Icon(LucideIcons.settings),
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('管理功能开发中')),
-                );
-              },
-              tooltip: '系统管理',
+              variance: ButtonVariance.ghost,
+              icon: const Icon(LucideIcons.logOut),
+              onPressed: _logout,
             ),
-          IconButton(
-            icon: const Icon(LucideIcons.logOut),
-            onPressed: _logout,
-            tooltip: '登出',
-          ),
-        ],
-      ),
-      body: const Center(
+          ],
+        ),
+      ],
+      child: const Center(
         child: Text('暂无可用应用'),
       ),
     );
@@ -57,7 +55,7 @@ class _AppLauncherScreenState extends State<AppLauncherScreen> {
     await prefs.remove('auth_token');
 
     if (mounted) {
-      Navigator.of(context).pushAndRemoveUntil<void>(
+      await Navigator.of(context).pushAndRemoveUntil<void>(
         MaterialPageRoute<void>(builder: (context) => const LoginScreen()),
         (route) => false,
       );

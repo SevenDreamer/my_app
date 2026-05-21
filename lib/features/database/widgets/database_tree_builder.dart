@@ -1,7 +1,8 @@
-import 'package:lucide_flutter/lucide_flutter.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 
-import '../models/database_models.dart';
-import 'db_tree_node.dart';
+import 'package:my_app/features/database/models/database_models.dart';
+import 'package:my_app/features/database/widgets/db_tree_node.dart';
+
 
 /// 数据库树节点构建器
 /// 负责根据连接配置和数据库信息构建树节点
@@ -59,7 +60,7 @@ class DatabaseTreeBuilder {
 
           // Functions 文件夹（模拟）
           final functionsFolder =
-              DbTreeNode.folder('Functions', LucideIcons.functionSquare, []);
+              DbTreeNode.folder('Functions', LucideIcons.folder, []);
           functionsFolder.parent = dbNode;
           folderChildren.add(functionsFolder);
 

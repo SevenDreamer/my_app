@@ -1,7 +1,6 @@
-import 'package:flutter/material.dart';
-import 'package:lucide_flutter/lucide_flutter.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 
-import '../models/database_models.dart';
+import 'package:my_app/features/database/models/database_models.dart';
 
 /// 树节点类型
 enum TreeNodeType {
@@ -53,8 +52,8 @@ class DbTreeNode {
       id: 'conn_${config.id}',
       label: config.name,
       type: TreeNodeType.connection,
-      icon: isConnected ? LucideIcons.plug : LucideIcons.plug,
-      iconColor: isConnected ? Colors.green : Colors.grey,
+      icon: LucideIcons.plug,
+      iconColor: isConnected ? Colors.green : const Color(0xFF9E9E9E),
       connection: config,
       children: [],
     );
