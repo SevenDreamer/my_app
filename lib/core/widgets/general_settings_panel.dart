@@ -1,0 +1,88 @@
+import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:my_app/core/models/app_language.dart';
+import 'package:my_app/core/widgets/settings_row.dart';
+
+/// 通用设置面板
+class GeneralSettingsPanel extends StatefulWidget {
+  const GeneralSettingsPanel({super.key});
+
+  @override
+  State<GeneralSettingsPanel> createState() => _GeneralSettingsPanelState();
+}
+
+class _GeneralSettingsPanelState extends State<GeneralSettingsPanel> {
+  bool _darkMode = false;
+  AppLanguage _language = AppLanguage.zh;
+
+  void _toggleDarkMode(bool value) {
+    setState(() => _darkMode = value);
+  }
+
+  void _changeLanguage(AppLanguage lang) {
+    setState(() => _language = lang);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '通用设置',
+            style: Theme.of(context).typography.h3,
+          ),
+          const SizedBox(height: 24),
+          Card(
+            child: Column(
+              children: [
+                SettingsRow(
+                  icon: LucideIcons.moon,
+                  title: '深色模式',
+                  subtitle: '切换应用主题',
+                  trailing: Switch(
+                    value: _darkMode,
+                    onChanged: _toggleDarkMode,
+                  ),
+                ),
+                const Divider(),
+                SettingsRow(
+                  icon: LucideIcons.globe,
+                  title: '语言',
+                  subtitle: _language.displayName,
+                  onTap: _showLanguageDialog,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showLanguageDialog() {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('选择语言'),
+        content: RadioGroup<AppLanguage>(
+          value: _language,
+          onChanged: (v) {
+            _changeLanguage(v);
+            Navigator.of(ctx).pop();
+          },
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: AppLanguage.values
+                .map((lang) => RadioItem(
+                      value: lang,
+                      trailing: Text(lang.displayName),
+                    ),)
+                .toList(),
+          ),
+        ),
+      ),
+    );
+  }
+}

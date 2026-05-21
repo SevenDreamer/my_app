@@ -9,11 +9,13 @@ import 'package:my_app/features/chat/chat_app.dart';
 import 'package:my_app/features/bar/bar_app.dart';
 import 'package:my_app/features/bar/screens/add_record_page.dart';
 import 'package:my_app/features/database/database_app.dart' show DatabaseManagerApp;
+import 'package:my_app/core/screens/settings_screen.dart';
 
 /// 路由路径常量
 class AppRoutes {
   static const login = '/login';
   static const launcher = '/launcher';
+  static const settings = '/settings';
   static const image = '/app/image';
   static const hermes = '/app/hermes';
   static const bar = '/app/bar';
@@ -37,6 +39,11 @@ GoRouter createRouter() {
         path: AppRoutes.launcher,
         name: 'launcher',
         builder: (context, state) => const AppLauncherScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.settings,
+        name: 'settings',
+        builder: (context, state) => const SettingsScreen(),
       ),
       GoRoute(
         path: AppRoutes.image,

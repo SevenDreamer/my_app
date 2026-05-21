@@ -21,7 +21,6 @@ class AppLauncherScreen extends StatefulWidget {
 
 class _AppLauncherScreenState extends State<AppLauncherScreen> {
   String _username = '用户';
-  String _role = 'user';
 
   @override
   void initState() {
@@ -33,7 +32,6 @@ class _AppLauncherScreenState extends State<AppLauncherScreen> {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _username = prefs.getString('username') ?? '用户';
-      _role = prefs.getString('role') ?? 'user';
     });
   }
 
@@ -44,16 +42,10 @@ class _AppLauncherScreenState extends State<AppLauncherScreen> {
         AppBar(
           title: Text('欢迎，$_username'),
           trailing: [
-            if (_role == 'admin')
-              IconButton(
-                variance: ButtonVariance.ghost,
-                icon: const Icon(LucideIcons.settings),
-                onPressed: _onSettingsPressed,
-              ),
             IconButton(
               variance: ButtonVariance.ghost,
-              icon: const Icon(LucideIcons.logOut),
-              onPressed: _logout,
+              icon: const Icon(LucideIcons.settings),
+              onPressed: _onSettingsPressed,
             ),
           ],
         ),
@@ -112,9 +104,9 @@ class _AppLauncherScreenState extends State<AppLauncherScreen> {
     );
   }
 
-  /// 点击设置（管理员）
+  /// 点击设置
   void _onSettingsPressed() {
-    context.go(AppRoutes.appManagement);
+    context.go(AppRoutes.settings);
   }
 
   /// 点击应用卡片/列表项
@@ -131,18 +123,6 @@ class _AppLauncherScreenState extends State<AppLauncherScreen> {
         context.goNamed('database');
       default:
         print('未知应用: ${app.id}');
-    }
-  }
-
-  Future<void> _logout() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('auth_token');
-    await prefs.remove('user_id');
-    await prefs.remove('username');
-    await prefs.remove('role');
-
-    if (mounted) {
-      context.go(AppRoutes.login);
     }
   }
 }
