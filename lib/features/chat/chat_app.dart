@@ -1,4 +1,6 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:go_router/go_router.dart';
+import 'package:my_app/core/router/app_router.dart';
 
 /// 聊天助手子应用
 class ChatApp extends StatelessWidget {
@@ -13,7 +15,7 @@ class ChatApp extends StatelessWidget {
             IconButton(
               variance: ButtonVariance.ghost,
               icon: const Icon(LucideIcons.arrowLeft),
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () => context.go(AppRoutes.launcher),
             ),
           ],
           title: const Text('聊天助手'),

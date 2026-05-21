@@ -101,7 +101,7 @@ class BarApp extends StatefulWidget {
 class _BarAppState extends State<BarApp> {
   int _currentIndex = 0;
 
-  final _pages = const [
+  final _pages = const <Widget>[
     InventoryPage(),
     SettingsPage(),
   ];

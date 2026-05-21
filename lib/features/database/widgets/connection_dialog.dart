@@ -1,4 +1,5 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:my_app/features/database/models/database_models.dart';
 import 'package:my_app/features/database/services/sqlite_service.dart' show SQLiteService;
@@ -118,14 +119,14 @@ class _ConnectionDialogState extends State<ConnectionDialog> {
   void _handleConnect() {
     // TODO: 添加表单验证
     final config = _buildConfig();
-    Navigator.of(context).pop();
+    context.pop();
     widget.onConnect(config);
   }
 
   void _handleSave() {
     // TODO: 添加表单验证
     final config = _buildConfig();
-    Navigator.of(context).pop();
+    context.pop();
     widget.onSave(config);
   }
 
@@ -232,7 +233,7 @@ class _ConnectionDialogState extends State<ConnectionDialog> {
       ),
       actions: [
         SecondaryButton(
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => context.pop(),
           child: const Text('取消'),
         ),
         Row(

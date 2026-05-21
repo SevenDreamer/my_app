@@ -1,4 +1,6 @@
-import 'package:flutter/material.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:go_router/go_router.dart';
+import 'package:my_app/core/router/app_router.dart';
 
 import 'screens/database_manager_screen.dart';
 
@@ -9,14 +11,19 @@ class DatabaseManagerApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('数据库管理'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pop(),
+      headers: [
+        AppBar(
+          title: const Text('数据库管理'),
+          leading: [
+            IconButton(
+              variance: ButtonVariance.ghost,
+              icon: const Icon(LucideIcons.arrowLeft),
+              onPressed: () => context.go(AppRoutes.launcher),
+            ),
+          ],
         ),
-      ),
-      body: const DatabaseManagerScreen(),
+      ],
+      child: const DatabaseManagerScreen(),
     );
   }
 }

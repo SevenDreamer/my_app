@@ -1,15 +1,16 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:heroui_design_system/heroui_design_system.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../models/database_models.dart';
-import '../services/database_service.dart';
-import '../widgets/connection_dialog.dart';
-import '../widgets/database_tree_widget.dart';
-import '../widgets/db_tree_node.dart';
+import 'package:my_app/features/database/models/database_models.dart';
+import 'package:my_app/features/database/services/database_service.dart';
+import 'package:my_app/features/database/widgets/connection_dialog.dart';
+import 'package:my_app/features/database/widgets/database_tree_widget.dart';
+import 'package:my_app/features/database/widgets/db_tree_node.dart';
 
 /// 数据库管理主界面
 class DatabaseManagerScreen extends StatefulWidget {
@@ -839,7 +840,7 @@ class _DatabaseManagerScreenState extends State<DatabaseManagerScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => context.pop(),
             child: const Text('关闭'),
           ),
         ],

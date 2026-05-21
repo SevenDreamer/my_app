@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart' as shadcn;
 import 'package:lucide_flutter/lucide_flutter.dart';
-import 'add_record_page.dart';
 
 /// 库存管理页面（使用 shadcn_flutter，无 Scaffold）
 class InventoryPage extends StatelessWidget {
@@ -20,10 +20,8 @@ class InventoryPage extends StatelessWidget {
           bottom: 16,
           child: shadcn.PrimaryButton(
             onPressed: () {
-              Navigator.push<void>(
-                context,
-                MaterialPageRoute<void>(builder: (_) => const AddRecordPage()),
-              );
+              // 使用 GoRouter 导航到添加记录页面
+              context.pushNamed('add-record');
             },
             child: const Icon(LucideIcons.plus, size: 20),
           ),

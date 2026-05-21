@@ -1,6 +1,7 @@
+import 'package:go_router/go_router.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:my_app/core/screens/login_screen.dart';
 import 'package:my_app/core/models/sub_app.dart';
+import 'package:my_app/core/router/app_router.dart';
 import 'package:my_app/core/screens/app_launcher/app_data.dart';
 import 'package:my_app/core/screens/app_launcher/app_list_item.dart';
 import 'package:my_app/core/screens/app_launcher/app_grid_card.dart';
@@ -12,30 +13,38 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// - 窄屏（< 560px）：列表模式，图标在左文字在右
 /// - 宽屏（>= 560px）：网格模式，图标在上文字在下
 class AppLauncherScreen extends StatefulWidget {
-  final String? token;
-  final String username;
-  final String role;
-
-  const AppLauncherScreen({
-    super.key,
-    this.token,
-    this.username = '用户',
-    this.role = 'user',
-  });
+  const AppLauncherScreen({super.key});
 
   @override
   State<AppLauncherScreen> createState() => _AppLauncherScreenState();
 }
 
 class _AppLauncherScreenState extends State<AppLauncherScreen> {
+  String _username = '用户';
+  String _role = 'user';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserInfo();
+  }
+
+  Future<void> _loadUserInfo() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _username = prefs.getString('username') ?? '用户';
+      _role = prefs.getString('role') ?? 'user';
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       headers: [
         AppBar(
-          title: Text('欢迎，${widget.username}'),
+          title: Text('欢迎，$_username'),
           trailing: [
-            if (widget.role == 'admin')
+            if (_role == 'admin')
               IconButton(
                 variance: ButtonVariance.ghost,
                 icon: const Icon(LucideIcons.settings),
@@ -110,8 +119,19 @@ class _AppLauncherScreenState extends State<AppLauncherScreen> {
 
   /// 点击应用卡片/列表项
   void _onAppTap(SubApp app) {
-    // TODO(v_qzxgqiu, 2026-05-30): 导航到对应的应用页面
-    print('打开应用: ${app.name}');
+    // 使用 GoRouter 导航到对应的应用页面
+    switch (app.id) {
+      case 'image':
+        context.go(AppRoutes.image);
+      case 'hermes':
+        context.go(AppRoutes.hermes);
+      case 'bar':
+        context.go(AppRoutes.bar);
+      case 'database':
+        context.go(AppRoutes.database);
+      default:
+        print('未知应用: ${app.id}');
+    }
   }
 
   Future<void> _logout() async {
@@ -122,10 +142,7 @@ class _AppLauncherScreenState extends State<AppLauncherScreen> {
     await prefs.remove('role');
 
     if (mounted) {
-      await Navigator.of(context).pushAndRemoveUntil<void>(
-        MaterialPageRoute<void>(builder: (context) => const LoginScreen()),
-        (route) => false,
-      );
+      context.go(AppRoutes.login);
     }
   }
 }

@@ -3,11 +3,12 @@
 // 文件职责：仅负责状态和登录逻辑
 // UI 组件已拆分到 lib/core/widgets/ 下独立文件
 
+import 'package:go_router/go_router.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:my_app/rust/api/auth.dart' as auth_api;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
-import 'package:my_app/core/screens/app_launcher_screen.dart';
+import 'package:my_app/core/router/app_router.dart';
 import 'package:my_app/core/widgets/login_card.dart';
 
 /// 登录页
@@ -74,15 +75,8 @@ class _LoginScreenState extends State<LoginScreen> {
       await prefs.setString('role', userInfo.role);
 
       if (!mounted) return;
-      await Navigator.of(context).pushReplacement(
-        MaterialPageRoute<void>(
-          builder: (_) => AppLauncherScreen(
-            token: token,
-            username: userInfo.username,
-            role: userInfo.role,
-          ),
-        ),
-      );
+      // 使用 GoRouter 导航到启动器页面
+      context.go(AppRoutes.launcher);
     } catch (e) {
       if (mounted) setState(() => _errorMessage = e.toString());
     } finally {

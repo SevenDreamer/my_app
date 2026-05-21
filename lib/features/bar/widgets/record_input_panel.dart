@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart' as shadcn;
 import 'package:lucide_flutter/lucide_flutter.dart';
-import 'tag_selector_sheet.dart';
-import 'numeric_keyboard.dart';
+import 'package:my_app/features/bar/widgets/tag_selector_sheet.dart';
+import 'package:my_app/features/bar/widgets/numeric_keyboard.dart';
 
 /// 记账输入面板（使用 shadcn_flutter 样式）
 class RecordInputPanel extends StatefulWidget {
@@ -105,7 +106,7 @@ class _RecordInputPanelState extends State<RecordInputPanel> {
 
   void _onComplete() {
     // TODO: 保存记录
-    Navigator.pop(context);
+    context.pop();
   }
 
   void _onAddAnother() {
@@ -132,7 +133,7 @@ class _RecordInputPanelState extends State<RecordInputPanel> {
         selectedTag: widget.selectedTag,
         onTagSelected: (tag) {
           widget.onTagSelected?.call(tag);
-          Navigator.pop(context);
+          context.pop();
         },
       ),
     );

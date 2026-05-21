@@ -69,6 +69,7 @@ dependencies:
       url: https://github.com/tereshin/the-blank.git
       path: packages/heroui_design_system
   shadcn_flutter: ^0.0.52
+  go_router: ^14.0.0
 
 dev_dependencies:
   flutter_test:

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import '../widgets/record_input_panel.dart';
 import '../services/tag_service.dart';
@@ -75,7 +76,7 @@ class AddRecordPageState extends State<AddRecordPage>
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(LucideIcons.arrowLeft),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => context.pop(),
         ),
         title: const Text('记一笔'),
         backgroundColor: Colors.transparent,
