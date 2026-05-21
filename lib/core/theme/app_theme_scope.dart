@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' show Brightness, WidgetsBindingObserver;
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart' as shadcn;
 import 'package:my_app/core/theme/app_theme_mode.dart';
 
 /// 主题状态管理
@@ -62,7 +62,7 @@ class AppThemeScopeState extends State<AppThemeScope> with WidgetsBindingObserve
     await prefs.setString(_key, mode.name);
   }
 
-  shadcn.ThemeData buildTheme() {
+  ThemeData buildTheme() {
     final platformBrightness =
         WidgetsBinding.instance.platformDispatcher.platformBrightness;
     return buildAppTheme(mode, platformBrightness: platformBrightness);

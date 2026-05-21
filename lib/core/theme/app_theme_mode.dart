@@ -1,5 +1,4 @@
-import 'package:flutter/widgets.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart' as shadcn;
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// 应用主题模式枚举
 enum AppThemeMode {
@@ -16,19 +15,18 @@ enum AppThemeMode {
 ///
 /// [mode] 应用主题模式
 /// [platformBrightness] 平台亮度，用于系统模式下确定实际主题
-shadcn.ThemeData buildAppTheme(
+ThemeData buildAppTheme(
   AppThemeMode mode, {
   Brightness platformBrightness = Brightness.light,
 }) {
-  final actualMode = mode == AppThemeMode.system
-      ? (platformBrightness == Brightness.dark ? AppThemeMode.dark : AppThemeMode.light)
-      : mode;
+  final isDark = mode == AppThemeMode.dark ||
+      (mode == AppThemeMode.system && platformBrightness == Brightness.dark);
 
-  final colorScheme = actualMode == AppThemeMode.dark
-      ? shadcn.LegacyColorSchemes.darkZinc()
-      : shadcn.LegacyColorSchemes.lightZinc();
+  final colorScheme = isDark
+      ? LegacyColorSchemes.darkZinc()
+      : LegacyColorSchemes.lightZinc();
 
-  return shadcn.ThemeData(
+  return ThemeData(
     colorScheme: colorScheme,
     radius: 0.7,
   );
