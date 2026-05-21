@@ -1,8 +1,7 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:my_app/core/router/app_router.dart';
-
-import 'screens/database_manager_screen.dart';
+import 'package:my_app/features/database/screens/database_manager_screen.dart';
 
 /// 数据库管理子应用入口
 class DatabaseManagerApp extends StatelessWidget {
