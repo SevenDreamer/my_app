@@ -13,12 +13,12 @@ class LoginHeader extends StatelessWidget {
     return Column(
       children: [
         Icon(
-          LucideIcons.lock,
+          AppConfig.loginIcon,
           size: 48,
           color: theme.colorScheme.primary,
         ),
         const SizedBox(height: 24),
-        Text(AppConfig.loginTitle, style: theme.typography.h1),
+        Text(AppConfig.appName, style: theme.typography.h1),
       ],
     );
   }

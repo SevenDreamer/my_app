@@ -4,6 +4,7 @@
 // 参考 React 项目 src/config/index.ts 的设计。
 
 import 'package:flutter/foundation.dart' show kReleaseMode;
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// 应用运行环境
 enum AppEnvironment {
@@ -53,11 +54,11 @@ class AppConfig {
   static const bool enableLogging = !kReleaseMode;
   static const bool enableDevTools = !kReleaseMode;
 
-  // ─── 登录页配置 ───
-  /// 登录页标题
-  static const String loginTitle = 'My App';
+  // ─── 应用名称 ───
+  /// 应用名称（用于标题栏、登录页等）
+  static const String appName = 'My App';
 
-  /// 登录页图标（LucideIcons 的 codePoint）
-  /// 使用 shadcn_flutter 的 LucideIcons.lock = 0xf0159
-  static const int loginIconCodePoint = 0xf0159;
+  // ─── 登录页配置 ───
+  /// 登录页图标（LucideIcons）
+  static const IconData loginIcon = LucideIcons.lock;
 }

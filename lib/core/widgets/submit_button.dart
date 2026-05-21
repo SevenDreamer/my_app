@@ -31,7 +31,7 @@ class SubmitButton extends StatelessWidget {
               ),
             )
           : leading,
-      child: Text(label).bold(),
+      child: Center(child: Text(label).bold()),
     );
   }
 }

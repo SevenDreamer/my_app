@@ -1,8 +1,8 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:flutter/material.dart' show Icons;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:my_app/rust/frb_generated.dart';
 import 'package:my_app/rust/api/auth.dart' as auth_api;
+import 'package:my_app/core/config/app_config.dart';
 import 'package:my_app/core/screens/login_screen.dart';
 import 'package:my_app/core/screens/app_launcher_screen.dart';
 
@@ -38,7 +38,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ShadcnApp(
-      title: 'My App',
+      title: AppConfig.appName,
       theme: ThemeData(
         colorScheme: LegacyColorSchemes.lightZinc(),
         radius: 0.7,
