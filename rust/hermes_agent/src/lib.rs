@@ -20,3 +20,6 @@ pub mod cron;
 // Re-exports
 pub use types::*;
 pub use agent::*;
+
+// Re-export cron types
+pub use cron::{ScheduledTask, TaskInfo, CronScheduler};

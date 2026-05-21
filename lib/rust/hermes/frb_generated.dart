@@ -68,7 +68,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.12.0';
 
   @override
-  int get rustContentHash => 1351450342;
+  int get rustContentHash => -1708257041;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -82,11 +82,38 @@ abstract class RustLibApi extends BaseApi {
   String crateApiHermesCreateSession(
       {required String title, required String model});
 
+  String crateApiHermesCreateSkill(
+      {required String name,
+      required String description,
+      required String triggerType,
+      required String triggerValue});
+
+  String crateApiHermesCreateTask(
+      {required String name,
+      required String cronExpression,
+      required String command});
+
   void crateApiHermesDeleteSession({required String id});
+
+  void crateApiHermesDeleteSkill({required String id});
+
+  void crateApiHermesDeleteTask({required String id});
+
+  void crateApiHermesDisableTask({required String id});
+
+  void crateApiHermesEnableTask({required String id});
+
+  String crateApiHermesExecuteTask({required String id});
 
   List<MessageInfo> crateApiHermesGetMessages({required String sessionId});
 
+  List<ModelInfoFrb> crateApiHermesGetModels();
+
   List<SessionInfo> crateApiHermesGetSessions();
+
+  List<SkillInfoFrb> crateApiHermesGetSkills();
+
+  List<TaskInfoFrb> crateApiHermesGetTasks();
 
   String crateApiHermesSendMessage(
       {required String sessionId, required String message});
@@ -134,13 +161,75 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
+  String crateApiHermesCreateSkill(
+      {required String name,
+      required String description,
+      required String triggerType,
+      required String triggerValue}) {
+    return handler.executeSync(
+      SyncTask(
+        callFfi: () {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(name, serializer);
+          sse_encode_String(description, serializer);
+          sse_encode_String(triggerType, serializer);
+          sse_encode_String(triggerValue, serializer);
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 2)!;
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiHermesCreateSkillConstMeta,
+        argValues: [name, description, triggerType, triggerValue],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiHermesCreateSkillConstMeta => const TaskConstMeta(
+        debugName: 'hermes_create_skill',
+        argNames: ['name', 'description', 'triggerType', 'triggerValue'],
+      );
+
+  @override
+  String crateApiHermesCreateTask(
+      {required String name,
+      required String cronExpression,
+      required String command}) {
+    return handler.executeSync(
+      SyncTask(
+        callFfi: () {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(name, serializer);
+          sse_encode_String(cronExpression, serializer);
+          sse_encode_String(command, serializer);
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 3)!;
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiHermesCreateTaskConstMeta,
+        argValues: [name, cronExpression, command],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiHermesCreateTaskConstMeta => const TaskConstMeta(
+        debugName: 'hermes_create_task',
+        argNames: ['name', 'cronExpression', 'command'],
+      );
+
+  @override
   void crateApiHermesDeleteSession({required String id}) {
     return handler.executeSync(
       SyncTask(
         callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
           sse_encode_String(id, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 2)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 4)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
@@ -160,13 +249,138 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
+  void crateApiHermesDeleteSkill({required String id}) {
+    return handler.executeSync(
+      SyncTask(
+        callFfi: () {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(id, serializer);
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 5)!;
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiHermesDeleteSkillConstMeta,
+        argValues: [id],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiHermesDeleteSkillConstMeta => const TaskConstMeta(
+        debugName: 'hermes_delete_skill',
+        argNames: ['id'],
+      );
+
+  @override
+  void crateApiHermesDeleteTask({required String id}) {
+    return handler.executeSync(
+      SyncTask(
+        callFfi: () {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(id, serializer);
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 6)!;
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiHermesDeleteTaskConstMeta,
+        argValues: [id],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiHermesDeleteTaskConstMeta => const TaskConstMeta(
+        debugName: 'hermes_delete_task',
+        argNames: ['id'],
+      );
+
+  @override
+  void crateApiHermesDisableTask({required String id}) {
+    return handler.executeSync(
+      SyncTask(
+        callFfi: () {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(id, serializer);
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 7)!;
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiHermesDisableTaskConstMeta,
+        argValues: [id],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiHermesDisableTaskConstMeta => const TaskConstMeta(
+        debugName: 'hermes_disable_task',
+        argNames: ['id'],
+      );
+
+  @override
+  void crateApiHermesEnableTask({required String id}) {
+    return handler.executeSync(
+      SyncTask(
+        callFfi: () {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(id, serializer);
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 8)!;
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiHermesEnableTaskConstMeta,
+        argValues: [id],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiHermesEnableTaskConstMeta => const TaskConstMeta(
+        debugName: 'hermes_enable_task',
+        argNames: ['id'],
+      );
+
+  @override
+  String crateApiHermesExecuteTask({required String id}) {
+    return handler.executeSync(
+      SyncTask(
+        callFfi: () {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(id, serializer);
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 9)!;
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiHermesExecuteTaskConstMeta,
+        argValues: [id],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiHermesExecuteTaskConstMeta => const TaskConstMeta(
+        debugName: 'hermes_execute_task',
+        argNames: ['id'],
+      );
+
+  @override
   List<MessageInfo> crateApiHermesGetMessages({required String sessionId}) {
     return handler.executeSync(
       SyncTask(
         callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
           sse_encode_String(sessionId, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 3)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 10)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_list_message_info,
@@ -185,12 +399,36 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
+  List<ModelInfoFrb> crateApiHermesGetModels() {
+    return handler.executeSync(
+      SyncTask(
+        callFfi: () {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 11)!;
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_list_model_info_frb,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiHermesGetModelsConstMeta,
+        argValues: [],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiHermesGetModelsConstMeta => const TaskConstMeta(
+        debugName: 'hermes_get_models',
+        argNames: [],
+      );
+
+  @override
   List<SessionInfo> crateApiHermesGetSessions() {
     return handler.executeSync(
       SyncTask(
         callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 4)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 12)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_list_session_info,
@@ -209,6 +447,54 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
+  List<SkillInfoFrb> crateApiHermesGetSkills() {
+    return handler.executeSync(
+      SyncTask(
+        callFfi: () {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 13)!;
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_list_skill_info_frb,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiHermesGetSkillsConstMeta,
+        argValues: [],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiHermesGetSkillsConstMeta => const TaskConstMeta(
+        debugName: 'hermes_get_skills',
+        argNames: [],
+      );
+
+  @override
+  List<TaskInfoFrb> crateApiHermesGetTasks() {
+    return handler.executeSync(
+      SyncTask(
+        callFfi: () {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 14)!;
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_list_task_info_frb,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiHermesGetTasksConstMeta,
+        argValues: [],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiHermesGetTasksConstMeta => const TaskConstMeta(
+        debugName: 'hermes_get_tasks',
+        argNames: [],
+      );
+
+  @override
   String crateApiHermesSendMessage(
       {required String sessionId, required String message}) {
     return handler.executeSync(
@@ -217,7 +503,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           final serializer = SseSerializer(generalizedFrbRustBinding);
           sse_encode_String(sessionId, serializer);
           sse_encode_String(message, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 5)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 15)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_String,
@@ -244,7 +530,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           final serializer = SseSerializer(generalizedFrbRustBinding);
           sse_encode_String(sessionId, serializer);
           sse_encode_String(model, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 6)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 16)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
@@ -268,7 +554,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       SyncTask(
         callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 7)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 17)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_String,
@@ -293,9 +579,21 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  bool dco_decode_bool(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as bool;
+  }
+
+  @protected
   List<MessageInfo> dco_decode_list_message_info(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return (raw as List<dynamic>).map(dco_decode_message_info).toList();
+  }
+
+  @protected
+  List<ModelInfoFrb> dco_decode_list_model_info_frb(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_model_info_frb).toList();
   }
 
   @protected
@@ -308,6 +606,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   List<SessionInfo> dco_decode_list_session_info(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return (raw as List<dynamic>).map(dco_decode_session_info).toList();
+  }
+
+  @protected
+  List<SkillInfoFrb> dco_decode_list_skill_info_frb(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_skill_info_frb).toList();
+  }
+
+  @protected
+  List<TaskInfoFrb> dco_decode_list_task_info_frb(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_task_info_frb).toList();
   }
 
   @protected
@@ -325,6 +635,26 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  ModelInfoFrb dco_decode_model_info_frb(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 4)
+      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
+    return ModelInfoFrb(
+      id: dco_decode_String(arr[0]),
+      name: dco_decode_String(arr[1]),
+      provider: dco_decode_String(arr[2]),
+      contextLength: dco_decode_u_32(arr[3]),
+    );
+  }
+
+  @protected
+  String? dco_decode_opt_String(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_String(raw);
+  }
+
+  @protected
   SessionInfo dco_decode_session_info(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
@@ -337,6 +667,37 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       messageCount: dco_decode_u_32(arr[3]),
       createdAt: dco_decode_String(arr[4]),
       updatedAt: dco_decode_String(arr[5]),
+    );
+  }
+
+  @protected
+  SkillInfoFrb dco_decode_skill_info_frb(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 5)
+      throw Exception('unexpected arr length: expect 5 but see ${arr.length}');
+    return SkillInfoFrb(
+      id: dco_decode_String(arr[0]),
+      name: dco_decode_String(arr[1]),
+      description: dco_decode_String(arr[2]),
+      triggerType: dco_decode_String(arr[3]),
+      usageCount: dco_decode_u_32(arr[4]),
+    );
+  }
+
+  @protected
+  TaskInfoFrb dco_decode_task_info_frb(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 6)
+      throw Exception('unexpected arr length: expect 6 but see ${arr.length}');
+    return TaskInfoFrb(
+      id: dco_decode_String(arr[0]),
+      name: dco_decode_String(arr[1]),
+      cronExpression: dco_decode_String(arr[2]),
+      enabled: dco_decode_bool(arr[3]),
+      lastRun: dco_decode_opt_String(arr[4]),
+      nextRun: dco_decode_opt_String(arr[5]),
     );
   }
 
@@ -366,6 +727,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  bool sse_decode_bool(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return deserializer.buffer.getUint8() != 0;
+  }
+
+  @protected
   List<MessageInfo> sse_decode_list_message_info(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
@@ -373,6 +740,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     final ans_ = <MessageInfo>[];
     for (var idx_ = 0; idx_ < len_; ++idx_) {
       ans_.add(sse_decode_message_info(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<ModelInfoFrb> sse_decode_list_model_info_frb(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    final len_ = sse_decode_i_32(deserializer);
+    final ans_ = <ModelInfoFrb>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_model_info_frb(deserializer));
     }
     return ans_;
   }
@@ -397,6 +777,32 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  List<SkillInfoFrb> sse_decode_list_skill_info_frb(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    final len_ = sse_decode_i_32(deserializer);
+    final ans_ = <SkillInfoFrb>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_skill_info_frb(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<TaskInfoFrb> sse_decode_list_task_info_frb(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    final len_ = sse_decode_i_32(deserializer);
+    final ans_ = <TaskInfoFrb>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_task_info_frb(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
   MessageInfo sse_decode_message_info(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     final var_id = sse_decode_String(deserializer);
@@ -408,6 +814,31 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         role: var_role,
         content: var_content,
         timestamp: var_timestamp);
+  }
+
+  @protected
+  ModelInfoFrb sse_decode_model_info_frb(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    final var_id = sse_decode_String(deserializer);
+    final var_name = sse_decode_String(deserializer);
+    final var_provider = sse_decode_String(deserializer);
+    final var_contextLength = sse_decode_u_32(deserializer);
+    return ModelInfoFrb(
+        id: var_id,
+        name: var_name,
+        provider: var_provider,
+        contextLength: var_contextLength);
+  }
+
+  @protected
+  String? sse_decode_opt_String(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return sse_decode_String(deserializer);
+    } else {
+      return null;
+    }
   }
 
   @protected
@@ -426,6 +857,40 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         messageCount: var_messageCount,
         createdAt: var_createdAt,
         updatedAt: var_updatedAt);
+  }
+
+  @protected
+  SkillInfoFrb sse_decode_skill_info_frb(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    final var_id = sse_decode_String(deserializer);
+    final var_name = sse_decode_String(deserializer);
+    final var_description = sse_decode_String(deserializer);
+    final var_triggerType = sse_decode_String(deserializer);
+    final var_usageCount = sse_decode_u_32(deserializer);
+    return SkillInfoFrb(
+        id: var_id,
+        name: var_name,
+        description: var_description,
+        triggerType: var_triggerType,
+        usageCount: var_usageCount);
+  }
+
+  @protected
+  TaskInfoFrb sse_decode_task_info_frb(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    final var_id = sse_decode_String(deserializer);
+    final var_name = sse_decode_String(deserializer);
+    final var_cronExpression = sse_decode_String(deserializer);
+    final var_enabled = sse_decode_bool(deserializer);
+    final var_lastRun = sse_decode_opt_String(deserializer);
+    final var_nextRun = sse_decode_opt_String(deserializer);
+    return TaskInfoFrb(
+        id: var_id,
+        name: var_name,
+        cronExpression: var_cronExpression,
+        enabled: var_enabled,
+        lastRun: var_lastRun,
+        nextRun: var_nextRun);
   }
 
   @protected
@@ -452,15 +917,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  bool sse_decode_bool(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return deserializer.buffer.getUint8() != 0;
-  }
-
-  @protected
   void sse_encode_String(String self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_list_prim_u_8_strict(utf8.encoder.convert(self), serializer);
+  }
+
+  @protected
+  void sse_encode_bool(bool self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    serializer.buffer.putUint8(self ? 1 : 0);
   }
 
   @protected
@@ -470,6 +935,16 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_i_32(self.length, serializer);
     for (final item in self) {
       sse_encode_message_info(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_model_info_frb(
+      List<ModelInfoFrb> self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_model_info_frb(item, serializer);
     }
   }
 
@@ -492,12 +967,51 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_list_skill_info_frb(
+      List<SkillInfoFrb> self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_skill_info_frb(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_task_info_frb(
+      List<TaskInfoFrb> self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_task_info_frb(item, serializer);
+    }
+  }
+
+  @protected
   void sse_encode_message_info(MessageInfo self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_String(self.id, serializer);
     sse_encode_String(self.role, serializer);
     sse_encode_String(self.content, serializer);
     sse_encode_String(self.timestamp, serializer);
+  }
+
+  @protected
+  void sse_encode_model_info_frb(ModelInfoFrb self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.id, serializer);
+    sse_encode_String(self.name, serializer);
+    sse_encode_String(self.provider, serializer);
+    sse_encode_u_32(self.contextLength, serializer);
+  }
+
+  @protected
+  void sse_encode_opt_String(String? self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_String(self, serializer);
+    }
   }
 
   @protected
@@ -509,6 +1023,27 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_u_32(self.messageCount, serializer);
     sse_encode_String(self.createdAt, serializer);
     sse_encode_String(self.updatedAt, serializer);
+  }
+
+  @protected
+  void sse_encode_skill_info_frb(SkillInfoFrb self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.id, serializer);
+    sse_encode_String(self.name, serializer);
+    sse_encode_String(self.description, serializer);
+    sse_encode_String(self.triggerType, serializer);
+    sse_encode_u_32(self.usageCount, serializer);
+  }
+
+  @protected
+  void sse_encode_task_info_frb(TaskInfoFrb self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.id, serializer);
+    sse_encode_String(self.name, serializer);
+    sse_encode_String(self.cronExpression, serializer);
+    sse_encode_bool(self.enabled, serializer);
+    sse_encode_opt_String(self.lastRun, serializer);
+    sse_encode_opt_String(self.nextRun, serializer);
   }
 
   @protected
@@ -532,11 +1067,5 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   void sse_encode_i_32(int self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     serializer.buffer.putInt32(self);
-  }
-
-  @protected
-  void sse_encode_bool(bool self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    serializer.buffer.putUint8(self ? 1 : 0);
   }
 }

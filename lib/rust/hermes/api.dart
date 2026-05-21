@@ -6,6 +6,8 @@
 import 'package:my_app/rust/hermes/frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
+// These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `StreamSink`
+
 /// Initialize hermes agent
 String initHermes() => RustLib.instance.api.crateApiInitHermes();
 
@@ -37,6 +39,58 @@ void hermesSetModel({required String sessionId, required String model}) =>
     RustLib.instance.api
         .crateApiHermesSetModel(sessionId: sessionId, model: model);
 
+/// Create a new skill
+String hermesCreateSkill(
+        {required String name,
+        required String description,
+        required String triggerType,
+        required String triggerValue}) =>
+    RustLib.instance.api.crateApiHermesCreateSkill(
+        name: name,
+        description: description,
+        triggerType: triggerType,
+        triggerValue: triggerValue);
+
+/// Get all skills
+List<SkillInfoFrb> hermesGetSkills() =>
+    RustLib.instance.api.crateApiHermesGetSkills();
+
+/// Delete a skill
+void hermesDeleteSkill({required String id}) =>
+    RustLib.instance.api.crateApiHermesDeleteSkill(id: id);
+
+/// Create a scheduled task
+String hermesCreateTask(
+        {required String name,
+        required String cronExpression,
+        required String command}) =>
+    RustLib.instance.api.crateApiHermesCreateTask(
+        name: name, cronExpression: cronExpression, command: command);
+
+/// Get all tasks
+List<TaskInfoFrb> hermesGetTasks() =>
+    RustLib.instance.api.crateApiHermesGetTasks();
+
+/// Delete a task
+void hermesDeleteTask({required String id}) =>
+    RustLib.instance.api.crateApiHermesDeleteTask(id: id);
+
+/// Enable a task
+void hermesEnableTask({required String id}) =>
+    RustLib.instance.api.crateApiHermesEnableTask(id: id);
+
+/// Disable a task
+void hermesDisableTask({required String id}) =>
+    RustLib.instance.api.crateApiHermesDisableTask(id: id);
+
+/// Execute a task manually
+String hermesExecuteTask({required String id}) =>
+    RustLib.instance.api.crateApiHermesExecuteTask(id: id);
+
+/// Get available models
+List<ModelInfoFrb> hermesGetModels() =>
+    RustLib.instance.api.crateApiHermesGetModels();
+
 /// Message info for FRB
 class MessageInfo {
   final String id;
@@ -64,6 +118,35 @@ class MessageInfo {
           role == other.role &&
           content == other.content &&
           timestamp == other.timestamp;
+}
+
+/// Model info for FRB
+class ModelInfoFrb {
+  final String id;
+  final String name;
+  final String provider;
+  final int contextLength;
+
+  const ModelInfoFrb({
+    required this.id,
+    required this.name,
+    required this.provider,
+    required this.contextLength,
+  });
+
+  @override
+  int get hashCode =>
+      id.hashCode ^ name.hashCode ^ provider.hashCode ^ contextLength.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ModelInfoFrb &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          name == other.name &&
+          provider == other.provider &&
+          contextLength == other.contextLength;
 }
 
 /// Session info for FRB
@@ -104,4 +187,80 @@ class SessionInfo {
           messageCount == other.messageCount &&
           createdAt == other.createdAt &&
           updatedAt == other.updatedAt;
+}
+
+/// Skill info for FRB
+class SkillInfoFrb {
+  final String id;
+  final String name;
+  final String description;
+  final String triggerType;
+  final int usageCount;
+
+  const SkillInfoFrb({
+    required this.id,
+    required this.name,
+    required this.description,
+    required this.triggerType,
+    required this.usageCount,
+  });
+
+  @override
+  int get hashCode =>
+      id.hashCode ^
+      name.hashCode ^
+      description.hashCode ^
+      triggerType.hashCode ^
+      usageCount.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is SkillInfoFrb &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          name == other.name &&
+          description == other.description &&
+          triggerType == other.triggerType &&
+          usageCount == other.usageCount;
+}
+
+/// Task info for FRB
+class TaskInfoFrb {
+  final String id;
+  final String name;
+  final String cronExpression;
+  final bool enabled;
+  final String? lastRun;
+  final String? nextRun;
+
+  const TaskInfoFrb({
+    required this.id,
+    required this.name,
+    required this.cronExpression,
+    required this.enabled,
+    this.lastRun,
+    this.nextRun,
+  });
+
+  @override
+  int get hashCode =>
+      id.hashCode ^
+      name.hashCode ^
+      cronExpression.hashCode ^
+      enabled.hashCode ^
+      lastRun.hashCode ^
+      nextRun.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is TaskInfoFrb &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          name == other.name &&
+          cronExpression == other.cronExpression &&
+          enabled == other.enabled &&
+          lastRun == other.lastRun &&
+          nextRun == other.nextRun;
 }

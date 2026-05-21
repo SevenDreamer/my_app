@@ -24,7 +24,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   String dco_decode_String(dynamic raw);
 
   @protected
+  bool dco_decode_bool(dynamic raw);
+
+  @protected
   List<MessageInfo> dco_decode_list_message_info(dynamic raw);
+
+  @protected
+  List<ModelInfoFrb> dco_decode_list_model_info_frb(dynamic raw);
 
   @protected
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
@@ -33,10 +39,28 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<SessionInfo> dco_decode_list_session_info(dynamic raw);
 
   @protected
+  List<SkillInfoFrb> dco_decode_list_skill_info_frb(dynamic raw);
+
+  @protected
+  List<TaskInfoFrb> dco_decode_list_task_info_frb(dynamic raw);
+
+  @protected
   MessageInfo dco_decode_message_info(dynamic raw);
 
   @protected
+  ModelInfoFrb dco_decode_model_info_frb(dynamic raw);
+
+  @protected
+  String? dco_decode_opt_String(dynamic raw);
+
+  @protected
   SessionInfo dco_decode_session_info(dynamic raw);
+
+  @protected
+  SkillInfoFrb dco_decode_skill_info_frb(dynamic raw);
+
+  @protected
+  TaskInfoFrb dco_decode_task_info_frb(dynamic raw);
 
   @protected
   int dco_decode_u_32(dynamic raw);
@@ -51,7 +75,14 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   String sse_decode_String(SseDeserializer deserializer);
 
   @protected
+  bool sse_decode_bool(SseDeserializer deserializer);
+
+  @protected
   List<MessageInfo> sse_decode_list_message_info(SseDeserializer deserializer);
+
+  @protected
+  List<ModelInfoFrb> sse_decode_list_model_info_frb(
+      SseDeserializer deserializer);
 
   @protected
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
@@ -60,10 +91,29 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<SessionInfo> sse_decode_list_session_info(SseDeserializer deserializer);
 
   @protected
+  List<SkillInfoFrb> sse_decode_list_skill_info_frb(
+      SseDeserializer deserializer);
+
+  @protected
+  List<TaskInfoFrb> sse_decode_list_task_info_frb(SseDeserializer deserializer);
+
+  @protected
   MessageInfo sse_decode_message_info(SseDeserializer deserializer);
 
   @protected
+  ModelInfoFrb sse_decode_model_info_frb(SseDeserializer deserializer);
+
+  @protected
+  String? sse_decode_opt_String(SseDeserializer deserializer);
+
+  @protected
   SessionInfo sse_decode_session_info(SseDeserializer deserializer);
+
+  @protected
+  SkillInfoFrb sse_decode_skill_info_frb(SseDeserializer deserializer);
+
+  @protected
+  TaskInfoFrb sse_decode_task_info_frb(SseDeserializer deserializer);
 
   @protected
   int sse_decode_u_32(SseDeserializer deserializer);
@@ -78,14 +128,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   int sse_decode_i_32(SseDeserializer deserializer);
 
   @protected
-  bool sse_decode_bool(SseDeserializer deserializer);
+  void sse_encode_String(String self, SseSerializer serializer);
 
   @protected
-  void sse_encode_String(String self, SseSerializer serializer);
+  void sse_encode_bool(bool self, SseSerializer serializer);
 
   @protected
   void sse_encode_list_message_info(
       List<MessageInfo> self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_list_model_info_frb(
+      List<ModelInfoFrb> self, SseSerializer serializer);
 
   @protected
   void sse_encode_list_prim_u_8_strict(
@@ -96,10 +150,30 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       List<SessionInfo> self, SseSerializer serializer);
 
   @protected
+  void sse_encode_list_skill_info_frb(
+      List<SkillInfoFrb> self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_list_task_info_frb(
+      List<TaskInfoFrb> self, SseSerializer serializer);
+
+  @protected
   void sse_encode_message_info(MessageInfo self, SseSerializer serializer);
 
   @protected
+  void sse_encode_model_info_frb(ModelInfoFrb self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_opt_String(String? self, SseSerializer serializer);
+
+  @protected
   void sse_encode_session_info(SessionInfo self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_skill_info_frb(SkillInfoFrb self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_task_info_frb(TaskInfoFrb self, SseSerializer serializer);
 
   @protected
   void sse_encode_u_32(int self, SseSerializer serializer);
@@ -112,9 +186,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_i_32(int self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_bool(bool self, SseSerializer serializer);
 }
 
 // Section: wire_class

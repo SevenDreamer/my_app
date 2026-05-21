@@ -41,6 +41,7 @@ pub struct MemoryConfig {
     pub provider_type: String,
     pub max_entries: usize,
     pub similarity_threshold: f32,
+    pub max_recall_results: usize,
 }
 
 impl Default for MemoryConfig {
@@ -49,6 +50,7 @@ impl Default for MemoryConfig {
             provider_type: "sqlite".to_string(),
             max_entries: 1000,
             similarity_threshold: 0.7,
+            max_recall_results: 10,
         }
     }
 }

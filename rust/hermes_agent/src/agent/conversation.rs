@@ -1,17 +1,30 @@
-//! Conversation loop
+//! Conversation loop - core agent processing
 
 use anyhow::Result;
-use crate::types::{Message, Session, Skill, SkillTrigger};
+use crate::types::{Message, Session, Skill, SkillTrigger, ToolCall};
 use crate::llm::{create_client, CompletionRequest};
+use crate::tools::ToolExecutor;
+use crate::memory::MemoryManager;
+use crate::context::ContextCompressor;
 
-/// Conversation loop - core agent processing
+/// Conversation loop - drives the agent through LLM calls and tool execution
 pub struct ConversationLoop {
     session: Session,
+    tool_executor: ToolExecutor,
+    memory_manager: MemoryManager,
+    compressor: ContextCompressor,
+    max_iterations: usize,
 }
 
 impl ConversationLoop {
     pub fn new(session: Session) -> Self {
-        Self { session }
+        Self {
+            session,
+            tool_executor: ToolExecutor::new(),
+            memory_manager: MemoryManager::default(),
+            compressor: ContextCompressor::new(),
+            max_iterations: 10,
+        }
     }
 
     /// Process a user message and return the assistant response
@@ -19,74 +32,109 @@ impl ConversationLoop {
         // 1. Add user message
         self.session.add_message(Message::user(message));
 
-        // 2. Check skill triggers
-        let triggered_skills = self.check_skills(message);
+        // 2. Build memory context
+        let memory_context = self.memory_manager.build_context_block(message).await;
 
-        // 3. Build context
-        let context = self.build_context();
+        // 3. Run conversation loop
+        let mut iterations = 0;
+        let mut response = String::new();
 
-        // 4. Create LLM client and call API
-        let response = match create_client(self.session.model.clone()) {
-            Ok(client) => {
-                let request = CompletionRequest {
-                    messages: context,
-                    model: self.session.model.clone(),
-                    temperature: Some(0.7),
-                    max_tokens: Some(4096),
-                    tools: vec![],
-                };
+        loop {
+            iterations += 1;
+            if iterations > self.max_iterations {
+                response = "Maximum iterations reached".to_string();
+                break;
+            }
 
-                match client.complete(request).await {
-                    Ok(resp) => {
-                        // Process tool calls if any
-                        if !resp.tool_calls.is_empty() {
-                            format!("[Tool calls: {}]", resp.tool_calls.len())
-                        } else {
-                            resp.content
+            // Build context with memory
+            let context = self.build_context(&memory_context);
+
+            // Compress if needed
+            let context = if self.compressor.needs_compression(&context) {
+                self.compressor.compress(&context).await
+            } else {
+                context
+            };
+
+            // Create LLM client and call
+            let llm_response = match create_client(self.session.model.clone()) {
+                Ok(client) => {
+                    let request = CompletionRequest {
+                        messages: context,
+                        model: self.session.model.clone(),
+                        temperature: Some(0.7),
+                        max_tokens: Some(4096),
+                        tools: self.tool_executor.tool_definitions(),
+                    };
+
+                    client.complete(request).await
+                }
+                Err(e) => Err(e),
+            };
+
+            match llm_response {
+                Ok(resp) => {
+                    // Process tool calls if any
+                    if !resp.tool_calls.is_empty() {
+                        let tool_calls = resp.tool_calls.clone();
+                        let tool_results = self.execute_tools(&tool_calls).await;
+
+                        // Add assistant message with tool calls
+                        let mut assistant_msg = Message::assistant(&resp.content);
+                        assistant_msg.tool_calls = tool_calls;
+                        self.session.add_message(assistant_msg);
+
+                        // Add tool results
+                        for result in tool_results {
+                            let mut tool_msg = Message::user(&result.output);
+                            tool_msg.tool_call_id = Some(result.tool_call_id);
+                            self.session.add_message(tool_msg);
                         }
+
+                        // Continue loop to process tool results
+                        continue;
                     }
-                    Err(e) => format!("[LLM error: {}]", e),
+
+                    response = resp.content;
+                    break;
+                }
+                Err(e) => {
+                    response = format!("[LLM error: {}]", e);
+                    break;
                 }
             }
-            Err(e) => {
-                // Fallback if client creation fails (e.g., missing API key)
-                format!("[{}] {}", e, message)
-            }
-        };
+        }
 
-        // 5. Add triggered skills info if any
-        let final_response = if !triggered_skills.is_empty() {
-            let skill_names: Vec<&str> = triggered_skills.iter().map(|s| s.name.as_str()).collect();
-            format!("{}\n[Triggered skills: {}]", response, skill_names.join(", "))
-        } else {
-            response
-        };
+        // 4. Store in memory
+        self.memory_manager.store_conversation(message, &response).await?;
 
-        // 6. Add assistant response
-        self.session.add_message(Message::assistant(&final_response));
+        // 5. Add assistant response
+        self.session.add_message(Message::assistant(&response));
 
-        Ok(final_response)
+        Ok(response)
     }
 
-    /// Check if any skills are triggered by the message
-    fn check_skills(&self, message: &str) -> Vec<&Skill> {
-        self.session.skills.iter().filter(|skill| {
-            match &skill.trigger {
-                SkillTrigger::Keyword(kw) => message.contains(kw.as_str()),
-                SkillTrigger::Pattern(pattern) => {
-                    regex::Regex::new(pattern)
-                        .map(|re| re.is_match(message))
-                        .unwrap_or(false)
-                }
-                SkillTrigger::Auto => true,
-                SkillTrigger::Manual => false,
-            }
-        }).collect()
+    /// Execute tool calls
+    async fn execute_tools(&self, calls: &[ToolCall]) -> Vec<crate::types::ToolResult> {
+        self.tool_executor.execute_all(calls).await
     }
 
     /// Build the full context for LLM completion
-    fn build_context(&self) -> Vec<Message> {
-        self.session.messages.clone()
+    fn build_context(&self, memory_context: &str) -> Vec<Message> {
+        let mut context = Vec::new();
+
+        // Add system message with memory
+        let system_content = if memory_context.is_empty() {
+            "You are Hermes, a helpful AI assistant.".to_string()
+        } else {
+            format!("{}\n\n{}", memory_context, "You are Hermes, a helpful AI assistant.")
+        };
+        context.push(Message::system(&system_content));
+
+        // Add conversation history
+        context.extend(self.session.messages.clone());
+
+        context
     }
 
     /// Get the current session
