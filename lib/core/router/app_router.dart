@@ -33,35 +33,33 @@ GoRouter createRouter() {
         path: AppRoutes.launcher,
         name: 'launcher',
         builder: (context, state) => const AppLauncherScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.image,
+        name: 'image',
+        builder: (context, state) => const ImageApp(),
+      ),
+      GoRoute(
+        path: AppRoutes.hermes,
+        name: 'hermes',
+        builder: (context, state) => const ChatApp(),
+      ),
+      GoRoute(
+        path: AppRoutes.bar,
+        name: 'bar',
+        builder: (context, state) => const BarApp(),
         routes: [
           GoRoute(
-            path: 'app/image',
-            name: 'image',
-            builder: (context, state) => const ImageApp(),
-          ),
-          GoRoute(
-            path: 'app/hermes',
-            name: 'hermes',
-            builder: (context, state) => const ChatApp(),
-          ),
-          GoRoute(
-            path: 'app/bar',
-            name: 'bar',
-            builder: (context, state) => const BarApp(),
-            routes: [
-              GoRoute(
-                path: 'add-record',
-                name: 'add-record',
-                builder: (context, state) => const AddRecordPage(),
-              ),
-            ],
-          ),
-          GoRoute(
-            path: 'app/database',
-            name: 'database',
-            builder: (context, state) => const DatabaseManagerApp(),
+            path: 'add-record',
+            name: 'add-record',
+            builder: (context, state) => const AddRecordPage(),
           ),
         ],
+      ),
+      GoRoute(
+        path: AppRoutes.database,
+        name: 'database',
+        builder: (context, state) => const DatabaseManagerApp(),
       ),
     ],
   );

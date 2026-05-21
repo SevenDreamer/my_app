@@ -119,16 +119,16 @@ class _AppLauncherScreenState extends State<AppLauncherScreen> {
 
   /// 点击应用卡片/列表项
   void _onAppTap(SubApp app) {
-    // 使用 GoRouter 导航到对应的应用页面
+    // 使用 GoRouter 命名路由导航到对应的应用页面
     switch (app.id) {
       case 'image':
-        context.go(AppRoutes.image);
+        context.goNamed('image');
       case 'hermes':
-        context.go(AppRoutes.hermes);
+        context.goNamed('hermes');
       case 'bar':
-        context.go(AppRoutes.bar);
+        context.goNamed('bar');
       case 'database':
-        context.go(AppRoutes.database);
+        context.goNamed('database');
       default:
         print('未知应用: ${app.id}');
     }
