@@ -1,11 +1,11 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart' hide Scaffold;
 import 'package:flutter/material.dart' show Scaffold;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'rust/frb_generated.dart';
-import 'rust/api/auth.dart' as auth_api;
-import 'core/theme/app_theme.dart';
-import 'core/screens/login_screen.dart';
-import 'core/screens/app_launcher_screen.dart';
+import 'package:my_app/rust/frb_generated.dart';
+import 'package:my_app/rust/api/auth.dart' as auth_api;
+import 'package:my_app/core/theme/app_theme.dart';
+import 'package:my_app/core/screens/login_screen.dart';
+import 'package:my_app/core/screens/app_launcher_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

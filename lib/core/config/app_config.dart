@@ -1,8 +1,7 @@
-/// 全局应用配置
-///
-/// 集中管理环境变量、API 地址、功能开关等常量。
-/// 参考 React 项目 src/config/index.ts 的设计。
-library;
+// 全局应用配置
+//
+// 集中管理环境变量、API 地址、功能开关等常量。
+// 参考 React 项目 src/config/index.ts 的设计。
 
 import 'package:flutter/foundation.dart' show kReleaseMode;
 
@@ -22,10 +21,10 @@ enum AppEnvironment {
 class AppConfig {
   const AppConfig._();
 
-  // ─── 当前环境（修改此处切换环境）────
+  // ─── 当前环境（修改此处切换环境）─────────
   static const AppEnvironment environment = AppEnvironment.dev;
 
-  // ─── API 基础地址 ────
+  // ─── API 基础地址 ───
   static const String _devBaseUrl = 'http://localhost:5000';
   static const String _stagingBaseUrl = 'https://staging-api.example.com';
   static const String _prodBaseUrl = 'https://api.example.com';
@@ -42,15 +41,23 @@ class AppConfig {
     }
   }
 
-  // ─── 认证相关 ────
+  // ─── 认证相关 ───
   static const String tokenStorageKey = 'auth_token';
   static const Duration tokenRefreshThreshold = Duration(minutes: 5);
 
-  // ─── 超时设置 ────
+  // ─── 超时设置 ───
   static const Duration connectTimeout = Duration(seconds: 10);
   static const Duration receiveTimeout = Duration(seconds: 30);
 
-  // ─── 功能开关 ────
+  // ─── 功能开关 ───
   static const bool enableLogging = !kReleaseMode;
   static const bool enableDevTools = !kReleaseMode;
+
+  // ─── 登录页配置 ───
+  /// 登录页标题
+  static const String loginTitle = 'My App';
+
+  /// 登录页图标（LucideIcons 的 codePoint）
+  /// 使用 shadcn_flutter 的 LucideIcons.lock = 0xf0159
+  static const int loginIconCodePoint = 0xf0159;
 }

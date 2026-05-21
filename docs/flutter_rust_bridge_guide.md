@@ -195,7 +195,24 @@ A: 不需要！每次运行 codegen 都会重新生成，所以不要手动修�
 
 ---
 
+## 问题排查
+
+遇到 FRB 编译问题？请参阅详细的问题排查指南：
+
+📖 **[FRB 问题排查与修复 Skill](./../.codebuddy/skills/frb-troubleshooting.md)**
+
+常见问题包括：
+- 符号重复定义 (`frb_get_rust_content_hash` is already defined)
+- 函数名称不匹配 (`cannot find function frb_pde_ffi_dispatcher_*_impl`)
+- DLL 文件被占用无法覆盖
+
+---
+
 ## 更新日志
+
+### 2026-05-21
+- ✅ 修复 `frb_generated.rs` 中符号重复定义问题
+- ✅ 创建 FRB 问题排查与修复 Skill 文档
 
 ### 2026-05-19
 - ✅ 启用 `flutter_rust_bridge` 自动生成绑定

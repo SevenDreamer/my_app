@@ -1,10 +1,15 @@
 // 登录界面 - 使用 PostgreSQL 数据库认证
+//
+// 文件职责：仅负责状态和登录逻辑
+// UI 组件已拆分到 lib/core/widgets/ 下独立文件
 
 import 'package:flutter/material.dart';
 import 'package:my_app/rust/api/auth.dart' as auth_api;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:my_app/core/screens/app_launcher_screen.dart';
+import 'package:my_app/core/widgets/login_card.dart';
 
+/// 登录页
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -26,14 +31,28 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
+  /// 调用 Rust 登录 API，失败时 throw 并附带友好消息
+  Future<auth_api.UserInfo> _callLoginApi(String username, String password) async {
+    try {
+      return auth_api.login(username: username, password: password);
+    } catch (e) {
+      final msg = e.toString().replaceFirst(RegExp(r'^Exception:\s*'), '');
+      if (msg.contains('password') || msg.contains('密码') || msg.contains('invalid')) {
+        throw Exception('用户名或密码错误');
+      }
+      if (msg.contains('user') || msg.contains('用户') || msg.contains('not found')) {
+        throw Exception('用户不存在');
+      }
+      throw Exception(msg.isNotEmpty ? msg : '登录失败，请稍后重试');
+    }
+  }
+
   Future<void> _doLogin() async {
     final username = _usernameController.text.trim();
     final password = _passwordController.text;
 
     if (username.isEmpty || password.isEmpty) {
-      setState(() {
-        _errorMessage = '请输入用户名和密码';
-      });
+      setState(() => _errorMessage = '请输入用户名和密码');
       return;
     }
 
@@ -43,170 +62,41 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      // 调用 Rust 登录 API
-      final userInfo = auth_api.login(
-        username: username,
-        password: password,
-      );
-
-      // 保存 token（使用 UUID 作为临时 token）
-      // TODO: 后续可以从 Rust 返回真正的 token
+      final userInfo = await _callLoginApi(username, password);
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('auth_token', 'temp_token_${userInfo.userId}');
 
-      if (mounted) {
-        Navigator.of(context).pushReplacement<void, void>(
-          MaterialPageRoute<void>(
-            builder: (context) => AppLauncherScreen(
-              token: 'temp_token_${userInfo.userId}',
-              username: userInfo.username,
-              role: userInfo.role,
-            ),
+      if (!mounted) return;
+      Navigator.of(context).pushReplacement<void, void>(
+        MaterialPageRoute<void>(
+          builder: (_) => AppLauncherScreen(
+            token: 'temp_token_${userInfo.userId}',
+            username: userInfo.username,
+            role: userInfo.role,
           ),
-        );
-      }
+        ),
+      );
     } catch (e) {
-      setState(() {
-        _errorMessage = e.toString().replaceAll('Exception: ', '');
-      });
+      if (mounted) setState(() => _errorMessage = e.toString());
     } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
       resizeToAvoidBottomInset: true,
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(vertical: 48),
-        child: Center(
-          child: Container(
-            width: 400,
-            padding: const EdgeInsets.all(32),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const Icon(
-                  Icons.lock_person,
-                  size: 48,
-                  color: Color(0xFF2563EB),
-                ),
-                const SizedBox(height: 24),
-                const Text(
-                  'My App',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF0F172A),
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 32),
-                TextField(
-                  controller: _usernameController,
-                  decoration: InputDecoration(
-                    labelText: '用户名',
-                    hintText: '请输入用户名',
-                    prefixIcon: const Icon(Icons.person_outline),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide:
-                          const BorderSide(color: Color(0xFF2563EB), width: 2),
-                    ),
-                  ),
-                  enabled: !_isLoading,
-                  onSubmitted: (_) => _doLogin(),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: _passwordController,
-                  decoration: InputDecoration(
-                    labelText: '密码',
-                    hintText: '请输入密码',
-                    prefixIcon: const Icon(Icons.lock_outline),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide:
-                          const BorderSide(color: Color(0xFF2563EB), width: 2),
-                    ),
-                  ),
-                  obscureText: true,
-                  enabled: !_isLoading,
-                  onSubmitted: (_) => _doLogin(),
-                ),
-                const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: _isLoading ? null : _doLogin,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2563EB),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: _isLoading
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor:
-                                AlwaysStoppedAnimation<Color>(Colors.white),
-                          ),
-                        )
-                      : const Text(
-                          '登录',
-                          style: TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.w500),
-                        ),
-                ),
-                if (_errorMessage != null) ...[
-                  const SizedBox(height: 16),
-                  Text(
-                    _errorMessage!,
-                    style: const TextStyle(color: Color(0xFFDC2626)),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ],
-            ),
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 24),
+          child: LoginCard(
+            isLoading: _isLoading,
+            errorMessage: _errorMessage,
+            usernameController: _usernameController,
+            passwordController: _passwordController,
+            onLogin: _doLogin,
           ),
         ),
       ),

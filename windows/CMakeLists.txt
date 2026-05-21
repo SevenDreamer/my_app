@@ -82,14 +82,28 @@ install(FILES "${FLUTTER_LIBRARY}" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
   COMPONENT Runtime)
 
 # Copy my_app.dll (Rust FFI library)
-set(MY_APP_DLL_SOURCE "${CMAKE_SOURCE_DIR}/../rust/target/release/my_app.dll")
-if(EXISTS "${MY_APP_DLL_SOURCE}")
-  install(FILES "${MY_APP_DLL_SOURCE}"
-    DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
-    COMPONENT Runtime)
-  message(STATUS "Found my_app.dll at ${MY_APP_DLL_SOURCE}")
+# 使用自定义命令在多配置生成器下正确复制 Debug/Release DLL
+# Visual Studio 是多配置生成器，CMAKE_BUILD_TYPE 为空，需用生成器表达式
+
+# 添加自定义命令：构建前确保 Rust 库已编译（可选，需要时会手动运行）
+# 安装时根据当前配置复制对应的 DLL
+
+# 使用分开的 install 命令，每个配置独立处理
+install(FILES "$<IF:$<CONFIG:Release>,${CMAKE_SOURCE_DIR}/../rust/target/release/my_app.dll,${CMAKE_SOURCE_DIR}/../rust/target/debug/my_app.dll>"
+  DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
+  COMPONENT Runtime
+  OPTIONAL)
+
+# 检查 DLL 是否存在的警告（配置时检测，不会阻断构建）
+if(NOT EXISTS "${CMAKE_SOURCE_DIR}/../rust/target/debug/my_app.dll" AND NOT EXISTS "${CMAKE_SOURCE_DIR}/../rust/target/release/my_app.dll")
+  message(WARNING "my_app.dll not found. Run 'cargo build' (Debug) or 'cargo build --release' (Release) in rust/ directory.")
 else()
-  message(WARNING "my_app.dll not found at ${MY_APP_DLL_SOURCE}. Run 'cargo build --release' in rust/ directory.")
+  if(EXISTS "${CMAKE_SOURCE_DIR}/../rust/target/debug/my_app.dll")
+    message(STATUS "Found debug my_app.dll")
+  endif()
+  if(EXISTS "${CMAKE_SOURCE_DIR}/../rust/target/release/my_app.dll")
+    message(STATUS "Found release my_app.dll")
+  endif()
 endif()
 
 if(PLUGIN_BUNDLED_LIBRARIES)

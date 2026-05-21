@@ -1,6 +1,8 @@
 include: package:very_good_analysis/analysis_options.yaml
 
 analyzer:
+  errors:
+    directives_ordering: ignore
   exclude:
     - rust_builder/**
     - build/**
@@ -9,6 +11,8 @@ analyzer:
 
 linter:
   rules:
+    # 强制 lib/ 内 import 使用 package: 格式
+    always_use_package_imports: true
     # 关闭文档注释要求
     public_member_api_docs: false
     # 关闭行长度限制

@@ -36,9 +36,6 @@ dependencies:
   flutter:
     sdk: flutter
 
-  # FFI (手动绑定需要)
-  ffi: ^2.1.0
-
   # Flutter-Rust Bridge
   flutter_rust_bridge: ^2.12.0
 

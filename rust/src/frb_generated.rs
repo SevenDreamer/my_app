@@ -21,7 +21,8 @@
     clippy::explicit_auto_deref,
     clippy::borrow_deref_ref,
     clippy::uninlined_format_args,
-    clippy::needless_borrow
+    clippy::needless_borrow,
+    mismatched_lifetime_syntaxes
 )]
 
 // Section: imports
@@ -37,8 +38,8 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_opaque = RustOpaqueMoi,
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.12.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -390374125;
+pub const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.12.0";
+pub const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -390374125;
 
 // Section: executor
 
@@ -795,7 +796,7 @@ impl SseDecode for crate::api::auth::UserInfo {
     }
 }
 
-fn pde_ffi_dispatcher_primary_impl(
+pub fn pde_ffi_dispatcher_primary_impl(
     func_id: i32,
     port: flutter_rust_bridge::for_generated::MessagePort,
     ptr: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -814,7 +815,7 @@ fn pde_ffi_dispatcher_primary_impl(
     }
 }
 
-fn pde_ffi_dispatcher_sync_impl(
+pub fn pde_ffi_dispatcher_sync_impl(
     func_id: i32,
     ptr: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len: i32,
