@@ -3,6 +3,7 @@ import 'package:my_app/rust/frb_generated.dart';
 import 'package:my_app/rust/api/auth.dart' as auth_api;
 import 'package:my_app/core/config/app_config.dart';
 import 'package:my_app/core/router/app_router.dart';
+import 'package:my_app/core/theme/app_theme_scope.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,10 +17,13 @@ void main() async {
     print('DB init: $result');
   } catch (e) {
     print('DB init failed: $e');
-    // 数据库错误会在路由守卫中处理，或通过其他方式提示用户
   }
 
-  runApp(const MyApp());
+  runApp(
+    const AppThemeScope(
+      child: MyApp(),
+    ),
+  );
 }
 
 /// 全局 router 实例，供外部访问（如退出登录时调用 context.go()）
@@ -30,14 +34,17 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ShadcnApp.router(
-      title: AppConfig.appName,
-      theme: ThemeData(
-        colorScheme: LegacyColorSchemes.lightZinc(),
-        radius: 0.7,
-      ),
-      routerConfig: appRouter,
-      debugShowCheckedModeBanner: false,
+    final themeScope = AppThemeScope.of(context);
+    return ListenableBuilder(
+      listenable: themeScope.notifier,
+      builder: (context, _) {
+        return ShadcnApp.router(
+          title: AppConfig.appName,
+          theme: themeScope.buildTheme(),
+          routerConfig: appRouter,
+          debugShowCheckedModeBanner: false,
+        );
+      },
     );
   }
 }

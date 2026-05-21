@@ -1,5 +1,7 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:my_app/core/models/app_language.dart';
+import 'package:my_app/core/theme/app_theme_scope.dart';
+import 'package:my_app/core/theme/app_theme_mode.dart';
 import 'package:my_app/core/widgets/app_card.dart';
 import 'package:my_app/core/widgets/settings_row.dart';
 
@@ -12,12 +14,7 @@ class GeneralSettingsPanel extends StatefulWidget {
 }
 
 class _GeneralSettingsPanelState extends State<GeneralSettingsPanel> {
-  bool _darkMode = false;
   AppLanguage _language = AppLanguage.zh;
-
-  void _toggleDarkMode(bool value) {
-    setState(() => _darkMode = value);
-  }
 
   void _changeLanguage(AppLanguage lang) {
     setState(() => _language = lang);
@@ -25,6 +22,8 @@ class _GeneralSettingsPanelState extends State<GeneralSettingsPanel> {
 
   @override
   Widget build(BuildContext context) {
+    final themeScope = AppThemeScope.of(context);
+
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -39,13 +38,10 @@ class _GeneralSettingsPanelState extends State<GeneralSettingsPanel> {
             child: Column(
               children: [
                 SettingsRow(
-                  icon: LucideIcons.moon,
-                  title: '深色模式',
-                  subtitle: '切换应用主题',
-                  trailing: Switch(
-                    value: _darkMode,
-                    onChanged: _toggleDarkMode,
-                  ),
+                  icon: LucideIcons.sunMoon,
+                  title: '主题模式',
+                  subtitle: themeScope.mode.displayName,
+                  onTap: () => _showThemeDialog(themeScope),
                 ),
                 const Divider(),
                 SettingsRow(
@@ -58,6 +54,31 @@ class _GeneralSettingsPanelState extends State<GeneralSettingsPanel> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showThemeDialog(AppThemeScopeState themeScope) {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('选择主题'),
+        content: RadioGroup<AppThemeMode>(
+          value: themeScope.mode,
+          onChanged: (v) {
+            themeScope.setMode(v);
+            Navigator.of(ctx).pop();
+          },
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: AppThemeMode.values
+                .map((mode) => RadioItem(
+                      value: mode,
+                      trailing: Text(mode.displayName),
+                    ),)
+                .toList(),
+          ),
+        ),
       ),
     );
   }
