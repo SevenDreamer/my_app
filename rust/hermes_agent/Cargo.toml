@@ -1,0 +1,31 @@
+[package]
+name = "hermes_agent"
+version = "0.1.0"
+edition = "2021"
+description = "Hermes Agent - Self-improving AI Agent (Rust port)"
+
+[dependencies]
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+async-trait = { workspace = true }
+reqwest = { workspace = true }
+futures = { workspace = true }
+tracing = { workspace = true }
+chrono = { workspace = true }
+uuid = { workspace = true }
+sqlx = { workspace = true }
+
+# LLM SDKs
+async-openai = "0.28"
+
+# 定时任务
+tokio-cron-scheduler = "0.14"
+
+# Markdown 处理
+pulldown-cmark = "0.12"
+
+# 正则表达式
+regex = "1"
