@@ -1,10 +1,10 @@
 import 'package:go_router/go_router.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:my_app/core/models/sub_app.dart';
+import 'package:my_app/core/models/app_data.dart';
 import 'package:my_app/core/router/app_router.dart';
-import 'package:my_app/core/screens/app_launcher/app_data.dart';
-import 'package:my_app/core/screens/app_launcher/app_list_item.dart';
-import 'package:my_app/core/screens/app_launcher/app_grid_card.dart';
+import 'package:my_app/core/widgets/app_grid_card.dart';
+import 'package:my_app/core/widgets/app_list_item.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// 子应用启动器（主界面）
@@ -114,7 +114,7 @@ class _AppLauncherScreenState extends State<AppLauncherScreen> {
 
   /// 点击设置（管理员）
   void _onSettingsPressed() {
-    // TODO(v_qzxgqiu, 2026-05-30): 实现管理功能
+    context.go(AppRoutes.appManagement);
   }
 
   /// 点击应用卡片/列表项

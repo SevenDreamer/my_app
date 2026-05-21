@@ -2,6 +2,8 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:my_app/core/screens/login_screen.dart';
 import 'package:my_app/core/screens/app_launcher_screen.dart';
+import 'package:my_app/features/admin/screens/app_management_screen.dart';
+import 'package:my_app/features/admin/screens/user_management_screen.dart';
 import 'package:my_app/features/image/image_app.dart';
 import 'package:my_app/features/chat/chat_app.dart';
 import 'package:my_app/features/bar/bar_app.dart';
@@ -16,6 +18,8 @@ class AppRoutes {
   static const hermes = '/app/hermes';
   static const bar = '/app/bar';
   static const database = '/app/database';
+  static const appManagement = '/admin/app-management';
+  static const userManagement = '/admin/user-management';
 }
 
 /// 创建 GoRouter 实例
@@ -60,6 +64,16 @@ GoRouter createRouter() {
         path: AppRoutes.database,
         name: 'database',
         builder: (context, state) => const DatabaseManagerApp(),
+      ),
+      GoRoute(
+        path: AppRoutes.appManagement,
+        name: 'app-management',
+        builder: (context, state) => const AppManagementScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.userManagement,
+        name: 'user-management',
+        builder: (context, state) => const UserManagementScreen(),
       ),
     ],
   );

@@ -1,29 +1,31 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:go_router/go_router.dart';
+import 'package:my_app/core/router/app_router.dart';
 
 /// 应用管理界面（仅管理员）
-/// TODO: 待实现 flutter_rust_bridge 认证 API 后完善
-class AppManagementScreen extends StatefulWidget {
-  final String token;
+/// TODO(v_qzxgqiu, 2026-05-30): 待实现 flutter_rust_bridge 认证 API 后完善
+class AppManagementScreen extends StatelessWidget {
+  const AppManagementScreen({super.key});
 
-  const AppManagementScreen({super.key, required this.token});
-
-  @override
-  State<AppManagementScreen> createState() => _AppManagementScreenState();
-}
-
-class _AppManagementScreenState extends State<AppManagementScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       headers: [
         AppBar(
+          leading: [
+            IconButton(
+              variance: ButtonVariance.ghost,
+              icon: const Icon(LucideIcons.arrowLeft),
+              onPressed: () => context.go(AppRoutes.launcher),
+            ),
+          ],
           title: const Text('应用管理'),
           trailing: [
             IconButton(
               variance: ButtonVariance.ghost,
               icon: const Icon(LucideIcons.plus),
               onPressed: () {
-                // TODO: 实现添加应用功能
+                // TODO(v_qzxgqiu, 2026-05-30): 实现添加应用功能
               },
             ),
           ],

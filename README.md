@@ -67,4 +67,4 @@ dart run flutter_rust_bridge_codegen
 
 1. 在 `lib/features/` 下创建子目录（如 `my_app/`）
 2. 创建 `<my_app>_app.dart` 作为入口组件
-3. 在 `lib/core/screens/app_launcher_screen.dart` 的 `_apps` 列表中注册
+3. 在 `lib/core/models/app_data.dart` 的 `builtInApps` 列表中注册
