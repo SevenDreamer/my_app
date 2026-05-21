@@ -40,7 +40,7 @@ class MyApp extends StatelessWidget {
     return ShadcnApp(
       title: 'My App',
       theme: ThemeData(
-        colorScheme: LegacyColorSchemes.darkZinc(),
+        colorScheme: LegacyColorSchemes.lightZinc(),
         radius: 0.7,
       ),
       home: _getHomeScreen(),

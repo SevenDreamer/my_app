@@ -1,5 +1,4 @@
-import 'package:flutter/material.dart' hide ButtonStyle, Card;
-import 'package:shadcn_flutter/shadcn_flutter.dart' as shadcn;
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import 'package:my_app/core/config/app_config.dart';
 
@@ -10,14 +9,14 @@ class LoginHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = shadcn.Theme.of(context);
+    final theme = Theme.of(context);
     return Column(
       children: [
-        shadcn.Icon(
-          const IconData(AppConfig.loginIconCodePoint, fontFamily: 'LucideIcons'),
+        Icon(
+          LucideIcons.lock,
           size: 48,
           color: theme.colorScheme.primary,
-        ),  // ignore: prefer_const_constructors
+        ),
         const SizedBox(height: 24),
         Text(AppConfig.loginTitle, style: theme.typography.h1),
       ],
