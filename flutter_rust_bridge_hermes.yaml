@@ -1,0 +1,15 @@
+# Hermes Agent FRB 配置
+
+base_dir: "."
+
+# Rust 输入 - hermes_api crate 的 api 模块
+rust_input: "crate::api"
+
+# Rust 项目根目录 - hermes_api crate
+rust_root: "rust/hermes_api/"
+
+# Rust 输出
+rust_output: "rust/hermes_api/src/frb_generated.rs"
+
+# Dart 输出目录
+dart_output: "lib/rust/hermes/"

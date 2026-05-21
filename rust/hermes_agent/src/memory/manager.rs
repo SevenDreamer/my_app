@@ -5,7 +5,7 @@ use anyhow::Result;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 
-use crate::types::{MemoryEntry, MemoryConfig, MemoryQueryResult};
+use crate::types::{MemoryEntry, MemoryConfig};
 
 /// Memory provider trait
 #[async_trait]

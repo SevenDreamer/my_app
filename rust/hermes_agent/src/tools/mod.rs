@@ -1,3 +1,3 @@
-//! Tools module (placeholder)
+//! Tools module
 
-pub use crate::types::{ToolCall, ToolDefinition, ToolResult, BUILTIN_TOOLS};
+pub use crate::types::{ToolCall, ToolDefinition, ToolResult, builtin_tools};

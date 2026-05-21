@@ -58,10 +58,10 @@ impl SessionManager {
             .map(|s| s.messages.iter().map(|m| MessageInfo {
                 id: m.id.clone(),
                 role: match m.role {
-                    crate::types::MessageRole::System => "system",
-                    crate::types::MessageRole::User => "user",
-                    crate::types::MessageRole::Assistant => "assistant",
-                    crate::types::MessageRole::Tool => "tool",
+                    crate::types::MessageRole::System => "system".to_string(),
+                    crate::types::MessageRole::User => "user".to_string(),
+                    crate::types::MessageRole::Assistant => "assistant".to_string(),
+                    crate::types::MessageRole::Tool => "tool".to_string(),
                 },
                 content: m.content.clone(),
                 timestamp: m.timestamp.to_rfc3339(),

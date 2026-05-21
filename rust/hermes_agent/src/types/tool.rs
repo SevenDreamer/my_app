@@ -52,51 +52,53 @@ pub struct ToolResult {
 }
 
 /// Built-in tools
-pub const BUILTIN_TOOLS: &[ToolDefinition] = &[
-    ToolDefinition::new(
-        "shell_execute",
-        "Execute a shell command",
-        serde_json::json!({
-            "type": "object",
-            "properties": {
-                "command": {
-                    "type": "string",
-                    "description": "The shell command to execute"
-                }
-            },
-            "required": ["command"]
-        }),
-    ),
-    ToolDefinition::new(
-        "file_read",
-        "Read a file from the filesystem",
-        serde_json::json!({
-            "type": "object",
-            "properties": {
-                "path": {
-                    "type": "string",
-                    "description": "The file path to read"
-                }
-            },
-            "required": ["path"]
-        }),
-    ),
-    ToolDefinition::new(
-        "file_write",
-        "Write content to a file",
-        serde_json::json!({
-            "type": "object",
-            "properties": {
-                "path": {
-                    "type": "string",
-                    "description": "The file path to write"
+pub fn builtin_tools() -> Vec<ToolDefinition> {
+    vec![
+        ToolDefinition::new(
+            "shell_execute",
+            "Execute a shell command",
+            serde_json::json!({
+                "type": "object",
+                "properties": {
+                    "command": {
+                        "type": "string",
+                        "description": "The shell command to execute"
+                    }
                 },
-                "content": {
-                    "type": "string",
-                    "description": "The content to write"
-                }
-            },
-            "required": ["path", "content"]
-        }),
-    ),
-];
+                "required": ["command"]
+            }),
+        ),
+        ToolDefinition::new(
+            "file_read",
+            "Read a file from the filesystem",
+            serde_json::json!({
+                "type": "object",
+                "properties": {
+                    "path": {
+                        "type": "string",
+                        "description": "The file path to read"
+                    }
+                },
+                "required": ["path"]
+            }),
+        ),
+        ToolDefinition::new(
+            "file_write",
+            "Write content to a file",
+            serde_json::json!({
+                "type": "object",
+                "properties": {
+                    "path": {
+                        "type": "string",
+                        "description": "The file path to write"
+                    },
+                    "content": {
+                        "type": "string",
+                        "description": "The content to write"
+                    }
+                },
+                "required": ["path", "content"]
+            }),
+        ),
+    ]
+}

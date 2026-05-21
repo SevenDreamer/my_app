@@ -43,17 +43,11 @@ pub struct StreamChunk {
     pub is_final: bool,
 }
 
-/// LLM client trait - unified interface for all providers
+/// LLM client trait - base interface
 #[async_trait]
-pub trait LlmClient: Send + Sync {
+pub trait LlmClientBase: Send + Sync {
     /// Complete a request and return the response
     async fn complete(&self, request: CompletionRequest) -> Result<CompletionResponse>;
-
-    /// Stream completion chunks
-    async fn stream(
-        &self,
-        request: CompletionRequest,
-    ) -> Result<impl Stream<Item = Result<StreamChunk>> + Send>;
 
     /// Get the model name
     fn model_name(&self) -> &str;
