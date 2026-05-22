@@ -5,6 +5,7 @@ import 'package:my_app/core/models/app_data.dart';
 import 'package:my_app/core/router/app_router.dart';
 import 'package:my_app/core/widgets/app_grid_card.dart';
 import 'package:my_app/core/widgets/app_list_item.dart';
+import 'package:my_app/core/config/feature_registry.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// 子应用启动器（主界面）
@@ -71,14 +72,16 @@ class _AppLauncherScreenState extends State<AppLauncherScreen> {
                       (constraints.maxWidth / minCardWidth).floor().clamp(1, 4);
                   final isListMode = crossAxisCount == 1;
 
+                  final apps = FeatureRegistry.visibleApps;
+
                   if (isListMode) {
                     return ListView.separated(
-                      itemCount: builtInApps.length,
+                      itemCount: apps.length,
                       separatorBuilder: (_, __) => const SizedBox(height: 12),
                       itemBuilder: (context, index) => AppListItem(
-                        app: builtInApps[index],
-                        onTap: () => _onAppTap(builtInApps[index]),
-                      ),
+                        app: apps[index],
+                        onTap: () => _onAppTap(apps[index]),
+                    ),
                     );
                   }
 
@@ -89,10 +92,10 @@ class _AppLauncherScreenState extends State<AppLauncherScreen> {
                       mainAxisSpacing: 16,
                       childAspectRatio: 0.85,
                     ),
-                    itemCount: builtInApps.length,
+                    itemCount: apps.length,
                     itemBuilder: (context, index) => AppGridCard(
-                      app: builtInApps[index],
-                      onTap: () => _onAppTap(builtInApps[index]),
+                      app: apps[index],
+                      onTap: () => _onAppTap(apps[index]),
                     ),
                   );
                 },
@@ -112,15 +115,13 @@ class _AppLauncherScreenState extends State<AppLauncherScreen> {
   /// 点击应用卡片/列表项
   void _onAppTap(SubApp app) {
     // 使用 GoRouter 命名路由导航到对应的应用页面
-    switch (app.id) {
-      case 'image':
-        context.goNamed('image');
-      case 'bar':
-        context.goNamed('bar');
-      case 'database':
-        context.goNamed('database');
-      default:
-        print('未知应用: ${app.id}');
+    final builder = FeatureRegistry.getBuilder(app.id);
+    if (builder != null) {
+      // 如果有注册的 builder，使用它
+      context.go(app.route);
+    } else {
+      // 否则直接跳转路由
+      context.go(app.route);
     }
   }
 }
