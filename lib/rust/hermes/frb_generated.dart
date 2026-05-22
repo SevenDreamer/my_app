@@ -79,19 +79,23 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
 }
 
 abstract class RustLibApi extends BaseApi {
-  String crateApiHermesCreateSession(
-      {required String title, required String model});
+  String crateApiHermesCreateSession({
+    required String title,
+    required String model,
+  });
 
-  String crateApiHermesCreateSkill(
-      {required String name,
-      required String description,
-      required String triggerType,
-      required String triggerValue});
+  String crateApiHermesCreateSkill({
+    required String name,
+    required String description,
+    required String triggerType,
+    required String triggerValue,
+  });
 
-  String crateApiHermesCreateTask(
-      {required String name,
-      required String cronExpression,
-      required String command});
+  String crateApiHermesCreateTask({
+    required String name,
+    required String cronExpression,
+    required String command,
+  });
 
   void crateApiHermesDeleteSession({required String id});
 
@@ -115,14 +119,20 @@ abstract class RustLibApi extends BaseApi {
 
   List<TaskInfoFrb> crateApiHermesGetTasks();
 
-  String crateApiHermesSendMessage(
-      {required String sessionId, required String message});
+  String crateApiHermesSendMessage({
+    required String sessionId,
+    required String message,
+  });
 
-  void crateApiHermesSetModel(
-      {required String sessionId, required String model});
+  void crateApiHermesSetModel({
+    required String sessionId,
+    required String model,
+  });
 
-  Stream<String> crateApiHermesStreamMessage(
-      {required String sessionId, required String message});
+  Stream<String> crateApiHermesStreamMessage({
+    required String sessionId,
+    required String message,
+  });
 
   String crateApiInitHermes();
 }
@@ -136,8 +146,10 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   });
 
   @override
-  String crateApiHermesCreateSession(
-      {required String title, required String model}) {
+  String crateApiHermesCreateSession({
+    required String title,
+    required String model,
+  }) {
     return handler.executeSync(
       SyncTask(
         callFfi: () {
@@ -164,11 +176,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  String crateApiHermesCreateSkill(
-      {required String name,
-      required String description,
-      required String triggerType,
-      required String triggerValue}) {
+  String crateApiHermesCreateSkill({
+    required String name,
+    required String description,
+    required String triggerType,
+    required String triggerValue,
+  }) {
     return handler.executeSync(
       SyncTask(
         callFfi: () {
@@ -196,10 +209,11 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  String crateApiHermesCreateTask(
-      {required String name,
-      required String cronExpression,
-      required String command}) {
+  String crateApiHermesCreateTask({
+    required String name,
+    required String cronExpression,
+    required String command,
+  }) {
     return handler.executeSync(
       SyncTask(
         callFfi: () {
@@ -498,8 +512,10 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  String crateApiHermesSendMessage(
-      {required String sessionId, required String message}) {
+  String crateApiHermesSendMessage({
+    required String sessionId,
+    required String message,
+  }) {
     return handler.executeSync(
       SyncTask(
         callFfi: () {
@@ -525,8 +541,10 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  void crateApiHermesSetModel(
-      {required String sessionId, required String model}) {
+  void crateApiHermesSetModel({
+    required String sessionId,
+    required String model,
+  }) {
     return handler.executeSync(
       SyncTask(
         callFfi: () {
@@ -552,8 +570,10 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Stream<String> crateApiHermesStreamMessage(
-      {required String sessionId, required String message}) {
+  Stream<String> crateApiHermesStreamMessage({
+    required String sessionId,
+    required String message,
+  }) {
     final sink = RustStreamSink<String>();
     unawaited(
       handler.executeNormal(
@@ -563,8 +583,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             sse_encode_String(sessionId, serializer);
             sse_encode_String(message, serializer);
             sse_encode_StreamSink_String_Sse(sink, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer,
-                funcId: 17, port: port_);
+            pdeCallFfi(
+              generalizedFrbRustBinding,
+              serializer,
+              funcId: 17,
+              port: port_,
+            );
           },
           codec: SseCodec(
             decodeSuccessData: sse_decode_unit,
@@ -777,7 +801,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   RustStreamSink<String> sse_decode_StreamSink_String_Sse(
-      SseDeserializer deserializer) {
+    SseDeserializer deserializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     throw UnimplementedError('Unreachable ()');
   }
@@ -809,7 +834,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   List<ModelInfoFrb> sse_decode_list_model_info_frb(
-      SseDeserializer deserializer) {
+    SseDeserializer deserializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
     final len_ = sse_decode_i_32(deserializer);
@@ -841,7 +867,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   List<SkillInfoFrb> sse_decode_list_skill_info_frb(
-      SseDeserializer deserializer) {
+    SseDeserializer deserializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
     final len_ = sse_decode_i_32(deserializer);
@@ -854,7 +881,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   List<TaskInfoFrb> sse_decode_list_task_info_frb(
-      SseDeserializer deserializer) {
+    SseDeserializer deserializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
     final len_ = sse_decode_i_32(deserializer);
@@ -873,10 +901,11 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     final var_content = sse_decode_String(deserializer);
     final var_timestamp = sse_decode_String(deserializer);
     return MessageInfo(
-        id: var_id,
-        role: var_role,
-        content: var_content,
-        timestamp: var_timestamp);
+      id: var_id,
+      role: var_role,
+      content: var_content,
+      timestamp: var_timestamp,
+    );
   }
 
   @protected
@@ -887,10 +916,11 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     final var_provider = sse_decode_String(deserializer);
     final var_contextLength = sse_decode_u_32(deserializer);
     return ModelInfoFrb(
-        id: var_id,
-        name: var_name,
-        provider: var_provider,
-        contextLength: var_contextLength);
+      id: var_id,
+      name: var_name,
+      provider: var_provider,
+      contextLength: var_contextLength,
+    );
   }
 
   @protected
@@ -914,12 +944,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     final var_createdAt = sse_decode_String(deserializer);
     final var_updatedAt = sse_decode_String(deserializer);
     return SessionInfo(
-        id: var_id,
-        title: var_title,
-        model: var_model,
-        messageCount: var_messageCount,
-        createdAt: var_createdAt,
-        updatedAt: var_updatedAt);
+      id: var_id,
+      title: var_title,
+      model: var_model,
+      messageCount: var_messageCount,
+      createdAt: var_createdAt,
+      updatedAt: var_updatedAt,
+    );
   }
 
   @protected
@@ -931,11 +962,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     final var_triggerType = sse_decode_String(deserializer);
     final var_usageCount = sse_decode_u_32(deserializer);
     return SkillInfoFrb(
-        id: var_id,
-        name: var_name,
-        description: var_description,
-        triggerType: var_triggerType,
-        usageCount: var_usageCount);
+      id: var_id,
+      name: var_name,
+      description: var_description,
+      triggerType: var_triggerType,
+      usageCount: var_usageCount,
+    );
   }
 
   @protected
@@ -948,12 +980,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     final var_lastRun = sse_decode_opt_String(deserializer);
     final var_nextRun = sse_decode_opt_String(deserializer);
     return TaskInfoFrb(
-        id: var_id,
-        name: var_name,
-        cronExpression: var_cronExpression,
-        enabled: var_enabled,
-        lastRun: var_lastRun,
-        nextRun: var_nextRun);
+      id: var_id,
+      name: var_name,
+      cronExpression: var_cronExpression,
+      enabled: var_enabled,
+      lastRun: var_lastRun,
+      nextRun: var_nextRun,
+    );
   }
 
   @protected
@@ -981,14 +1014,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void sse_encode_AnyhowException(
-      AnyhowException self, SseSerializer serializer) {
+    AnyhowException self,
+    SseSerializer serializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_String(self.message, serializer);
   }
 
   @protected
   void sse_encode_StreamSink_String_Sse(
-      RustStreamSink<String> self, SseSerializer serializer) {
+    RustStreamSink<String> self,
+    SseSerializer serializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_String(
       self.setupAndSerialize(
@@ -1015,7 +1052,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void sse_encode_list_message_info(
-      List<MessageInfo> self, SseSerializer serializer) {
+    List<MessageInfo> self,
+    SseSerializer serializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self.length, serializer);
     for (final item in self) {
@@ -1025,7 +1064,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void sse_encode_list_model_info_frb(
-      List<ModelInfoFrb> self, SseSerializer serializer) {
+    List<ModelInfoFrb> self,
+    SseSerializer serializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self.length, serializer);
     for (final item in self) {
@@ -1035,7 +1076,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void sse_encode_list_prim_u_8_strict(
-      Uint8List self, SseSerializer serializer) {
+    Uint8List self,
+    SseSerializer serializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self.length, serializer);
     serializer.buffer.putUint8List(self);
@@ -1043,7 +1086,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void sse_encode_list_session_info(
-      List<SessionInfo> self, SseSerializer serializer) {
+    List<SessionInfo> self,
+    SseSerializer serializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self.length, serializer);
     for (final item in self) {
@@ -1053,7 +1098,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void sse_encode_list_skill_info_frb(
-      List<SkillInfoFrb> self, SseSerializer serializer) {
+    List<SkillInfoFrb> self,
+    SseSerializer serializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self.length, serializer);
     for (final item in self) {
@@ -1063,7 +1110,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void sse_encode_list_task_info_frb(
-      List<TaskInfoFrb> self, SseSerializer serializer) {
+    List<TaskInfoFrb> self,
+    SseSerializer serializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self.length, serializer);
     for (final item in self) {

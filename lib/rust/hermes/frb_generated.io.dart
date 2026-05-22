@@ -80,7 +80,8 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   RustStreamSink<String> sse_decode_StreamSink_String_Sse(
-      SseDeserializer deserializer);
+    SseDeserializer deserializer,
+  );
 
   @protected
   String sse_decode_String(SseDeserializer deserializer);
@@ -93,7 +94,8 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<ModelInfoFrb> sse_decode_list_model_info_frb(
-      SseDeserializer deserializer);
+    SseDeserializer deserializer,
+  );
 
   @protected
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
@@ -103,7 +105,8 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<SkillInfoFrb> sse_decode_list_skill_info_frb(
-      SseDeserializer deserializer);
+    SseDeserializer deserializer,
+  );
 
   @protected
   List<TaskInfoFrb> sse_decode_list_task_info_frb(SseDeserializer deserializer);
@@ -140,11 +143,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_AnyhowException(
-      AnyhowException self, SseSerializer serializer);
+    AnyhowException self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_StreamSink_String_Sse(
-      RustStreamSink<String> self, SseSerializer serializer);
+    RustStreamSink<String> self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_String(String self, SseSerializer serializer);
@@ -154,27 +161,39 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_list_message_info(
-      List<MessageInfo> self, SseSerializer serializer);
+    List<MessageInfo> self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_list_model_info_frb(
-      List<ModelInfoFrb> self, SseSerializer serializer);
+    List<ModelInfoFrb> self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_list_prim_u_8_strict(
-      Uint8List self, SseSerializer serializer);
+    Uint8List self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_list_session_info(
-      List<SessionInfo> self, SseSerializer serializer);
+    List<SessionInfo> self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_list_skill_info_frb(
-      List<SkillInfoFrb> self, SseSerializer serializer);
+    List<SkillInfoFrb> self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_list_task_info_frb(
-      List<TaskInfoFrb> self, SseSerializer serializer);
+    List<TaskInfoFrb> self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_message_info(MessageInfo self, SseSerializer serializer);

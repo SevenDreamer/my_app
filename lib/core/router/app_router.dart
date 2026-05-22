@@ -5,7 +5,8 @@ import 'package:my_app/core/screens/app_launcher_screen.dart';
 import 'package:my_app/features/admin/screens/app_management_screen.dart';
 import 'package:my_app/features/admin/screens/user_management_screen.dart';
 import 'package:my_app/features/image/image_app.dart';
-import 'package:my_app/features/hermes/hermes_app.dart';
+// TODO: 修复 hermes_api Rust 编译错误后恢复
+// import 'package:my_app/features/hermes/hermes_app.dart';
 import 'package:my_app/features/bar/bar_app.dart';
 import 'package:my_app/features/bar/screens/add_record_page.dart';
 import 'package:my_app/features/database/database_app.dart'
@@ -18,7 +19,8 @@ class AppRoutes {
   static const launcher = '/launcher';
   static const settings = '/settings';
   static const image = '/app/image';
-  static const hermes = '/app/hermes';
+  // TODO: 修复 hermes_api Rust 编译错误后恢复
+  // static const hermes = '/app/hermes';
   static const bar = '/app/bar';
   static const database = '/app/database';
   static const appManagement = '/admin/app-management';
@@ -51,11 +53,12 @@ GoRouter createRouter() {
         name: 'image',
         builder: (context, state) => const ImageApp(),
       ),
-      GoRoute(
-        path: AppRoutes.hermes,
-        name: 'hermes',
-        builder: (context, state) => const HermesApp(),
-      ),
+      // TODO: 修复 hermes_api Rust 编译错误后恢复
+      // GoRoute(
+      //   path: AppRoutes.hermes,
+      //   name: 'hermes',
+      //   builder: (context, state) => const HermesApp(),
+      // ),
       GoRoute(
         path: AppRoutes.bar,
         name: 'bar',

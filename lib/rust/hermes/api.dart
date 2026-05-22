@@ -23,14 +23,18 @@ void hermesDeleteSession({required String id}) =>
     RustLib.instance.api.crateApiHermesDeleteSession(id: id);
 
 /// Send a message and get a response
-String hermesSendMessage(
-        {required String sessionId, required String message}) =>
+String hermesSendMessage({
+  required String sessionId,
+  required String message,
+}) =>
     RustLib.instance.api
         .crateApiHermesSendMessage(sessionId: sessionId, message: message);
 
 /// Stream a message response
-Stream<String> hermesStreamMessage(
-        {required String sessionId, required String message}) =>
+Stream<String> hermesStreamMessage({
+  required String sessionId,
+  required String message,
+}) =>
     RustLib.instance.api
         .crateApiHermesStreamMessage(sessionId: sessionId, message: message);
 
@@ -44,16 +48,18 @@ void hermesSetModel({required String sessionId, required String model}) =>
         .crateApiHermesSetModel(sessionId: sessionId, model: model);
 
 /// Create a new skill
-String hermesCreateSkill(
-        {required String name,
-        required String description,
-        required String triggerType,
-        required String triggerValue}) =>
+String hermesCreateSkill({
+  required String name,
+  required String description,
+  required String triggerType,
+  required String triggerValue,
+}) =>
     RustLib.instance.api.crateApiHermesCreateSkill(
-        name: name,
-        description: description,
-        triggerType: triggerType,
-        triggerValue: triggerValue);
+      name: name,
+      description: description,
+      triggerType: triggerType,
+      triggerValue: triggerValue,
+    );
 
 /// Get all skills
 List<SkillInfoFrb> hermesGetSkills() =>
@@ -64,12 +70,16 @@ void hermesDeleteSkill({required String id}) =>
     RustLib.instance.api.crateApiHermesDeleteSkill(id: id);
 
 /// Create a scheduled task
-String hermesCreateTask(
-        {required String name,
-        required String cronExpression,
-        required String command}) =>
+String hermesCreateTask({
+  required String name,
+  required String cronExpression,
+  required String command,
+}) =>
     RustLib.instance.api.crateApiHermesCreateTask(
-        name: name, cronExpression: cronExpression, command: command);
+      name: name,
+      cronExpression: cronExpression,
+      command: command,
+    );
 
 /// Get all tasks
 List<TaskInfoFrb> hermesGetTasks() =>

@@ -12,14 +12,15 @@ const builtInApps = <SubApp>[
     color: Color(0xFF57A6FF),
     route: AppRoutes.image,
   ),
-  SubApp(
-    id: 'hermes',
-    name: 'Hermes',
-    description: 'AI 助手对话',
-    iconName: 'message_circle',
-    color: Color(0xFF7C5CFC),
-    route: AppRoutes.hermes,
-  ),
+  // TODO: 修复 hermes_api Rust 编译错误后恢复
+  // SubApp(
+  //   id: 'hermes',
+  //   name: 'Hermes',
+  //   description: 'AI 助手对话',
+  //   iconName: 'message_circle',
+  //   color: Color(0xFF7C5CFC),
+  //   route: AppRoutes.hermes,
+  // ),
   SubApp(
     id: 'bar',
     name: '酒吧管理',

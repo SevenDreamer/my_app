@@ -1,6 +1,5 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:my_app/rust/frb_generated.dart';
-import 'package:my_app/rust/hermes/frb_generated.dart' as hermes_rust;
 import 'package:my_app/rust/api/auth.dart' as auth_api;
 import 'package:my_app/core/config/app_config.dart';
 import 'package:my_app/core/router/app_router.dart';
@@ -12,8 +11,9 @@ void main() async {
   // 初始化 flutter_rust_bridge (主模块)
   await RustLib.init();
 
-  // 初始化 Hermes FRB 模块
-  await hermes_rust.RustLib.init();
+  // 初始化 Hermes FRB 模块（暂时禁用，Rust 编译失败）
+  // TODO: 修复 hermes_api crate 编译错误后启用
+  // await hermes_rust.RustLib.init();
 
   // 初始化 PostgreSQL 数据库连接
   try {

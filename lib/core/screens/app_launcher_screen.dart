@@ -115,8 +115,6 @@ class _AppLauncherScreenState extends State<AppLauncherScreen> {
     switch (app.id) {
       case 'image':
         context.goNamed('image');
-      case 'hermes':
-        context.goNamed('hermes');
       case 'bar':
         context.goNamed('bar');
       case 'database':
