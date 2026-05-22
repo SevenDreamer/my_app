@@ -15,6 +15,8 @@ class _ChatScreenState extends State<ChatScreen> {
   final _scrollController = ScrollController();
   List<MessageInfo> _messages = [];
   bool _isLoading = false;
+  String _streamingText = '';
+  bool _isStreaming = false;
 
   @override
   void initState() {
@@ -32,26 +34,52 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Future<void> _sendMessage() async {
     final text = _controller.text.trim();
-    if (text.isEmpty || _isLoading) return;
+    if (text.isEmpty || _isLoading || _isStreaming) return;
 
     _controller.clear();
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _streamingText = '';
+      _isStreaming = true;
+    });
 
     try {
-      hermesSendMessage(
+      // Use streaming API
+      final stream = hermesStreamMessage(
         sessionId: widget.sessionId,
         message: text,
       );
+
+      await for (final chunk in stream) {
+        if (chunk == '[START]' || chunk == '[DONE]') continue;
+        if (chunk.startsWith('[ERROR]')) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(chunk)),
+          );
+          break;
+        }
+        setState(() {
+          _streamingText += chunk;
+        });
+        _scrollToBottom();
+      }
+
+      setState(() {
+        _isStreaming = false;
+        _isLoading = false;
+      });
+
+      // Reload messages to get the final persisted version
       await _loadMessages();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('发送失败: $e')),
       );
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      setState(() {
+        _isStreaming = false;
+        _isLoading = false;
+      });
     }
   }
 
@@ -60,7 +88,7 @@ class _ChatScreenState extends State<ChatScreen> {
       if (_scrollController.hasClients) {
         _scrollController.animateTo(
           _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
+          duration: const Duration(milliseconds: 100),
           curve: Curves.easeOut,
         );
       }
@@ -74,6 +102,7 @@ class _ChatScreenState extends State<ChatScreen> {
       body: Column(
         children: [
           Expanded(child: _buildMessageList()),
+          if (_isStreaming) _buildStreamingIndicator(),
           _buildInputArea(),
         ],
       ),
@@ -81,15 +110,44 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildMessageList() {
-    if (_messages.isEmpty) {
+    if (_messages.isEmpty && !_isStreaming) {
       return const Center(child: Text('开始对话吧'));
     }
 
     return ListView.builder(
       controller: _scrollController,
       padding: const EdgeInsets.all(16),
-      itemCount: _messages.length,
-      itemBuilder: (context, index) => _MessageBubble(message: _messages[index]),
+      itemCount: _messages.length + (_isStreaming ? 1 : 0),
+      itemBuilder: (context, index) {
+        if (_isStreaming && index == _messages.length) {
+          return _MessageBubble(
+            message: MessageInfo(
+              id: '',
+              role: 'assistant',
+              content: _streamingText,
+              timestamp: '',
+            ),
+          );
+        }
+        return _MessageBubble(message: _messages[index]);
+      },
+    );
+  }
+
+  Widget _buildStreamingIndicator() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: Row(
+        children: [
+          const SizedBox(
+            width: 12,
+            height: 12,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+          const SizedBox(width: 8),
+          const Text('正在生成...', style: TextStyle(fontSize: 12)),
+        ],
+      ),
     );
   }
 
@@ -111,8 +169,8 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
             const SizedBox(width: 8),
             IconButton(
-              onPressed: _isLoading ? null : _sendMessage,
-              icon: _isLoading
+              onPressed: _isLoading || _isStreaming ? null : _sendMessage,
+              icon: _isLoading || _isStreaming
                   ? const SizedBox(
                       width: 24,
                       height: 24,

@@ -4,7 +4,6 @@ use hermes_agent::*;
 use once_cell::sync::Lazy;
 use std::sync::Arc;
 use tokio::sync::{Mutex, RwLock};
-use futures::StreamExt;
 
 /// Global session manager
 static SESSION_MANAGER: Lazy<Arc<Mutex<SessionManager>>> =
@@ -61,11 +60,6 @@ pub struct ModelInfoFrb {
     pub name: String,
     pub provider: String,
     pub context_length: u32,
-}
-
-/// Stream sink for FRB
-pub struct StreamSink {
-    pub sink: flutter_rust_bridge::StreamSink<String>,
 }
 
 // ============================================================================
@@ -145,6 +139,52 @@ pub fn hermes_send_message(session_id: String, message: String) -> Result<String
 
         Ok(response)
     })
+}
+
+/// Stream a message response
+#[flutter_rust_bridge::frb]
+pub fn hermes_stream_message(
+    session_id: String,
+    message: String,
+    sink: flutter_rust_bridge::StreamSink<String>,
+) {
+    tokio::spawn(async move {
+        // Get session
+        let session = {
+            let manager = SESSION_MANAGER.lock().await;
+            manager.get(&session_id).await.ok().flatten()
+        };
+
+        if let Some(session) = session {
+            // Send start event
+            let _ = sink.add("[START]".to_string());
+
+            // Process message with simulated streaming
+            let mut loop_ = ConversationLoop::new(session);
+            match loop_.process_user_message(&message).await {
+                Ok(response) => {
+                    // Simulate streaming by sending chunks
+                    let words: Vec<&str> = response.split_whitespace().collect();
+                    let chunk_size = (words.len() / 10).max(1);
+
+                    for chunk in words.chunks(chunk_size) {
+                        let _ = sink.add(chunk.join(" ") + " ");
+                        tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+                    }
+                }
+                Err(e) => {
+                    let _ = sink.add(format!("[ERROR] {}", e));
+                }
+            }
+
+            // Send end event
+            let _ = sink.add("[DONE]".to_string());
+        } else {
+            let _ = sink.add("[ERROR] Session not found".to_string());
+        }
+
+        sink.close();
+    });
 }
 
 /// Get messages for a session

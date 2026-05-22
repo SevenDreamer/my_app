@@ -23,3 +23,6 @@ pub use agent::*;
 
 // Re-export cron types
 pub use cron::{ScheduledTask, TaskInfo, CronScheduler};
+
+// Re-export self-improvement types
+pub use agent::self_improvement::{SkillSuggestion, SelfImprovement};

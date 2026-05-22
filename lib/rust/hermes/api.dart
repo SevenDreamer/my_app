@@ -6,8 +6,6 @@
 import 'package:my_app/rust/hermes/frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `StreamSink`
-
 /// Initialize hermes agent
 String initHermes() => RustLib.instance.api.crateApiInitHermes();
 
@@ -29,6 +27,12 @@ String hermesSendMessage(
         {required String sessionId, required String message}) =>
     RustLib.instance.api
         .crateApiHermesSendMessage(sessionId: sessionId, message: message);
+
+/// Stream a message response
+Stream<String> hermesStreamMessage(
+        {required String sessionId, required String message}) =>
+    RustLib.instance.api
+        .crateApiHermesStreamMessage(sessionId: sessionId, message: message);
 
 /// Get messages for a session
 List<MessageInfo> hermesGetMessages({required String sessionId}) =>
