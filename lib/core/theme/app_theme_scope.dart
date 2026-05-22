@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart' show Brightness, WidgetsBindingObserver;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:my_app/core/theme/app_theme_mode.dart';
@@ -40,7 +39,7 @@ class AppThemeScopeState extends State<AppThemeScope> with WidgetsBindingObserve
   @override
   void didChangePlatformBrightness() {
     if (_notifier.value == AppThemeMode.system) {
-      _notifier.notifyListeners();
+      setState(() {});
     }
   }
 

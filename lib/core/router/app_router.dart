@@ -5,7 +5,7 @@ import 'package:my_app/core/screens/app_launcher_screen.dart';
 import 'package:my_app/features/admin/screens/app_management_screen.dart';
 import 'package:my_app/features/admin/screens/user_management_screen.dart';
 import 'package:my_app/features/image/image_app.dart';
-import 'package:my_app/features/chat/chat_app.dart';
+import 'package:my_app/features/hermes/hermes_app.dart';
 import 'package:my_app/features/bar/bar_app.dart';
 import 'package:my_app/features/bar/screens/add_record_page.dart';
 import 'package:my_app/features/database/database_app.dart' show DatabaseManagerApp;
@@ -53,7 +53,7 @@ GoRouter createRouter() {
       GoRoute(
         path: AppRoutes.hermes,
         name: 'hermes',
-        builder: (context, state) => const ChatApp(),
+        builder: (context, state) => const HermesApp(),
       ),
       GoRoute(
         path: AppRoutes.bar,

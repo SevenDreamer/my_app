@@ -23,7 +23,6 @@ class ConnectionDialog extends StatefulWidget {
 }
 
 class _ConnectionDialogState extends State<ConnectionDialog> {
-  final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   DbType _selectedType = DbType.postgresql;
   final _hostController = TextEditingController(text: 'localhost');

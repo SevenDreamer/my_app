@@ -1,5 +1,6 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:my_app/rust/frb_generated.dart';
+import 'package:my_app/rust/hermes/frb_generated.dart' as hermes_rust;
 import 'package:my_app/rust/api/auth.dart' as auth_api;
 import 'package:my_app/core/config/app_config.dart';
 import 'package:my_app/core/router/app_router.dart';
@@ -8,8 +9,11 @@ import 'package:my_app/core/theme/app_theme_scope.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 初始化 flutter_rust_bridge
+  // 初始化 flutter_rust_bridge (主模块)
   await RustLib.init();
+
+  // 初始化 Hermes FRB 模块
+  await hermes_rust.RustLib.init();
 
   // 初始化 PostgreSQL 数据库连接
   try {
