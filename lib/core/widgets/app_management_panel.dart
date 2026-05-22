@@ -41,7 +41,8 @@ class AppManagementPanel extends StatelessWidget {
                     Text(
                       '应用管理功能开发中',
                       style: Theme.of(context).typography.base.copyWith(
-                            color: Theme.of(context).colorScheme.mutedForeground,
+                            color:
+                                Theme.of(context).colorScheme.mutedForeground,
                           ),
                     ),
                   ],

@@ -1,9 +1,11 @@
 //! Hermes API - Flutter Rust Bridge API functions
 
-use hermes_agent::*;
+use hermes_agent::{SessionManager, SkillManager, CronScheduler, ConversationLoop, SkillTrigger};
+use hermes_agent::llm::list_models;
 use once_cell::sync::Lazy;
 use std::sync::Arc;
 use tokio::sync::{Mutex, RwLock};
+use flutter_rust_bridge::StreamSink;
 
 /// Global session manager
 static SESSION_MANAGER: Lazy<Arc<Mutex<SessionManager>>> =
@@ -390,7 +392,6 @@ pub fn hermes_execute_task(id: String) -> Result<String, String> {
 /// Get available models
 #[flutter_rust_bridge::frb(sync)]
 pub fn hermes_get_models() -> Result<Vec<ModelInfoFrb>, String> {
-    use hermes_agent::llm::list_models;
     let models = list_models();
     Ok(models
         .into_iter()

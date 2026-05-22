@@ -64,7 +64,9 @@ class _BottomNavItemWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final color = selected ? colorScheme.primary : colorScheme.foreground.withValues(alpha: 0.6);
+    final color = selected
+        ? colorScheme.primary
+        : colorScheme.foreground.withValues(alpha: 0.6);
     return Expanded(
       child: GestureDetector(
         onTap: onTap,

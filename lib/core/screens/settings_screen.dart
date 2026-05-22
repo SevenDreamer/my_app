@@ -88,7 +88,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             width: 48,
                             height: 48,
                             decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.primary.withAlpha(20),
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .primary
+                                  .withAlpha(20),
                               borderRadius: BorderRadius.circular(24),
                             ),
                             child: Icon(
@@ -104,14 +107,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               children: [
                                 Text(
                                   _username,
-                                  style: Theme.of(context).typography.base.copyWith(
+                                  style: Theme.of(context)
+                                      .typography
+                                      .base
+                                      .copyWith(
                                         fontWeight: FontWeight.w600,
                                       ),
                                 ),
                                 Text(
                                   isAdmin ? '管理员' : '普通用户',
-                                  style: Theme.of(context).typography.small.copyWith(
-                                        color: Theme.of(context).colorScheme.mutedForeground,
+                                  style: Theme.of(context)
+                                      .typography
+                                      .small
+                                      .copyWith(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .mutedForeground,
                                       ),
                                 ),
                               ],

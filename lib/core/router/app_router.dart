@@ -8,7 +8,8 @@ import 'package:my_app/features/image/image_app.dart';
 import 'package:my_app/features/hermes/hermes_app.dart';
 import 'package:my_app/features/bar/bar_app.dart';
 import 'package:my_app/features/bar/screens/add_record_page.dart';
-import 'package:my_app/features/database/database_app.dart' show DatabaseManagerApp;
+import 'package:my_app/features/database/database_app.dart'
+    show DatabaseManagerApp;
 import 'package:my_app/core/screens/settings_screen.dart';
 
 /// 路由路径常量
@@ -94,10 +95,8 @@ Future<String?> _guard(context, GoRouterState state) async {
   final username = prefs.getString('username');
   final role = prefs.getString('role');
 
-  final isLoggedIn = token != null &&
-      userId != null &&
-      username != null &&
-      role != null;
+  final isLoggedIn =
+      token != null && userId != null && username != null && role != null;
 
   final isGoingToLogin = state.matchedLocation == AppRoutes.login;
 

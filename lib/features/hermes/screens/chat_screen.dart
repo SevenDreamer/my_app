@@ -196,8 +196,11 @@ class _MessageBubble extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final alignment = isUser ? Alignment.centerRight : Alignment.centerLeft;
-    final bgColor = isUser ? theme.colorScheme.primary : theme.colorScheme.surfaceContainerHighest;
-    final fgColor = isUser ? theme.colorScheme.onPrimary : theme.colorScheme.onSurface;
+    final bgColor = isUser
+        ? theme.colorScheme.primary
+        : theme.colorScheme.surfaceContainerHighest;
+    final fgColor =
+        isUser ? theme.colorScheme.onPrimary : theme.colorScheme.onSurface;
 
     return Align(
       alignment: alignment,

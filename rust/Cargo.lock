@@ -1150,6 +1150,7 @@ dependencies = [
  "anyhow",
  "flutter_rust_bridge",
  "hermes_agent",
+ "once_cell",
  "serde",
  "serde_json",
  "tokio",

@@ -22,9 +22,11 @@ class AppThemeScope extends StatefulWidget {
   State<AppThemeScope> createState() => AppThemeScopeState();
 }
 
-class AppThemeScopeState extends State<AppThemeScope> with WidgetsBindingObserver {
+class AppThemeScopeState extends State<AppThemeScope>
+    with WidgetsBindingObserver {
   static const _key = 'theme_mode';
-  final ValueNotifier<AppThemeMode> _notifier = ValueNotifier(AppThemeMode.system);
+  final ValueNotifier<AppThemeMode> _notifier =
+      ValueNotifier(AppThemeMode.system);
 
   AppThemeMode get mode => _notifier.value;
   ValueNotifier<AppThemeMode> get notifier => _notifier;

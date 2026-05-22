@@ -27,7 +27,8 @@ class SettingsRow extends StatelessWidget {
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.mutedForeground.withAlpha(20),
+              color:
+                  Theme.of(context).colorScheme.mutedForeground.withAlpha(20),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(

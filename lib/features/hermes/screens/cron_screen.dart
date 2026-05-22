@@ -104,7 +104,9 @@ class _CronScreenState extends State<CronScreen> {
     try {
       final output = hermesExecuteTask(id: id);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('执行完成: ${output.substring(0, output.length.clamp(0, 100))}')),
+        SnackBar(
+            content: Text(
+                '执行完成: ${output.substring(0, output.length.clamp(0, 100))}')),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(

@@ -22,9 +22,8 @@ ThemeData buildAppTheme(
   final isDark = mode == AppThemeMode.dark ||
       (mode == AppThemeMode.system && platformBrightness == Brightness.dark);
 
-  final colorScheme = isDark
-      ? LegacyColorSchemes.darkZinc()
-      : LegacyColorSchemes.lightZinc();
+  final colorScheme =
+      isDark ? LegacyColorSchemes.darkZinc() : LegacyColorSchemes.lightZinc();
 
   return ThemeData(
     colorScheme: colorScheme,

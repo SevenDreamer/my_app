@@ -103,10 +103,13 @@ class AppCard extends StatelessWidget {
 enum AppCardElevation {
   /// 无阴影
   none,
+
   /// 低阴影
   low,
+
   /// 中等阴影（默认）
   medium,
+
   /// 高阴影
   high,
 }

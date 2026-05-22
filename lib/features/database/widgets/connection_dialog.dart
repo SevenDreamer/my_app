@@ -2,10 +2,14 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:my_app/features/database/models/database_models.dart';
-import 'package:my_app/features/database/services/sqlite_service.dart' show SQLiteService;
-import 'package:my_app/features/database/services/postgresql_service.dart' show PostgreSQLService;
-import 'package:my_app/features/database/services/mysql_service.dart' show MySQLService;
-import 'package:my_app/features/database/services/mongodb_service.dart' show MongoDBService;
+import 'package:my_app/features/database/services/sqlite_service.dart'
+    show SQLiteService;
+import 'package:my_app/features/database/services/postgresql_service.dart'
+    show PostgreSQLService;
+import 'package:my_app/features/database/services/mysql_service.dart'
+    show MySQLService;
+import 'package:my_app/features/database/services/mongodb_service.dart'
+    show MongoDBService;
 
 /// 新建连接对话框
 class ConnectionDialog extends StatefulWidget {
@@ -210,13 +214,9 @@ class _ConnectionDialogState extends State<ConnectionDialog> {
                   child: Row(
                     children: [
                       Icon(
-                        _testResult == true
-                            ? Icons.check_circle
-                            : Icons.error,
+                        _testResult == true ? Icons.check_circle : Icons.error,
                         size: 18,
-                        color: _testResult == true
-                            ? Colors.green
-                            : Colors.red,
+                        color: _testResult == true ? Colors.green : Colors.red,
                       ),
                       const SizedBox(width: 8),
                       Expanded(

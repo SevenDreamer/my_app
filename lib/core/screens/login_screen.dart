@@ -34,15 +34,20 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   /// 调用 Rust 登录 API，失败时 throw 并附带友好消息
-  Future<auth_api.UserInfo> _callLoginApi(String username, String password) async {
+  Future<auth_api.UserInfo> _callLoginApi(
+      String username, String password) async {
     try {
       return auth_api.login(username: username, password: password);
     } catch (e) {
       final msg = e.toString().replaceFirst(RegExp(r'^Exception:\s*'), '');
-      if (msg.contains('password') || msg.contains('密码') || msg.contains('invalid')) {
+      if (msg.contains('password') ||
+          msg.contains('密码') ||
+          msg.contains('invalid')) {
         throw Exception('用户名或密码错误');
       }
-      if (msg.contains('user') || msg.contains('用户') || msg.contains('not found')) {
+      if (msg.contains('user') ||
+          msg.contains('用户') ||
+          msg.contains('not found')) {
         throw Exception('用户不存在');
       }
       throw Exception(msg.isNotEmpty ? msg : '登录失败，请稍后重试');

@@ -72,10 +72,12 @@ class _GeneralSettingsPanelState extends State<GeneralSettingsPanel> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: AppThemeMode.values
-                .map((mode) => RadioItem(
-                      value: mode,
-                      trailing: Text(mode.displayName),
-                    ),)
+                .map(
+                  (mode) => RadioItem(
+                    value: mode,
+                    trailing: Text(mode.displayName),
+                  ),
+                )
                 .toList(),
           ),
         ),
@@ -97,10 +99,12 @@ class _GeneralSettingsPanelState extends State<GeneralSettingsPanel> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: AppLanguage.values
-                .map((lang) => RadioItem(
-                      value: lang,
-                      trailing: Text(lang.displayName),
-                    ),)
+                .map(
+                  (lang) => RadioItem(
+                    value: lang,
+                    trailing: Text(lang.displayName),
+                  ),
+                )
                 .toList(),
           ),
         ),

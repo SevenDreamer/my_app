@@ -3,7 +3,6 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:my_app/features/database/models/database_models.dart';
 import 'package:my_app/features/database/widgets/db_tree_node.dart';
 
-
 /// 数据库树节点构建器
 /// 负责根据连接配置和数据库信息构建树节点
 class DatabaseTreeBuilder {

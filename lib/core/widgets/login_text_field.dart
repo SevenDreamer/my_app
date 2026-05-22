@@ -19,7 +19,7 @@ class LoginTextField extends StatelessWidget {
     this.obscureText = false,
     this.enabled = true,
     this.onSubmitted,
-  });  // ignore: always_put_required_named_parameters_first
+  }); // ignore: always_put_required_named_parameters_first
 
   @override
   Widget build(BuildContext context) {
