@@ -64,7 +64,7 @@ class AppThemeScopeState extends State<AppThemeScope>
     await prefs.setString(_key, mode.name);
   }
 
-  ShadThemeData buildTheme() {
+  ThemeData buildTheme() {
     final isDark = mode == AppThemeMode.dark ||
         (mode == AppThemeMode.system &&
             WidgetsBinding.instance.platformDispatcher.platformBrightness ==
@@ -74,8 +74,8 @@ class AppThemeScopeState extends State<AppThemeScope>
     return isDark ? buildObsidianDarkTheme() : buildObsidianLightTheme();
   }
 
-  /// 构建暗黑主题（用于 ShadApp.darkTheme 参数）
-  ShadThemeData buildDarkTheme() {
+  /// 构建暗黑主题（用于 ShadcnApp.darkTheme 参数）
+  ThemeData buildDarkTheme() {
     return buildObsidianDarkTheme();
   }
 

@@ -34,7 +34,6 @@ class _AppManagementPanelState extends State<AppManagementPanel> {
   Future<void> _toggleApp(String id, bool value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('app_enabled_$id', value);
-    // 同步更新 SubAppRegistry，立即生效
     if (value) {
       SubAppRegistry.enable(id);
     } else {
@@ -59,9 +58,9 @@ class _AppManagementPanelState extends State<AppManagementPanel> {
             children: [
               Text(
                 '应用管理',
-                style: ShadTheme.of(context).textTheme?.titleLarge,
+                style: Theme.of(context).typography.titleLarge,
               ),
-              ShadButton.outline(
+              OutlineButton(
                 onPressed: () {
                   // TODO: 添加新应用
                 },
@@ -89,10 +88,10 @@ class _AppManagementPanelState extends State<AppManagementPanel> {
                           app.icon,
                           size: 32,
                           color: enabled
-                              ? ShadTheme.of(context).colorScheme?.primary
-                              : ShadTheme.of(context)
+                              ? Theme.of(context).colorScheme.primary
+                              : Theme.of(context)
                                   .colorScheme
-                                  ?.mutedForeground,
+                                  .mutedForeground,
                         ),
                         const SizedBox(width: 16),
                         Expanded(
@@ -101,33 +100,33 @@ class _AppManagementPanelState extends State<AppManagementPanel> {
                             children: [
                               Text(
                                 app.name,
-                                style: ShadTheme.of(context)
-                                    .textTheme
-                                    ?.titleMedium,
+                                style: Theme.of(context)
+                                    .typography
+                                    .titleMedium,
                               ),
                               const SizedBox(height: 4),
                               Text(
                                 app.description,
-                                style: ShadTheme.of(context)
-                                    .textTheme
-                                    ?.bodySmall
+                                style: Theme.of(context)
+                                    .typography
+                                    .bodySmall
                                     ?.copyWith(
-                                      color: ShadTheme.of(context)
+                                      color: Theme.of(context)
                                           .colorScheme
-                                          ?.mutedForeground,
+                                          .mutedForeground,
                                     ),
                               ),
                               const SizedBox(height: 4),
                               Text(
                                 '版本: ${app.version ?? "1.0.0"}',
-                                style: ShadTheme.of(context)
-                                    .textTheme
-                                    ?.bodySmall
+                                style: Theme.of(context)
+                                    .typography
+                                    .bodySmall
                                     ?.copyWith(
                                       fontSize: 12,
-                                      color: ShadTheme.of(context)
+                                      color: Theme.of(context)
                                           .colorScheme
-                                          ?.mutedForeground,
+                                          .mutedForeground,
                                     ),
                               ),
                             ],

@@ -1,5 +1,4 @@
 // 数据库管理子应用 - 实现 SubApp 接口
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -49,13 +48,15 @@ class DatabaseManagerApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('数据库管理'),
-        leading: IconButton(
-          icon: const Icon(LucideIcons.arrowLeft),
-          onPressed: () => context.go('/'),
+      headers: [
+        AppBar(
+          leading: IconButton(
+            icon: const Icon(LucideIcons.arrowLeft),
+            onPressed: () => context.go('/'),
+          ),
+          title: const Text('数据库管理'),
         ),
-      ),
+      ],
       child: const DatabaseManagerScreen(),
     );
   }

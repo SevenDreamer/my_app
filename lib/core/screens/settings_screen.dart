@@ -55,15 +55,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final isAdmin = _role == 'admin';
 
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(LucideIcons.arrowLeft),
-          onPressed: () => context.go(AppRoutes.launcher),
+      headers: [
+        AppBar(
+          leading: IconButton(
+            icon: const Icon(LucideIcons.arrowLeft),
+            onPressed: () => context.go(AppRoutes.launcher),
+          ),
+          title: const Text('设置'),
         ),
-        title: const Text('设置'),
-      ),
+      ],
       child: Container(
-        color: ShadTheme.of(context)
+        color: Theme.of(context)
             .colorScheme
             .mutedForeground
             .withAlpha(15),
@@ -106,7 +108,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 Text(
                                   _username,
                                   style: Theme.of(context)
-                                      .textTheme
+                                      .typography
                                       .bodyLarge
                                       ?.copyWith(
                                         fontWeight: FontWeight.w600,
@@ -115,12 +117,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 Text(
                                   isAdmin ? '管理员' : '普通用户',
                                   style: Theme.of(context)
-                                      .textTheme
+                                      .typography
                                       .bodySmall
                                       ?.copyWith(
-                                        color: ShadTheme.of(context)
+                                        color: Theme.of(context)
                                             .colorScheme
-                                            ?.mutedForeground,
+                                            .mutedForeground,
                                       ),
                                 ),
                               ],
@@ -166,7 +168,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       padding: const EdgeInsets.all(16),
                       child: SizedBox(
                         width: double.infinity,
-                        child: ShadButton.destructive(
+                        child: DestructiveButton(
                           onPressed: _logout,
                           child: const Text('退出登录'),
                         ),

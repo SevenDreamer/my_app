@@ -1,5 +1,7 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
+import 'package:shared_preferences/shared_preferences.dart';
+
 import 'package:my_app/rust/frb_generated.dart';
 import 'package:my_app/core/config/app_config.dart';
 import 'package:my_app/core/router/app_router.dart';
@@ -55,11 +57,12 @@ class MyApp extends StatelessWidget {
     return ListenableBuilder(
       listenable: themeScope.notifier,
       builder: (context, _) {
-        return ShadApp.router(
+        return ShadcnApp.router(
+          routeInformationParser: appRouter.routeInformationParser,
+          routerDelegate: appRouter.routerDelegate,
           title: AppConfig.appName,
           theme: themeScope.buildTheme(),
           darkTheme: themeScope.buildDarkTheme(),
-          routerConfig: appRouter,
           debugShowCheckedModeBanner: false,
         );
       },

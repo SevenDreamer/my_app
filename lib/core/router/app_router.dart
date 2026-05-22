@@ -1,6 +1,5 @@
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import 'package:my_app/core/screens/login_screen.dart';
 import 'package:my_app/core/screens/app_launcher_screen.dart';
@@ -14,7 +13,11 @@ class AppRoutes {
   static const login = '/login';
   static const launcher = '/launcher';
   static const settings = '/settings';
-  // 子应用路由动态生成，不需要硬编码
+  // 子应用路由
+  static const image = '/image';
+  static const hermes = '/hermes';
+  static const bar = '/bar';
+  static const database = '/database';
 }
 
 /// 创建 GoRouter 实例（动态从 SubAppRegistry 生成路由）

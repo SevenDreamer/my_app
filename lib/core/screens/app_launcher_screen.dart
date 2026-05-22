@@ -43,15 +43,17 @@ class _AppLauncherScreenState extends State<AppLauncherScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      headers: AppBar(
-        trailing: Text('欢迎，$_username'),
-        actions: [
-          IconButton(
-            icon: const Icon(LucideIcons.settings),
-            onPressed: _onSettingsPressed,
-          ),
-        ],
-      ),
+      headers: [
+        AppBar(
+          title: Text('欢迎，$_username'),
+          trailing: [
+            IconButton(
+              icon: const Icon(LucideIcons.settings),
+              onPressed: _onSettingsPressed,
+            ),
+          ],
+        ),
+      ],
       child: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -59,7 +61,7 @@ class _AppLauncherScreenState extends State<AppLauncherScreen> {
           children: [
             Text(
               '选择应用',
-              style: Theme.of(context).textTheme.titleLarge,
+              style: Theme.of(context).typography.titleLarge,
             ),
             const SizedBox(height: 24),
             Expanded(

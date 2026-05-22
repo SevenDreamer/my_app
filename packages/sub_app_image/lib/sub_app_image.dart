@@ -1,5 +1,4 @@
 // 图片处理子应用 - 实现 SubApp 接口
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -47,13 +46,15 @@ class ImageApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(LucideIcons.arrowLeft),
-          onPressed: () => context.go('/'),
+      headers: [
+        AppBar(
+          leading: IconButton(
+            icon: const Icon(LucideIcons.arrowLeft),
+            onPressed: () => context.go('/'),
+          ),
+          title: const Text('图片处理'),
         ),
-        title: const Text('图片处理'),
-      ),
+      ],
       child: Center(
         child: Card(
           child: Padding(
@@ -69,22 +70,22 @@ class ImageApp extends StatelessWidget {
                 const SizedBox(height: 16),
                 Text(
                   '图片处理',
-                  style: Theme.of(context).textTheme.titleLarge,
+                  style: Theme.of(context).typography.titleLarge,
                 ),
                 const SizedBox(height: 8),
                 Text(
                   'AI 图片编辑工具',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  style: Theme.of(context).typography.bodySmall?.copyWith(
                         color: Theme.of(context).colorScheme.mutedForeground,
                       ),
                 ),
                 const SizedBox(height: 32),
                 Text(
                   '功能开发中...',
-                  style: Theme.of(context).textTheme.bodySmall,
+                  style: Theme.of(context).typography.bodySmall,
                 ),
                 const SizedBox(height: 24),
-                ShadButton(
+                PrimaryButton(
                   onPressed: () {
                     // TODO: 实现图片处理功能
                   },

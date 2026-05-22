@@ -13,55 +13,53 @@ const obsidianSuccess = Color(0xFF4EC9B0);
 const obsidianWarning = Color(0xFFFFCB6B);
 const obsidianError = Color(0xFFFF6B6B);
 
-// ==================== ShadThemeData 构建 ====================
+// ==================== ThemeData 构建 ====================
 
 /// 构建 Obsidian 深色主题
-ShadThemeData buildObsidianDarkTheme() {
-  final colorScheme = ShadColorScheme.fromColors(
-    brightness: Brightness.dark,
+ThemeData buildObsidianDarkTheme() {
+  final colorScheme = ColorScheme.dark().copyWith(
     primary: obsidianAccent,
-    primaryForeground: Colors.white,
+    onPrimary: Colors.white,
     secondary: obsidianAccentAlt,
-    secondaryForeground: Colors.white,
+    onSecondary: Colors.white,
     background: obsidianBg,
-    foreground: obsidianText,
-    card: obsidianSurface,
-    cardForeground: obsidianText,
-    border: obsidianBorder,
-    muted: obsidianSurfaceHover,
-    mutedForeground: obsidianTextMuted,
+    onBackground: obsidianText,
+    surface: obsidianSurface,
+    onSurface: obsidianText,
+    outline: obsidianBorder,
+    surfaceVariant: obsidianSurfaceHover,
+    onSurfaceVariant: obsidianTextMuted,
   );
 
-  return ShadThemeData(
+  return ThemeData(
     colorScheme: colorScheme,
     radius: 0.7,
   );
 }
 
 /// 构建 Obsidian 浅色主题
-ShadThemeData buildObsidianLightTheme() {
+ThemeData buildObsidianLightTheme() {
   const lightBg = Color(0xFFF8F8F8);
   const lightSurface = Color(0xFFFFFFFF);
   const lightBorder = Color(0xFFE5E5E5);
   const lightText = Color(0xFF1E1E1E);
   const lightTextMuted = Color(0xFF9B9B9B);
 
-  final colorScheme = ShadColorScheme.fromColors(
-    brightness: Brightness.light,
+  final colorScheme = ColorScheme.light().copyWith(
     primary: obsidianAccent,
-    primaryForeground: Colors.white,
+    onPrimary: Colors.white,
     secondary: obsidianAccentAlt,
-    secondaryForeground: Colors.white,
+    onSecondary: Colors.white,
     background: lightBg,
-    foreground: lightText,
-    card: lightSurface,
-    cardForeground: lightText,
-    border: lightBorder,
-    muted: const Color(0xFFF0F0F0),
-    mutedForeground: lightTextMuted,
+    onBackground: lightText,
+    surface: lightSurface,
+    onSurface: lightText,
+    outline: lightBorder,
+    surfaceVariant: const Color(0xFFF0F0F0),
+    onSurfaceVariant: lightTextMuted,
   );
 
-  return ShadThemeData(
+  return ThemeData(
     colorScheme: colorScheme,
     radius: 0.7,
   );
