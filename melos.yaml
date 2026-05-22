@@ -1,0 +1,63 @@
+# Melos configuration for my_app monorepo
+# Run: dart pub global activate melos && melos bootstrap
+
+name: my_app
+description: "my_app monorepo with micro-app architecture"
+version: 1.0.0
+
+# 所有子包路径（支持 glob）
+packages:
+  - "app/*"
+  - "packages/*"
+  - "rust_builder/*"
+
+# 脚本命令
+scripts:
+  # 初始化所有包的依赖
+  bootstrap:
+    run: melos exec -- "flutter pub get"
+    description: "Get dependencies for all packages"
+
+  # 运行主应用（默认 Windows）
+  run:
+    run: melos run run_windows
+    description: "Run the main app"
+
+  run_windows:
+    run: cd app && flutter run -d windows
+    description: "Run on Windows"
+
+  run_android:
+    run: cd app && flutter run -d android
+    description: "Run on Android"
+
+  run_macos:
+    run: cd app && flutter run -d macos
+    description: "Run on macOS"
+
+  # 代码分析
+  analyze:
+    run: melos exec -- "flutter analyze"
+    description: "Run analysis for all packages"
+
+  # 运行测试
+  test:
+    run: melos exec -- "flutter test"
+    description: "Run tests for all packages"
+
+  # 构建所有子应用包（release）
+  build_packages:
+    run: melos exec -- "flutter build $@" --no-isolation
+    description: "Build packages"
+
+  # 清理构建缓存
+  clean:
+    run: melos exec -- "flutter clean"
+    description: "Clean all packages"
+
+# IDE 配置
+ide:
+  intellij:
+    enabled: true
+  vscode:
+    enabled: true

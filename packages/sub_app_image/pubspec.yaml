@@ -1,0 +1,23 @@
+name: sub_app_image
+description: "Image processing sub-app for my_app"
+version: 1.0.0
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+  flutter: ">=1.17.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  sub_app_shared:
+    path: ../sub_app_shared
+  shadcn_flutter: ^0.0.52
+  lucide_flutter: ^1.14.0
+  go_router: ^14.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true

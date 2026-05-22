@@ -1,97 +1,59 @@
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
+
 import 'package:my_app/core/screens/login_screen.dart';
 import 'package:my_app/core/screens/app_launcher_screen.dart';
-import 'package:my_app/features/admin/screens/app_management_screen.dart';
-import 'package:my_app/features/admin/screens/user_management_screen.dart';
-import 'package:my_app/features/image/image_app.dart';
-import 'package:my_app/features/hermes/hermes_app.dart';
-import 'package:my_app/features/bar/bar_app.dart';
-import 'package:my_app/features/bar/screens/add_record_page.dart';
-import 'package:my_app/features/database/database_app.dart'
-    show DatabaseManagerApp;
 import 'package:my_app/core/screens/settings_screen.dart';
-import 'package:my_app/core/config/feature_registry.dart';
 
-/// 路由路径常量
+// 导入子应用（从 SubAppRegistry 动态加载）
+import 'package:sub_app_shared/sub_app_shared.dart';
+
+// 路由路径常量
 class AppRoutes {
   static const login = '/login';
   static const launcher = '/launcher';
   static const settings = '/settings';
-  static const image = '/app/image';
-  static const hermes = '/app/hermes';
-  static const bar = '/app/bar';
-  static const database = '/app/database';
-  static const appManagement = '/admin/app-management';
-  static const userManagement = '/admin/user-management';
+  // 子应用路由动态生成，不需要硬编码
 }
 
-/// 创建 GoRouter 实例
+/// 创建 GoRouter 实例（动态从 SubAppRegistry 生成路由）
 GoRouter createRouter() {
+  // 基础路由
+  final routes = <RouteBase>[
+    GoRoute(
+      path: AppRoutes.login,
+      name: 'login',
+      builder: (context, state) => const LoginScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.launcher,
+      name: 'launcher',
+      builder: (context, state) => const AppLauncherScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.settings,
+      name: 'settings',
+      builder: (context, state) => const SettingsScreen(),
+    ),
+  ];
+
+  // 动态添加子应用路由（只注册已启用的）
+  for (final app in SubAppRegistry.enabled) {
+    routes.add(
+      GoRoute(
+        path: app.route,
+        name: app.id,
+        builder: (context, state) => app.builder(context),
+        routes: app.routes ?? [],
+      ),
+    );
+  }
+
   return GoRouter(
     initialLocation: AppRoutes.launcher,
     redirect: _guard,
-    routes: [
-      GoRoute(
-        path: AppRoutes.login,
-        name: 'login',
-        builder: (context, state) => const LoginScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.launcher,
-        name: 'launcher',
-        builder: (context, state) => const AppLauncherScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.settings,
-        name: 'settings',
-        builder: (context, state) => const SettingsScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.image,
-        name: 'image',
-        builder: (context, state) => const ImageApp(),
-      ),
-      GoRoute(
-        path: AppRoutes.hermes,
-        name: 'hermes',
-        builder: (context, state) {
-          // 检查功能是否可用
-          if (!FeatureRegistry.isAppAvailable('hermes')) {
-            // 不可用则重定向到 launcher
-            return const AppLauncherScreen();
-          }
-          return const HermesApp();
-        },
-      ),
-      GoRoute(
-        path: AppRoutes.bar,
-        name: 'bar',
-        builder: (context, state) => const BarApp(),
-        routes: [
-          GoRoute(
-            path: 'add-record',
-            name: 'add-record',
-            builder: (context, state) => const AddRecordPage(),
-          ),
-        ],
-      ),
-      GoRoute(
-        path: AppRoutes.database,
-        name: 'database',
-        builder: (context, state) => const DatabaseManagerApp(),
-      ),
-      GoRoute(
-        path: AppRoutes.appManagement,
-        name: 'app-management',
-        builder: (context, state) => const AppManagementScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.userManagement,
-        name: 'user-management',
-        builder: (context, state) => const UserManagementScreen(),
-      ),
-    ],
+    routes: routes,
   );
 }
 

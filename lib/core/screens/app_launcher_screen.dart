@@ -1,12 +1,12 @@
 import 'package:go_router/go_router.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:my_app/core/models/sub_app.dart';
-import 'package:my_app/core/models/app_data.dart';
+
 import 'package:my_app/core/router/app_router.dart';
 import 'package:my_app/core/widgets/app_grid_card.dart';
 import 'package:my_app/core/widgets/app_list_item.dart';
-import 'package:my_app/core/config/feature_registry.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'package:sub_app_shared/sub_app_shared.dart';
 
 /// 子应用启动器（主界面）
 ///
@@ -36,21 +36,22 @@ class _AppLauncherScreenState extends State<AppLauncherScreen> {
     });
   }
 
+  /// 获取所有已注册且可见的子应用
+  List<SubApp> get _visibleApps =>
+      SubAppRegistry.enabled.where((app) => !app.requiresAuth).toList();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      headers: [
-        AppBar(
-          title: Text('欢迎，$_username'),
-          trailing: [
-            IconButton(
-              variance: ButtonVariance.ghost,
-              icon: const Icon(LucideIcons.settings),
-              onPressed: _onSettingsPressed,
-            ),
-          ],
-        ),
-      ],
+      headers: AppBar(
+        trailing: Text('欢迎，$_username'),
+        actions: [
+          IconButton(
+            icon: const Icon(LucideIcons.settings),
+            onPressed: _onSettingsPressed,
+          ),
+        ],
+      ),
       child: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -58,7 +59,7 @@ class _AppLauncherScreenState extends State<AppLauncherScreen> {
           children: [
             Text(
               '选择应用',
-              style: Theme.of(context).typography.h2,
+              style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 24),
             Expanded(
@@ -72,7 +73,7 @@ class _AppLauncherScreenState extends State<AppLauncherScreen> {
                       (constraints.maxWidth / minCardWidth).floor().clamp(1, 4);
                   final isListMode = crossAxisCount == 1;
 
-                  final apps = FeatureRegistry.visibleApps;
+                  final apps = _visibleApps;
 
                   if (isListMode) {
                     return ListView.separated(
@@ -81,7 +82,7 @@ class _AppLauncherScreenState extends State<AppLauncherScreen> {
                       itemBuilder: (context, index) => AppListItem(
                         app: apps[index],
                         onTap: () => _onAppTap(apps[index]),
-                    ),
+                      ),
                     );
                   }
 
@@ -114,14 +115,6 @@ class _AppLauncherScreenState extends State<AppLauncherScreen> {
 
   /// 点击应用卡片/列表项
   void _onAppTap(SubApp app) {
-    // 使用 GoRouter 命名路由导航到对应的应用页面
-    final builder = FeatureRegistry.getBuilder(app.id);
-    if (builder != null) {
-      // 如果有注册的 builder，使用它
-      context.go(app.route);
-    } else {
-      // 否则直接跳转路由
-      context.go(app.route);
-    }
+    context.go(app.route);
   }
 }

@@ -1,6 +1,7 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:my_app/core/theme/app_theme_mode.dart';
+import 'package:my_app/core/theme/app_theme.dart';
 
 /// 主题状态管理
 ///
@@ -63,10 +64,19 @@ class AppThemeScopeState extends State<AppThemeScope>
     await prefs.setString(_key, mode.name);
   }
 
-  ThemeData buildTheme() {
-    final platformBrightness =
-        WidgetsBinding.instance.platformDispatcher.platformBrightness;
-    return buildAppTheme(mode, platformBrightness: platformBrightness);
+  ShadThemeData buildTheme() {
+    final isDark = mode == AppThemeMode.dark ||
+        (mode == AppThemeMode.system &&
+            WidgetsBinding.instance.platformDispatcher.platformBrightness ==
+                Brightness.dark);
+
+    // 使用 Obsidian 风格主题
+    return isDark ? buildObsidianDarkTheme() : buildObsidianLightTheme();
+  }
+
+  /// 构建暗黑主题（用于 ShadApp.darkTheme 参数）
+  ShadThemeData buildDarkTheme() {
+    return buildObsidianDarkTheme();
   }
 
   @override

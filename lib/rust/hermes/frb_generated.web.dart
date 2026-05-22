@@ -12,8 +12,8 @@ import 'dart:convert';
 import 'package:my_app/rust/hermes/frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated_web.dart';
 
-abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
-  RustLibApiImplPlatform({
+abstract class HermesRustLibApiImplPlatform extends BaseApiImpl<HermesRustLibWire> {
+  HermesRustLibApiImplPlatform({
     required super.handler,
     required super.wire,
     required super.generalizedFrbRustBinding,
@@ -230,13 +230,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
 // Section: wire_class
 
-class RustLibWire implements BaseWire {
-  RustLibWire.fromExternalLibrary();
+class HermesRustLibWire implements BaseWire {
+  HermesRustLibWire.fromExternalLibrary();
 }
 
 @JS('wasm_bindgen')
-external RustLibWasmModule get wasmModule;
+external HermesRustLibWasmModule get wasmModule;
 
 @JS()
 @anonymous
-extension type RustLibWasmModule._(JSObject _) implements JSObject {}
+extension type HermesRustLibWasmModule._(JSObject _) implements JSObject {}

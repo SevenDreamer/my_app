@@ -1,5 +1,5 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:my_app/core/models/sub_app.dart';
+import 'package:sub_app_shared/sub_app_shared.dart';
 
 /// 应用列表项（单列模式：图标在左，文字在右，紧凑易操作）
 class AppListItem extends StatelessWidget {
@@ -26,7 +26,7 @@ class AppListItem extends StatelessWidget {
                 width: 52,
                 height: 52,
                 decoration: BoxDecoration(
-                  color: app.color.withValues(alpha: 0.12),
+                  color: app.color.withalues(0.12),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
@@ -44,14 +44,14 @@ class AppListItem extends StatelessWidget {
                   children: [
                     Text(
                       app.name,
-                      style: Theme.of(context).typography.h3,
+                      style: Theme.of(context).textTheme.titleMedium,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 4),
                     Text(
                       app.description,
-                      style: Theme.of(context).typography.small,
+                      style: Theme.of(context).textTheme.bodySmall,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),

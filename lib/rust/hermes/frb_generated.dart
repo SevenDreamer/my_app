@@ -6,21 +6,20 @@
 import 'package:my_app/rust/hermes/api.dart';
 import 'dart:async';
 import 'dart:convert';
-import 'package:my_app/rust/hermes/frb_generated.dart';
 import 'package:my_app/rust/hermes/frb_generated.io.dart'
     if (dart.library.js_interop) 'frb_generated.web.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
 /// Main entrypoint of the Rust API
-class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
+class HermesRustLib extends BaseEntrypoint<HermesRustLibApi, HermesRustLibApiImpl, HermesRustLibWire> {
   @internal
-  static final instance = RustLib._();
+  static final instance = HermesRustLib._();
 
-  RustLib._();
+  HermesRustLib._();
 
   /// Initialize flutter_rust_bridge
   static Future<void> init({
-    RustLibApi? api,
+    HermesRustLibApi? api,
     BaseHandler? handler,
     ExternalLibrary? externalLibrary,
     bool forceSameCodegenVersion = true,
@@ -36,7 +35,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   /// Initialize flutter_rust_bridge in mock mode.
   /// No libraries for FFI are loaded.
   static void initMock({
-    required RustLibApi api,
+    required HermesRustLibApi api,
   }) {
     instance.initMockImpl(
       api: api,
@@ -50,12 +49,12 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   static void dispose() => instance.disposeImpl();
 
   @override
-  ApiImplConstructor<RustLibApiImpl, RustLibWire> get apiImplConstructor =>
-      RustLibApiImpl.new;
+  ApiImplConstructor<HermesRustLibApiImpl, HermesRustLibWire> get apiImplConstructor =>
+      HermesRustLibApiImpl.new;
 
   @override
-  WireConstructor<RustLibWire> get wireConstructor =>
-      RustLibWire.fromExternalLibrary;
+  WireConstructor<HermesRustLibWire> get wireConstructor =>
+      HermesRustLibWire.fromExternalLibrary;
 
   @override
   Future<void> executeRustInitializers() async {}
@@ -78,7 +77,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   );
 }
 
-abstract class RustLibApi extends BaseApi {
+abstract class HermesRustLibApi extends BaseApi {
   String crateApiHermesCreateSession({
     required String title,
     required String model,
@@ -137,8 +136,8 @@ abstract class RustLibApi extends BaseApi {
   String crateApiInitHermes();
 }
 
-class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
-  RustLibApiImpl({
+class HermesRustLibApiImpl extends HermesRustLibApiImplPlatform implements HermesRustLibApi {
+  HermesRustLibApiImpl({
     required super.handler,
     required super.wire,
     required super.generalizedFrbRustBinding,

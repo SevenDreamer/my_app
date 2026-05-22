@@ -7,27 +7,27 @@ import 'package:my_app/rust/hermes/frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
 /// Initialize hermes agent
-String initHermes() => RustLib.instance.api.crateApiInitHermes();
+String initHermes() => HermesRustLib.instance.api.crateApiInitHermes();
 
 /// Create a new session
 String hermesCreateSession({required String title, required String model}) =>
-    RustLib.instance.api
+    HermesRustLib.instance.api
         .crateApiHermesCreateSession(title: title, model: model);
 
 /// Get all sessions
 List<SessionInfo> hermesGetSessions() =>
-    RustLib.instance.api.crateApiHermesGetSessions();
+    HermesRustLib.instance.api.crateApiHermesGetSessions();
 
 /// Delete a session
 void hermesDeleteSession({required String id}) =>
-    RustLib.instance.api.crateApiHermesDeleteSession(id: id);
+    HermesRustLib.instance.api.crateApiHermesDeleteSession(id: id);
 
 /// Send a message and get a response
 String hermesSendMessage({
   required String sessionId,
   required String message,
 }) =>
-    RustLib.instance.api
+    HermesRustLib.instance.api
         .crateApiHermesSendMessage(sessionId: sessionId, message: message);
 
 /// Stream a message response
@@ -35,16 +35,16 @@ Stream<String> hermesStreamMessage({
   required String sessionId,
   required String message,
 }) =>
-    RustLib.instance.api
+    HermesRustLib.instance.api
         .crateApiHermesStreamMessage(sessionId: sessionId, message: message);
 
 /// Get messages for a session
 List<MessageInfo> hermesGetMessages({required String sessionId}) =>
-    RustLib.instance.api.crateApiHermesGetMessages(sessionId: sessionId);
+    HermesRustLib.instance.api.crateApiHermesGetMessages(sessionId: sessionId);
 
 /// Set model for a session
 void hermesSetModel({required String sessionId, required String model}) =>
-    RustLib.instance.api
+    HermesRustLib.instance.api
         .crateApiHermesSetModel(sessionId: sessionId, model: model);
 
 /// Create a new skill
@@ -54,7 +54,7 @@ String hermesCreateSkill({
   required String triggerType,
   required String triggerValue,
 }) =>
-    RustLib.instance.api.crateApiHermesCreateSkill(
+    HermesRustLib.instance.api.crateApiHermesCreateSkill(
       name: name,
       description: description,
       triggerType: triggerType,
@@ -63,11 +63,11 @@ String hermesCreateSkill({
 
 /// Get all skills
 List<SkillInfoFrb> hermesGetSkills() =>
-    RustLib.instance.api.crateApiHermesGetSkills();
+    HermesRustLib.instance.api.crateApiHermesGetSkills();
 
 /// Delete a skill
 void hermesDeleteSkill({required String id}) =>
-    RustLib.instance.api.crateApiHermesDeleteSkill(id: id);
+    HermesRustLib.instance.api.crateApiHermesDeleteSkill(id: id);
 
 /// Create a scheduled task
 String hermesCreateTask({
@@ -75,7 +75,7 @@ String hermesCreateTask({
   required String cronExpression,
   required String command,
 }) =>
-    RustLib.instance.api.crateApiHermesCreateTask(
+    HermesRustLib.instance.api.crateApiHermesCreateTask(
       name: name,
       cronExpression: cronExpression,
       command: command,
@@ -83,27 +83,27 @@ String hermesCreateTask({
 
 /// Get all tasks
 List<TaskInfoFrb> hermesGetTasks() =>
-    RustLib.instance.api.crateApiHermesGetTasks();
+    HermesRustLib.instance.api.crateApiHermesGetTasks();
 
 /// Delete a task
 void hermesDeleteTask({required String id}) =>
-    RustLib.instance.api.crateApiHermesDeleteTask(id: id);
+    HermesRustLib.instance.api.crateApiHermesDeleteTask(id: id);
 
 /// Enable a task
 void hermesEnableTask({required String id}) =>
-    RustLib.instance.api.crateApiHermesEnableTask(id: id);
+    HermesRustLib.instance.api.crateApiHermesEnableTask(id: id);
 
 /// Disable a task
 void hermesDisableTask({required String id}) =>
-    RustLib.instance.api.crateApiHermesDisableTask(id: id);
+    HermesRustLib.instance.api.crateApiHermesDisableTask(id: id);
 
 /// Execute a task manually
 String hermesExecuteTask({required String id}) =>
-    RustLib.instance.api.crateApiHermesExecuteTask(id: id);
+    HermesRustLib.instance.api.crateApiHermesExecuteTask(id: id);
 
 /// Get available models
 List<ModelInfoFrb> hermesGetModels() =>
-    RustLib.instance.api.crateApiHermesGetModels();
+    HermesRustLib.instance.api.crateApiHermesGetModels();
 
 /// Message info for FRB
 class MessageInfo {

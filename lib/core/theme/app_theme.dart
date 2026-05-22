@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 // ==================== Obsidian 配色 ====================
 const obsidianBg = Color(0xFF1E1E1E);
@@ -13,69 +13,56 @@ const obsidianSuccess = Color(0xFF4EC9B0);
 const obsidianWarning = Color(0xFFFFCB6B);
 const obsidianError = Color(0xFFFF6B6B);
 
-// ==================== 主题 ====================
-ThemeData obsidianTheme() {
-  return ThemeData(
-    useMaterial3: true,
+// ==================== ShadThemeData 构建 ====================
+
+/// 构建 Obsidian 深色主题
+ShadThemeData buildObsidianDarkTheme() {
+  final colorScheme = ShadColorScheme.fromColors(
     brightness: Brightness.dark,
-    colorScheme: const ColorScheme.dark(
-      primary: obsidianAccent,
-      secondary: obsidianAccentAlt,
-      surface: obsidianSurface,
-      onSurface: obsidianText,
-    ),
-    scaffoldBackgroundColor: obsidianBg,
-    appBarTheme: const AppBarTheme(
-      backgroundColor: obsidianBg,
-      foregroundColor: obsidianText,
-      elevation: 0,
-      surfaceTintColor: Colors.transparent,
-    ),
-    cardTheme: CardThemeData(
-      color: obsidianSurface,
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: obsidianBorder, width: 1),
-      ),
-    ),
-    elevatedButtonTheme: ElevatedButtonThemeData(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: obsidianAccent,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        textStyle: const TextStyle(fontWeight: FontWeight.w600),
-      ),
-    ),
-    outlinedButtonTheme: OutlinedButtonThemeData(
-      style: OutlinedButton.styleFrom(
-        foregroundColor: obsidianAccent,
-        side: const BorderSide(color: obsidianBorder),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-      ),
-    ),
-    navigationRailTheme: const NavigationRailThemeData(
-      backgroundColor: obsidianBg,
-      selectedIconTheme: IconThemeData(color: obsidianAccent),
-      unselectedIconTheme: IconThemeData(color: obsidianTextMuted),
-      selectedLabelTextStyle: TextStyle(color: obsidianAccent),
-      unselectedLabelTextStyle: TextStyle(color: obsidianTextMuted),
-    ),
-    dividerTheme: const DividerThemeData(
-      color: obsidianBorder,
-      thickness: 1,
-    ),
-    textTheme: const TextTheme(
-      bodyMedium: TextStyle(color: obsidianText),
-      bodySmall: TextStyle(color: obsidianTextMuted),
-    ),
-    iconTheme: const IconThemeData(color: obsidianTextMuted),
+    primary: obsidianAccent,
+    primaryForeground: Colors.white,
+    secondary: obsidianAccentAlt,
+    secondaryForeground: Colors.white,
+    background: obsidianBg,
+    foreground: obsidianText,
+    card: obsidianSurface,
+    cardForeground: obsidianText,
+    border: obsidianBorder,
+    muted: obsidianSurfaceHover,
+    mutedForeground: obsidianTextMuted,
+  );
+
+  return ShadThemeData(
+    colorScheme: colorScheme,
+    radius: 0.7,
+  );
+}
+
+/// 构建 Obsidian 浅色主题
+ShadThemeData buildObsidianLightTheme() {
+  const lightBg = Color(0xFFF8F8F8);
+  const lightSurface = Color(0xFFFFFFFF);
+  const lightBorder = Color(0xFFE5E5E5);
+  const lightText = Color(0xFF1E1E1E);
+  const lightTextMuted = Color(0xFF9B9B9B);
+
+  final colorScheme = ShadColorScheme.fromColors(
+    brightness: Brightness.light,
+    primary: obsidianAccent,
+    primaryForeground: Colors.white,
+    secondary: obsidianAccentAlt,
+    secondaryForeground: Colors.white,
+    background: lightBg,
+    foreground: lightText,
+    card: lightSurface,
+    cardForeground: lightText,
+    border: lightBorder,
+    muted: const Color(0xFFF0F0F0),
+    mutedForeground: lightTextMuted,
+  );
+
+  return ShadThemeData(
+    colorScheme: colorScheme,
+    radius: 0.7,
   );
 }

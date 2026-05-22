@@ -1,5 +1,5 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:my_app/core/models/sub_app.dart';
+import 'package:sub_app_shared/sub_app_shared.dart';
 
 /// 应用网格卡片（多列模式：图标在上，文字在下）
 class AppGridCard extends StatelessWidget {
@@ -30,7 +30,7 @@ class AppGridCard extends StatelessWidget {
               const SizedBox(height: 12),
               Text(
                 app.name,
-                style: Theme.of(context).typography.h3,
+                style: Theme.of(context).textTheme.titleMedium,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -38,7 +38,7 @@ class AppGridCard extends StatelessWidget {
               Flexible(
                 child: Text(
                   app.description,
-                  style: Theme.of(context).typography.small,
+                  style: Theme.of(context).textTheme.bodySmall,
                   textAlign: TextAlign.center,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,

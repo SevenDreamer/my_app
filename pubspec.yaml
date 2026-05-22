@@ -39,6 +39,22 @@ dependencies:
   # Flutter-Rust Bridge
   flutter_rust_bridge: ^2.12.0
 
+  # 微应用共享接口
+  sub_app_shared:
+    path: packages/sub_app_shared
+
+  # 子应用（按需取消注释启用）
+  sub_app_database:
+    path: packages/sub_app_database
+  sub_app_image:
+    path: packages/sub_app_image
+  # sub_app_auth:
+  #   path: packages/sub_app_auth,
+  # sub_app_chat:
+  #   path: packages/sub_app_chat,
+  # sub_app_code:
+  #   path: packages/sub_app_code,
+
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.6
@@ -63,11 +79,6 @@ dependencies:
   # 文件树组件
   flutter_fancy_tree_view: ^1.6.0 # 树形视图组件
 
-  # HeroUI Design System
-  heroui_design_system:
-    git:
-      url: https://github.com/tereshin/the-blank.git
-      path: packages/heroui_design_system
   shadcn_flutter: ^0.0.52
   go_router: ^14.0.0
 

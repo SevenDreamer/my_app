@@ -1,0 +1,30 @@
+name: sub_app_database
+description: "Database management sub-app for my_app"
+version: 1.0.0
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+  flutter: ">=1.17.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  # 依赖共享接口
+  sub_app_shared:
+    path: ../sub_app_shared
+  # UI 组件
+  shadcn_flutter: ^0.0.52
+  lucide_flutter: ^1.14.0
+  go_router: ^14.0.0
+  # 数据库驱动
+  sqflite_common_ffi: ^2.3.0
+  postgres: ^3.4.0
+  mysql1: ^0.20.0
+  mongo_dart: ^0.10.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true

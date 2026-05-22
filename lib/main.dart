@@ -1,62 +1,53 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+
 import 'package:my_app/rust/frb_generated.dart';
-import 'package:my_app/rust/api/auth.dart' as auth_api;
 import 'package:my_app/core/config/app_config.dart';
-import 'package:my_app/core/config/feature_registry.dart';
 import 'package:my_app/core/router/app_router.dart';
 import 'package:my_app/core/theme/app_theme_scope.dart';
+
+// 导入子应用（按需取消注释即可启用）
+import 'package:sub_app_database/sub_app_database.dart';
+import 'package:sub_app_image/sub_app_image.dart';
+// import 'package:sub_app_auth/sub_app_auth.dart';
+// import 'package:sub_app_chat/sub_app_chat.dart';
+// import 'package:sub_app_code/sub_app_code.dart';
+
+// SubAppRegistry 会在 main() 中注册子应用
+import 'package:sub_app_shared/sub_app_shared.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 1. 初始化主模块（始终需要）
+  // 1. 初始化 Rust 核心
   await RustLib.init();
 
-  // 2. 尝试初始化可选功能模块（失败则静默禁用）
-  await _initOptionalFeatures();
+  // 2. 注册子应用
+  SubAppRegistry.register(DatabaseSubApp());
+  SubAppRegistry.register(ImageSubApp());
 
-  // 3. 初始化 PostgreSQL 数据库连接
-  try {
-    final result = auth_api.initAuthDb();
-    print('DB init: $result');
-  } catch (e) {
-    print('DB init failed: $e');
+  // 3. 从 SharedPreferences 加载子应用开关状态
+  final prefs = await SharedPreferences.getInstance();
+  for (final app in SubAppRegistry.all) {
+    final enabled = prefs.getBool('app_enabled_${app.id}') ?? true;
+    if (enabled) {
+      SubAppRegistry.enable(app.id);
+    } else {
+      SubAppRegistry.disable(app.id);
+    }
   }
 
-  runApp(
-    AppThemeScope(
-      child: MyApp(
-        hermesAvailable: FeatureRegistry.isAppAvailable('hermes'),
-      ),
-    ),
-  );
+  print('Registered ${SubAppRegistry.all.length} sub-apps: '
+      '${SubAppRegistry.all.map((a) => a.id).join(', ')}');
+  print('Enabled ${SubAppRegistry.enabled.length} sub-apps: '
+      '${SubAppRegistry.enabled.map((a) => a.id).join(', ')}');
+
+  runApp(const MyApp());
 }
 
-/// 初始化可选功能模块
-Future<void> _initOptionalFeatures() async {
-  // Hermes：尝试加载 hermes_api Rust 动态库
-  // 如果 hermes 功能包已安装，它会自动注册
-  // 此处只需设置默认值，实际初始化由功能包完成
-  FeatureRegistry.setAvailable('hermes', false); // 默认禁用
-
-  // 如果 hermes 功能包已安装，它会在 main() 中调用：
-  // FeatureRegistry.setAvailable('hermes', true);
-  // FeatureRegistry.registerApp('hermes', (ctx) => const HermesApp());
-}
-
-/// 注意：Hermes 功能的完整初始化需要：
-/// 1. Rust 侧编译 hermes_api crate（生成 hermes_api.dll）
-/// 2. Dart 侧导入 hermes 功能包并调用 RustLib.init()
-/// 3. 如果以上任一步骤失败，Hermes 入口会自动隐藏
-
-/// 全局 router 实例，供外部访问（如退出登录时调用 context.go()）
 final appRouter = createRouter();
 
 class MyApp extends StatelessWidget {
-  /// Hermes 功能是否可用
-  final bool hermesAvailable;
-
-  const MyApp({super.key, this.hermesAvailable = false});
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -64,9 +55,10 @@ class MyApp extends StatelessWidget {
     return ListenableBuilder(
       listenable: themeScope.notifier,
       builder: (context, _) {
-        return ShadcnApp.router(
+        return ShadApp.router(
           title: AppConfig.appName,
           theme: themeScope.buildTheme(),
+          darkTheme: themeScope.buildDarkTheme(),
           routerConfig: appRouter,
           debugShowCheckedModeBanner: false,
         );

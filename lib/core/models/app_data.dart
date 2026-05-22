@@ -40,4 +40,5 @@ const builtInApps = <SubApp>[
 ];
 
 /// 可见应用列表（根据功能可用状态过滤）
-List<SubApp> get visibleApps => FeatureRegistry.visibleApps;
+List<SubApp> get visibleApps =>
+    builtInApps.where((app) => FeatureRegistry.isAppAvailable(app.id)).toList();
