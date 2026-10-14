@@ -40,8 +40,7 @@ class EyeVisualState {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(look, blink, fromType, toType, transition);
+  int get hashCode => Object.hash(look, blink, fromType, toType, transition);
 }
 
 /// 眼睛样式渲染器接口：任何视觉风格（灯珠点阵、卡通圆眼、像素方块……）

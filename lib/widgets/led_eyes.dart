@@ -32,8 +32,7 @@ class LedEyes extends StatefulWidget {
   State<LedEyes> createState() => _LedEyesState();
 }
 
-class _LedEyesState extends State<LedEyes>
-    with TickerProviderStateMixin {
+class _LedEyesState extends State<LedEyes> with TickerProviderStateMixin {
   final math.Random _rand = math.Random();
 
   /// 持续循环的"心跳"：每帧回调一次，推进过渡与瞳孔插值
@@ -128,9 +127,9 @@ class _LedEyesState extends State<LedEyes>
   Widget build(BuildContext context) {
     // 过渡进度：0=完全 fromType，1=完全 toType
     final double progress = DateTime.now()
-        .difference(_transitionStart)
-        .inMicroseconds
-        .clamp(0, _transitionDur.inMicroseconds) /
+            .difference(_transitionStart)
+            .inMicroseconds
+            .clamp(0, _transitionDur.inMicroseconds) /
         _transitionDur.inMicroseconds;
 
     // 打包演出指令，交给样式渲染器去画

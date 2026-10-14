@@ -166,10 +166,8 @@ class LedDotRenderer extends EyeRenderer {
     // 瞳孔参数随过渡插值
     final (double rFrom, Offset bFrom) = _pupils[state.fromType]!;
     final (double rTo, Offset bTo) = _pupils[state.toType]!;
-    final double pupilRadius =
-        rFrom + (rTo - rFrom) * state.transition;
-    final Offset pupilBias =
-        Offset.lerp(bFrom, bTo, state.transition)!;
+    final double pupilRadius = rFrom + (rTo - rFrom) * state.transition;
+    final Offset pupilBias = Offset.lerp(bFrom, bTo, state.transition)!;
 
     for (int eye = 0; eye < 2; eye++) {
       final bool mirror = eye == 1; // 右眼模板水平镜像
@@ -210,10 +208,10 @@ class LedDotRenderer extends EyeRenderer {
           // --- 分级亮度绘制：方形灯珠 + 圆形柔光晕 ---
           if (on && !blinkOff && inPupil) {
             // 光晕用柔和的圆形扩散，灯珠本体是方形（像素 LED 观感）
-            canvas.drawCircle(
-                Offset(x, y), radius * 2.6, Paint()..color = color.withAlpha(36));
-            canvas.drawCircle(
-                Offset(x, y), radius * 1.7, Paint()..color = color.withAlpha(90));
+            canvas.drawCircle(Offset(x, y), radius * 2.6,
+                Paint()..color = color.withAlpha(36));
+            canvas.drawCircle(Offset(x, y), radius * 1.7,
+                Paint()..color = color.withAlpha(90));
             _drawSquare(canvas, x, y, radius, color.withAlpha(255));
           } else if (on && !blinkOff) {
             _drawSquare(canvas, x, y, radius, color.withAlpha(105));

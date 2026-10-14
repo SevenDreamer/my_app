@@ -26,10 +26,9 @@ class RoboEyesRenderer extends EyeRenderer {
   static const Map<ExpressionType, _EyeShape> _shapes = {
     ExpressionType.neutral:
         _EyeShape(kind: _ShapeKind.rect, w: 1.0, h: 1.0, radius: 0.45),
-    ExpressionType.happy:
-        _EyeShape(kind: _ShapeKind.arc, w: 1.05, h: 1.05),
-    ExpressionType.surprised: _EyeShape(
-        kind: _ShapeKind.rect, w: 1.05, h: 1.15, radius: 0.5),
+    ExpressionType.happy: _EyeShape(kind: _ShapeKind.arc, w: 1.05, h: 1.05),
+    ExpressionType.surprised:
+        _EyeShape(kind: _ShapeKind.rect, w: 1.05, h: 1.15, radius: 0.5),
     ExpressionType.angry: _EyeShape(
         kind: _ShapeKind.rect, w: 1.0, h: 0.85, radius: 0.3, tilt: 0.28),
     ExpressionType.sleepy: _EyeShape(
@@ -63,12 +62,12 @@ class RoboEyesRenderer extends EyeRenderer {
 
     for (int eye = 0; eye < 2; eye++) {
       final bool mirror = eye == 1; // 右眼参数镜像（tilt/偏置对称）
-      final double cx = size.width / 2 + (eye == 0 ? -1 : 1) * (gap / 2 + eyeW / 2);
+      final double cx =
+          size.width / 2 + (eye == 0 ? -1 : 1) * (gap / 2 + eyeW / 2);
       final double cy = size.height / 2;
 
       // --- 眨眼 + 表情眼睑：裁剪可视高度（对所有形状通用） ---
-      final double lidTop =
-          _lerp(from.lidTop, to.lidTop, t) + state.blink;
+      final double lidTop = _lerp(from.lidTop, to.lidTop, t) + state.blink;
       final double lidBottom =
           _lerp(from.lidBottom, to.lidBottom, t) + state.blink;
       final double clipTop = cy - eyeH / 2 + lidTop * eyeH;
@@ -76,9 +75,7 @@ class RoboEyesRenderer extends EyeRenderer {
 
       // --- 视线：整块眼睛平移（表情固有偏置左右镜像） ---
       final Offset bias = Offset.lerp(
-          mirror
-              ? Offset(-from.lookBias.dx, from.lookBias.dy)
-              : from.lookBias,
+          mirror ? Offset(-from.lookBias.dx, from.lookBias.dy) : from.lookBias,
           mirror ? Offset(-to.lookBias.dx, to.lookBias.dy) : to.lookBias,
           t)!;
       final double dx = state.look.dx * eyeW * 0.18 + bias.dx * eyeW * 0.3;

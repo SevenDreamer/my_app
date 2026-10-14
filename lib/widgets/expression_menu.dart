@@ -19,8 +19,7 @@ Future<void> showExpressionMenu(
   final selected = await showMenu<int>(
     context: context,
     position: RelativeRect.fromRect(
-      Rect.fromLTWH(
-          details.globalPosition.dx, details.globalPosition.dy, 0, 0),
+      Rect.fromLTWH(details.globalPosition.dx, details.globalPosition.dy, 0, 0),
       Offset.zero & box.size,
     ),
     items: [
