@@ -52,8 +52,9 @@ class _LedEyesState extends State<LedEyes>
   Timer? _blinkTimer;
 
   /// 表情过渡：fromType→toType，progress 0..1
-  late ExpressionType _fromType;
-  late ExpressionType _toType;
+  /// （声明期给默认值：热重载复用旧 State 实例时 late 字段会炸）
+  ExpressionType _fromType = ExpressionType.neutral;
+  ExpressionType _toType = ExpressionType.neutral;
   DateTime _transitionStart = DateTime.now();
 
   /// 表情过渡时长

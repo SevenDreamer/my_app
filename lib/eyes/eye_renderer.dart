@@ -49,6 +49,9 @@ class EyeVisualState {
 abstract class EyeRenderer {
   const EyeRenderer();
 
+  /// 风格显示名（右键菜单里展示）
+  String get name;
+
   /// 绘制双眼。这是样式层唯一的入口，画布尺寸由逻辑层给出。
   void paint(Canvas canvas, Size size, EyeVisualState state);
 }

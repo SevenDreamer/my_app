@@ -14,6 +14,9 @@ class LedDotRenderer extends EyeRenderer {
   /// LED 主色，默认青色
   final Color color;
 
+  @override
+  String get name => 'LED 点阵';
+
   /// 单眼点阵列数/行数
   static const int _cols = 15;
   static const int _rows = 11;
