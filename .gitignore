@@ -43,3 +43,14 @@ app.*.map.json
 /android/app/release
 # Widget Preview related
 .widget_preview/
+rust/target/
+
+# FVM (Flutter Version Management) — flutter_sdk 是机器专属软链
+.fvm/
+
+# VS Code — 本地 SDK 配置不共享，调试配置保留
+.vscode/*
+!.vscode/launch.json
+
+# Android 构建产物
+android/build/
