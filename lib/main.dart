@@ -1,7 +1,7 @@
 //! 应用入口：黑色主题 + 功能列表主页
 import 'package:flutter/material.dart';
 
-import 'pages/home_page.dart';
+import 'features/home/home_page.dart';
 
 void main() {
   runApp(const MyApp());

@@ -7,16 +7,16 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-import '../expressions.dart';
-import '../eyes/eye_renderer.dart';
-import '../eyes/led_dot_renderer.dart';
-import '../eyes/robo_eyes_renderer.dart';
-import '../inputs/idle_look_source.dart';
-import '../inputs/keyboard_command_source.dart';
-import '../inputs/look_source.dart';
-import '../inputs/pointer_look_source.dart';
-import '../widgets/expression_menu.dart';
-import '../widgets/led_eyes.dart';
+import 'expressions.dart';
+import 'eyes/eye_renderer.dart';
+import 'eyes/led_dot_renderer.dart';
+import 'eyes/robo_eyes_renderer.dart';
+import 'inputs/idle_look_source.dart';
+import 'inputs/keyboard_command_source.dart';
+import 'inputs/look_source.dart';
+import 'inputs/pointer_look_source.dart';
+import 'widgets/expression_menu.dart';
+import 'widgets/led_eyes.dart';
 
 class RobotEyePage extends StatefulWidget {
   const RobotEyePage({super.key});
