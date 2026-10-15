@@ -97,11 +97,31 @@ class _RobotEyePageState extends State<RobotEyePage> {
   @override
   Widget build(BuildContext context) {
     final double screenW = MediaQuery.of(context).size.width;
-    return Scaffold(
-      backgroundColor: Colors.black,
-      // 输入源的 build 各自负责挂接手势/焦点，层层包裹即可
-      body: _keyboard.build(
-        _pointer.build(
+    // 键盘焦点包住整页（含标题栏）：点完按钮后数字键快捷键仍然有效
+    return _keyboard.build(
+      Scaffold(
+        backgroundColor: Colors.black,
+        // 顶部标题栏：桌面端没有侧滑返回手势，靠它回上一层
+        appBar: AppBar(
+          backgroundColor: Colors.black,
+          surfaceTintColor: Colors.transparent,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            tooltip: '返回',
+            onPressed: () => Navigator.of(context).maybePop(),
+          ),
+          title: const Text('机器人眼睛'),
+          actions: [
+            IconButton(
+              tooltip: '切换风格（当前：${_styles[_styleIndex].name}）',
+              icon: const Icon(Icons.palette_outlined),
+              onPressed: _switchStyle,
+            ),
+          ],
+        ),
+        // 输入源的 build 各自负责挂接手势，层层包裹即可
+        body: _pointer.build(
           GestureDetector(
             // 右键 = 表情菜单（表情/随机/切换风格都走这里）
             onSecondaryTapDown: (d) => showExpressionMenu(

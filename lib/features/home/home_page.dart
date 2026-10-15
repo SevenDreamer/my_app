@@ -1,26 +1,14 @@
+//! 主界面：功能列表主页
+//!
+//! 功能清单来自注册表（feature_registry.dart），
+//! 按当前平台能力过滤展示：不支持的隐藏，受限的标注说明。
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
-import '../notes/notes_list_page.dart';
-import '../robot_eyes/robot_eye_page.dart';
+import '../../design/tokens.dart';
+import '../feature_registry.dart';
 
-/// 单个功能入口的描述
-class _FeatureEntry {
-  const _FeatureEntry({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.page,
-  });
-
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final Widget page;
-}
-
-/// 主界面：空白主页 + 功能列表。
-/// 后续新功能往 [_features] 里追加一条即可。
+/// 主界面：功能列表。
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -32,36 +20,23 @@ class _HomePageState extends State<HomePage> {
   /// 版本信息从 pubspec.yaml 读取（version: 1.0.0+1），后续升级逻辑也基于它
   late final Future<PackageInfo> _packageInfo = PackageInfo.fromPlatform();
 
-  static const List<_FeatureEntry> _features = [
-    _FeatureEntry(
-      icon: Icons.visibility_outlined,
-      title: '机器人眼睛',
-      subtitle: '表情 · 注视 · LED 眼睛动画',
-      page: RobotEyePage(),
-    ),
-    _FeatureEntry(
-      icon: Icons.edit_note,
-      title: '记事本',
-      subtitle: '记录想法与需求',
-      page: NotesListPage(),
-    ),
-  ];
-
   @override
   Widget build(BuildContext context) {
-    final mutedStyle = Theme.of(context).textTheme.bodySmall?.copyWith(
-          color: Theme.of(context)
-              .textTheme
-              .bodySmall
-              ?.color
-              ?.withValues(alpha: 0.6),
-        );
+    // 当前平台不支持的功能不展示；受限功能在副标题标注
+    final features = kFeatures
+        .where((f) => f.support != PlatformSupport.none)
+        .toList(growable: false);
+    final mutedStyle = Theme.of(context)
+        .textTheme
+        .labelSmall
+        ?.copyWith(color: AppColors.secondary);
+
     return Scaffold(
       appBar: AppBar(
         title: Row(
           children: [
             const Text('功能'),
-            const SizedBox(width: 10),
+            const SizedBox(width: AppSpacing.sm),
             FutureBuilder<PackageInfo>(
               future: _packageInfo,
               builder: (context, snapshot) {
@@ -79,19 +54,23 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
       body: ListView.separated(
-        itemCount: _features.length,
+        itemCount: features.length,
         separatorBuilder: (BuildContext context, int index) =>
             const Divider(height: 1),
         itemBuilder: (context, index) {
-          final feature = _features[index];
+          final feature = features[index];
+          final bool limited = feature.support == PlatformSupport.limited;
+          final String subtitle = limited
+              ? '${feature.subtitle}（${feature.limitedNote ?? '当前平台功能受限'}）'
+              : feature.subtitle;
           return ListTile(
             leading: Icon(feature.icon),
             title: Text(feature.title),
-            subtitle: Text(feature.subtitle),
+            subtitle: Text(subtitle),
             trailing: const Icon(Icons.chevron_right),
             onTap: () {
               Navigator.of(context).push(
-                MaterialPageRoute<void>(builder: (_) => feature.page),
+                MaterialPageRoute<void>(builder: feature.builder),
               );
             },
           );

@@ -1,6 +1,7 @@
-//! 应用入口：黑色主题 + 功能列表主页
+//! 应用入口：MaterialApp + 全局主题
 import 'package:flutter/material.dart';
 
+import 'design/theme.dart';
 import 'features/home/home_page.dart';
 
 void main() {
@@ -13,10 +14,10 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Robot Eyes',
+      title: 'my_app',
       debugShowCheckedModeBanner: false,
-      // 深色主题打底，保证页面纯黑无杂色
-      theme: ThemeData.dark(useMaterial3: true),
+      // 全局主题：DESIGN.md 设计 tokens 的唯一入口（简洁现代）
+      theme: AppTheme.light,
       home: const HomePage(),
     );
   }
