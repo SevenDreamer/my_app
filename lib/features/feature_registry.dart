@@ -84,5 +84,8 @@ final List<FeatureEntry> kFeatures = [
     title: '记事本',
     subtitle: '记录想法与需求',
     builder: (_) => const NotesListPage(),
+    // sqflite 仅支持移动端；桌面端待换 sqflite_common_ffi 后再开放
+    desktop: PlatformSupport.none,
+    mobile: PlatformSupport.full,
   ),
 ];

@@ -1,14 +1,14 @@
-//! 主界面：功能列表主页
+//! 主页：底部导航壳（应用主入口）
 //!
-//! 功能清单来自注册表（feature_registry.dart），
-//! 按当前平台能力过滤展示：不支持的隐藏，受限的标注说明。
+//! 左=功能列表、中=占位（功能未定）、右=我；功能子页面
+//! （机器人眼睛/记事本）以全屏 push 进入，不受底部栏影响。
+//! 中间位置等想好用途后替换 _ComingSoonTab 即可。
 import 'package:flutter/material.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../design/tokens.dart';
-import '../feature_registry.dart';
+import '../features_page.dart';
+import '../profile/profile_page.dart';
 
-/// 主界面：功能列表。
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -17,64 +17,74 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  /// 版本信息从 pubspec.yaml 读取（version: 1.0.0+1），后续升级逻辑也基于它
-  late final Future<PackageInfo> _packageInfo = PackageInfo.fromPlatform();
+  /// 当前选中的 tab
+  int _index = 0;
 
   @override
   Widget build(BuildContext context) {
-    // 当前平台不支持的功能不展示；受限功能在副标题标注
-    final features = kFeatures
-        .where((f) => f.support != PlatformSupport.none)
-        .toList(growable: false);
-    final mutedStyle = Theme.of(context)
-        .textTheme
-        .labelSmall
-        ?.copyWith(color: AppColors.secondary);
-
     return Scaffold(
-      appBar: AppBar(
-        title: Row(
+      // 保活三个 tab 的状态（切回不重建）
+      body: IndexedStack(
+        index: _index,
+        children: const [
+          FeaturesPage(),
+          _ComingSoonTab(),
+          ProfilePage(),
+        ],
+      ),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _index,
+        onDestinationSelected: (i) => setState(() => _index = i),
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.widgets_outlined),
+            selectedIcon: Icon(Icons.widgets),
+            label: '功能',
+          ),
+          // 中间占位：暂无标签的图标钮，用途待定
+          NavigationDestination(
+            icon: Icon(Icons.add_circle_outline),
+            selectedIcon: Icon(Icons.add_circle),
+            label: '',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.person_outline),
+            selectedIcon: Icon(Icons.person),
+            label: '我',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 中间 tab 的占位内容：功能未定，先给提示
+class _ComingSoonTab extends StatelessWidget {
+  const _ComingSoonTab();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('敬请期待')),
+      body: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('功能'),
-            const SizedBox(width: AppSpacing.sm),
-            FutureBuilder<PackageInfo>(
-              future: _packageInfo,
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) {
-                  return const SizedBox.shrink();
-                }
-                final info = snapshot.data!;
-                return Text(
-                  'v${info.version}+${info.buildNumber}',
-                  style: mutedStyle,
-                );
-              },
+            const Icon(
+              Icons.construction_outlined,
+              size: 48,
+              color: AppColors.secondary,
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              '这个位置的功能还在想',
+              style: Theme.of(context)
+                  .textTheme
+                  .labelSmall
+                  ?.copyWith(color: AppColors.secondary),
             ),
           ],
         ),
-      ),
-      body: ListView.separated(
-        itemCount: features.length,
-        separatorBuilder: (BuildContext context, int index) =>
-            const Divider(height: 1),
-        itemBuilder: (context, index) {
-          final feature = features[index];
-          final bool limited = feature.support == PlatformSupport.limited;
-          final String subtitle = limited
-              ? '${feature.subtitle}（${feature.limitedNote ?? '当前平台功能受限'}）'
-              : feature.subtitle;
-          return ListTile(
-            leading: Icon(feature.icon),
-            title: Text(feature.title),
-            subtitle: Text(subtitle),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute<void>(builder: feature.builder),
-              );
-            },
-          );
-        },
       ),
     );
   }

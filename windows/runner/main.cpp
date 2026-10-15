@@ -19,6 +19,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
 
   flutter::DartProject project(L"data");
 
+  // Disable Impeller and fall back to Skia: Impeller's SDF text rendering
+  // turns Material icon glyphs into tofu boxes. Windows desktop switched to
+  // Impeller by default in Flutter 3.47; this is the official opt-out
+  // (see flutter/flutter#191860).
+  project.set_impeller_switch(flutter::ImpellerSwitch::Disabled);
+
   std::vector<std::string> command_line_arguments =
       GetCommandLineArguments();
 

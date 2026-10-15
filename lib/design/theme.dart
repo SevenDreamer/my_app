@@ -92,6 +92,17 @@ class AppTheme {
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.onPrimary,
       ),
+      // 底部导航：表面白底，选中用强调色 + 淡染指示器
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: AppColors.surface,
+        indicatorColor: AppColors.primary.withValues(alpha: 0.12),
+        iconTheme: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? const IconThemeData(color: AppColors.primary)
+              : const IconThemeData(color: AppColors.secondary),
+        ),
+        labelTextStyle: const WidgetStatePropertyAll(AppTypography.labelSm),
+      ),
     );
   }
 }
