@@ -5,9 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
-import '../../design/tokens.dart';
-import '../../design/widgets/app_app_bar.dart';
-import '../../design/widgets/app_list_tile.dart';
+import '../design/tokens.dart';
+import '../design/widgets/app_app_bar.dart';
+import '../design/widgets/app_list_tile.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});

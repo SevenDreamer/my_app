@@ -6,9 +6,9 @@
 import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
-import '../../design/tokens.dart';
-import '../features_page.dart';
-import '../profile/profile_page.dart';
+import '../design/tokens.dart';
+import 'features_page.dart';
+import 'profile_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});

@@ -9,9 +9,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
-import 'device_link/device_link_page.dart';
-import 'notes/notes_list_page.dart';
-import 'robot_eyes/robot_eye_page.dart';
+import '../features/device_link/device_link_page.dart';
+import '../features/notes/notes_list_page.dart';
+import '../features/robot_eyes/robot_eye_page.dart';
 
 /// 平台对功能的支持程度
 enum PlatformSupport {

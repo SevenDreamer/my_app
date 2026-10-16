@@ -8,7 +8,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 import 'design/theme.dart';
-import 'features/home/home_page.dart';
+import 'app/home_page.dart';
 
 void main() {
   runApp(const MyApp());
