@@ -1,4 +1,4 @@
-//! 主界面：功能列表主页
+//! 功能页：功能列表（底部导航「功能」tab 的内容）
 //!
 //! 功能清单来自注册表（feature_registry.dart），
 //! 按当前平台能力过滤展示：不支持的隐藏，受限的标注说明。
@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import '../design/tokens.dart';
+import '../design/widgets/app_app_bar.dart';
+import '../design/widgets/app_list_tile.dart';
 import 'feature_registry.dart';
 
 /// 功能页：功能列表（底部导航「功能」tab 的内容）。
@@ -26,16 +28,20 @@ class _FeaturesPageState extends State<FeaturesPage> {
     final features = kFeatures
         .where((f) => f.support != PlatformSupport.none)
         .toList(growable: false);
-    final mutedStyle = Theme.of(context)
-        .textTheme
-        .labelSmall
-        ?.copyWith(color: AppColors.secondary);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Row(
+      appBar: AppAppBar(
+        title: '功能',
+        titleWidget: Row(
           children: [
-            const Text('功能'),
+            Text(
+              '功能',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.onSurface,
+                  ),
+            ),
             const SizedBox(width: AppSpacing.sm),
             FutureBuilder<PackageInfo>(
               future: _packageInfo,
@@ -46,28 +52,26 @@ class _FeaturesPageState extends State<FeaturesPage> {
                 final info = snapshot.data!;
                 return Text(
                   'v${info.version}+${info.buildNumber}',
-                  style: mutedStyle,
+                  style: Theme.of(context).textTheme.labelSmall,
                 );
               },
             ),
           ],
         ),
       ),
-      body: ListView.separated(
+      body: ListView.builder(
         itemCount: features.length,
-        separatorBuilder: (BuildContext context, int index) =>
-            const Divider(height: 1),
         itemBuilder: (context, index) {
           final feature = features[index];
           final bool limited = feature.support == PlatformSupport.limited;
           final String subtitle = limited
               ? '${feature.subtitle}（${feature.limitedNote ?? '当前平台功能受限'}）'
               : feature.subtitle;
-          return ListTile(
-            leading: Icon(feature.icon),
-            title: Text(feature.title),
-            subtitle: Text(subtitle),
-            trailing: const Icon(Icons.chevron_right),
+          return AppListTile(
+            icon: feature.icon,
+            title: feature.title,
+            subtitle: subtitle,
+            showDivider: index != features.length - 1,
             onTap: () {
               Navigator.of(context).push(
                 MaterialPageRoute<void>(builder: feature.builder),

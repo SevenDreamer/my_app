@@ -1,0 +1,73 @@
+{
+  "version": 2,
+  "installations": {
+    "generic": {
+      "package:shadcn_ui": {
+        "skills": [
+          {
+            "name": "shadcn-ui-flutter",
+            "installedAt": "2026-10-16T07:41:24.276772Z",
+            "contentHash": "Vs+t8NU08CiMxG2TlJa5qQ==",
+            "path": "skills/shadcn-ui-flutter"
+          }
+        ]
+      },
+      "package:sqflite": {
+        "skills": [
+          {
+            "name": "sqflite-crud-and-transactions",
+            "installedAt": "2026-10-16T07:41:24.282375Z",
+            "contentHash": "lEO7nhZOzQbXLY8dWXXHNw==",
+            "path": "skills/sqflite-crud-and-transactions"
+          },
+          {
+            "name": "sqflite-open-database",
+            "installedAt": "2026-10-16T07:41:24.286374Z",
+            "contentHash": "fOmoB+4dNOjQDdvPkJjRXw==",
+            "path": "skills/sqflite-open-database"
+          },
+          {
+            "name": "sqflite-testing-and-platforms",
+            "installedAt": "2026-10-16T07:41:24.289584Z",
+            "contentHash": "3tyVO/yHbhJmT4nYerW4tQ==",
+            "path": "skills/sqflite-testing-and-platforms"
+          }
+        ]
+      }
+    },
+    "claude": {
+      "package:shadcn_ui": {
+        "skills": [
+          {
+            "name": "shadcn-ui-flutter",
+            "installedAt": "2026-10-16T07:41:24.367863Z",
+            "contentHash": "9nkc+ZSZ5DELSID2qCr/cA==",
+            "path": "skills/shadcn-ui-flutter"
+          }
+        ]
+      },
+      "package:sqflite": {
+        "skills": [
+          {
+            "name": "sqflite-crud-and-transactions",
+            "installedAt": "2026-10-16T07:41:24.376156Z",
+            "contentHash": "k1idZuIdHzcnck8csAE2aw==",
+            "path": "skills/sqflite-crud-and-transactions"
+          },
+          {
+            "name": "sqflite-open-database",
+            "installedAt": "2026-10-16T07:41:24.380154Z",
+            "contentHash": "Nx8UEPKFc3wQUS2UEAPhnQ==",
+            "path": "skills/sqflite-open-database"
+          },
+          {
+            "name": "sqflite-testing-and-platforms",
+            "installedAt": "2026-10-16T07:41:24.385156Z",
+            "contentHash": "1xJcL2DdgVp+/xkisXm23g==",
+            "path": "skills/sqflite-testing-and-platforms"
+          }
+        ]
+      }
+    }
+  }
+}

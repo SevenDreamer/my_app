@@ -1,5 +1,8 @@
+//! 笔记编辑页（新建 / 编辑）：shadcn 输入组件 + 统一标题栏
 import 'package:flutter/material.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 
+import '../../design/widgets/app_app_bar.dart';
 import 'note_database.dart';
 import 'note.dart';
 
@@ -70,41 +73,34 @@ class _NoteEditPageState extends State<NoteEditPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(_isEditing ? '编辑笔记' : '新建笔记'),
+      appBar: AppAppBar(
+        title: _isEditing ? '编辑笔记' : '新建笔记',
         actions: [
           if (_isEditing)
-            IconButton(
+            ShadIconButton(
+              icon: const Icon(LucideIcons.trash2),
               onPressed: _delete,
-              icon: const Icon(Icons.delete_outline),
             ),
-          TextButton(onPressed: _save, child: const Text('保存')),
+          ShadButton.link(
+            onPressed: _save,
+            child: const Text('保存'),
+          ),
         ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            TextField(
+            ShadInput(
               controller: _titleCtrl,
-              decoration: const InputDecoration(
-                hintText: '标题',
-                border: OutlineInputBorder(),
-              ),
+              placeholder: const Text('标题'),
               textInputAction: TextInputAction.next,
             ),
             const SizedBox(height: 12),
             Expanded(
-              child: TextField(
+              child: ShadTextarea(
                 controller: _contentCtrl,
-                decoration: const InputDecoration(
-                  hintText: '写下你的想法或需求...',
-                  border: OutlineInputBorder(),
-                  alignLabelWithHint: true,
-                ),
-                maxLines: null,
-                keyboardType: TextInputType.multiline,
-                textAlignVertical: TextAlignVertical.top,
+                placeholder: const Text('写下你的想法或需求...'),
               ),
             ),
           ],

@@ -53,9 +53,13 @@ abstract class AppRadius {
 }
 
 /// 字阶（DESIGN.md · Typography，系统默认字体，不引入自定义字体）
+///
+/// 每档都显式携带颜色：避免 copyWith 后 color 丢失导致
+/// 文字颜色跟随错误的 fallback 链（出现白底白字）。
 abstract class AppTypography {
   /// h1：页面标题（1.75rem/700），每页至多一个
   static const TextStyle h1 = TextStyle(
+    color: AppColors.onSurface,
     fontSize: 28,
     fontWeight: FontWeight.w700,
     height: 1.25,
@@ -63,13 +67,15 @@ abstract class AppTypography {
 
   /// body-md：正文与列表主文本（1rem/400）
   static const TextStyle bodyMd = TextStyle(
+    color: AppColors.onSurface,
     fontSize: 16,
     fontWeight: FontWeight.w400,
     height: 1.5,
   );
 
-  /// label-sm：辅助文字/标签/状态提示（0.8125rem/500）
+  /// label-sm：辅助文字/标签/状态提示（0.8125rem/500，次要信息专用）
   static const TextStyle labelSm = TextStyle(
+    color: AppColors.secondary,
     fontSize: 13,
     fontWeight: FontWeight.w500,
     height: 1.4,

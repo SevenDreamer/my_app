@@ -4,6 +4,7 @@
 //! （机器人眼睛/记事本）以全屏 push 进入，不受底部栏影响。
 //! 中间位置等想好用途后替换 _ComingSoonTab 即可。
 import 'package:flutter/material.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 
 import '../../design/tokens.dart';
 import '../features_page.dart';
@@ -37,19 +38,19 @@ class _HomePageState extends State<HomePage> {
         onDestinationSelected: (i) => setState(() => _index = i),
         destinations: const [
           NavigationDestination(
-            icon: Icon(Icons.widgets_outlined),
-            selectedIcon: Icon(Icons.widgets),
+            icon: Icon(LucideIcons.layoutGrid),
+            selectedIcon: Icon(LucideIcons.layoutGrid),
             label: '功能',
           ),
           // 中间占位：暂无标签的图标钮，用途待定
           NavigationDestination(
-            icon: Icon(Icons.add_circle_outline),
-            selectedIcon: Icon(Icons.add_circle),
+            icon: Icon(LucideIcons.circlePlus),
+            selectedIcon: Icon(LucideIcons.circlePlus),
             label: '',
           ),
           NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person),
+            icon: Icon(LucideIcons.user),
+            selectedIcon: Icon(LucideIcons.user),
             label: '我',
           ),
         ],
@@ -70,10 +71,19 @@ class _ComingSoonTab extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
-              Icons.construction_outlined,
-              size: 48,
-              color: AppColors.secondary,
+            Container(
+              width: 64,
+              height: 64,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.10),
+                borderRadius: BorderRadius.circular(AppRadius.lg),
+              ),
+              child: const Icon(
+                LucideIcons.hardHat,
+                size: 32,
+                color: AppColors.primary,
+              ),
             ),
             const SizedBox(height: AppSpacing.md),
             Text(

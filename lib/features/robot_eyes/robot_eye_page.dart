@@ -6,7 +6,9 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 
+import '../../design/widgets/app_app_bar.dart';
 import 'expressions.dart';
 import 'eyes/eye_renderer.dart';
 import 'eyes/led_dot_renderer.dart';
@@ -101,21 +103,15 @@ class _RobotEyePageState extends State<RobotEyePage> {
     return _keyboard.build(
       Scaffold(
         backgroundColor: Colors.black,
-        // 顶部标题栏：桌面端没有侧滑返回手势，靠它回上一层
-        appBar: AppBar(
+        // 顶部标题栏：黑底个性页面（AppAppBar 自动带返回按钮）
+        appBar: AppAppBar(
+          title: '机器人眼睛',
           backgroundColor: Colors.black,
-          surfaceTintColor: Colors.transparent,
-          elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            tooltip: '返回',
-            onPressed: () => Navigator.of(context).maybePop(),
-          ),
-          title: const Text('机器人眼睛'),
+          foregroundColor: Colors.white,
           actions: [
             IconButton(
               tooltip: '切换风格（当前：${_styles[_styleIndex].name}）',
-              icon: const Icon(Icons.palette_outlined),
+              icon: const Icon(LucideIcons.palette),
               onPressed: _switchStyle,
             ),
           ],

@@ -48,7 +48,12 @@ components:
     backgroundColor: "{colors.surface}"
     textColor: "{colors.on-surface}"
     typography: "{typography.body-md}"
-    padding: 12px
+    padding: "12px 16px"
+  icon-block:
+    backgroundColor: "#E8EDFB"
+    textColor: "{colors.primary}"
+    rounded: 8px
+    size: 40px
   input-field:
     backgroundColor: "{colors.neutral}"
     textColor: "{colors.on-surface}"
@@ -116,13 +121,25 @@ components:
 
 ## Components
 
-- `button-primary`：页面上唯一的高强调动作。一屏至多一个主按钮，
-  其余动作用次级样式（文字按钮/图标按钮）。
-- `card`：用于成组信息的容器；能用列表行就不用卡片。
-- `list-tile`：功能入口与内容行的默认形态（图标 + 标题 + 副标题 + 箭头）。
-- `input-field`：输入框用 neutral 底 + md 圆角，聚焦态描边用 primary。
+**组件层实现 = shadcn_ui**（`shadcn_ui` 包，Agent Skill 文档在 `.agents/skills/`）：
+颜色仍从本文件的 tokens 注入（`AppTheme.shadLight` 把 primary/foreground/background 映射进
+`ShadZincColorScheme`），Material 组件经 `ShadApp.custom` 的映射层与 shadcn 同源。
+shadcn 未提供的"壳"（标题栏/列表行/分节）用 `lib/design/widgets/` 自建，同样只吃 tokens。
+
+- `button-primary` → `ShadButton`（primary 变体）：一屏唯一的高强调动作，
+  其余动作用 `.secondary` / `.outline` / `.ghost` / `.link` 弱化变体。
+- `card` → `ShadCard`：成组信息容器；能用列表行就不用卡片。
+- `list-tile` → 自建 `AppListTile`：图标块 + 标题 + 副标题 + 箭头，
+  悬停/按压反馈齐全（shadcn 无独立列表行组件）。
+- `icon-block`：列表行与身份区的图标底色块（primary 淡底 + primary 图标），
+  是"精致感"的统一手法——所有入口图标都装进它。
+- `input-field` → `ShadInput` / `ShadTextarea`：聚焦描边走 primary。
+- 图标 → **Lucide**（`LucideIcons.*`，经 shadcn 导出）：全应用统一，
+  不再使用 Material Icons 字体（避免图标字形渲染问题）。
 - `text-caption`：辅助文字统一走 secondary 色 + label-sm 字号。
-- `status-error`：错误提示条/错误文本的样式来源。
+- `status-error` → `ShadButton.destructive` / `ShadTheme.colorScheme.destructive`。
+- **交互态**：hover = 主文字色 4% 覆盖，pressed = 8% 覆盖（派生色，不引入新色）；
+  所有可点击容器（列表行、卡片、按钮）必须带悬停/按压反馈。
 
 ## Do's and Don'ts
 

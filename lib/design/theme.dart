@@ -1,35 +1,36 @@
-//! 全局主题：把设计 tokens 灌进 Flutter ThemeData 的唯一入口
+//! 主题：shadcn 主题为视觉唯一来源，Material 组件经映射层继承它
 //!
-//! 主题 = 公共层（标题栏/按钮/卡片/列表/输入框）的基调来源；
-//! 个性页面（如机器人眼睛）可在自己画布内自由表达，但公共组件遵循本主题。
+//! 结构（参考 shadcn_ui 的 Material & Cuperertino interop 指南）：
+//!   ShadThemeData（shadcn 色系 + DESIGN.md tokens 覆盖）
+//!     → ShadApp 自动生成 Material ThemeData（色系联动）
+//!       → AppTheme.materialize 叠加公共层覆盖（AppBar/导航/字阶）
+//!   Material 组件与 shadcn 组件自此同源，不再有两套配色。
 import 'package:flutter/material.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 
 import 'tokens.dart';
 
 class AppTheme {
   AppTheme._();
 
-  /// 简洁现代 · 亮色主题（当前唯一主题）
-  static ThemeData get light {
-    const colorScheme = ColorScheme(
-      brightness: Brightness.light,
-      primary: AppColors.primary,
-      onPrimary: AppColors.onPrimary,
-      secondary: AppColors.secondary,
-      onSecondary: AppColors.onPrimary,
-      error: AppColors.error,
-      onError: AppColors.onPrimary,
-      surface: AppColors.surface,
-      onSurface: AppColors.onSurface,
-    );
+  /// shadcn 亮色主题：zinc 中性系打底 + DESIGN.md 的强调色/文字色覆盖
+  static ShadThemeData get shadLight => ShadThemeData(
+        brightness: Brightness.light,
+        colorScheme: const ShadZincColorScheme.light(
+          primary: AppColors.primary, // Tool Blue：交互强调色
+          foreground: AppColors.onSurface, // 主文字
+          background: AppColors.neutral, // 页面底色
+          secondary: AppColors.secondary, // 次要文字/非激活
+          destructive: AppColors.error, // 错误与危险
+        ),
+      );
 
-    final ThemeData base = ThemeData(
-      useMaterial3: true,
-      colorScheme: colorScheme,
-    );
-
+  /// 在 shadcn 生成的 Material 基础主题之上，叠加公共层组件覆盖。
+  ///
+  /// base 来自 `Theme.of(context)`（ShadApp 已把 shadcn 色系映射过去），
+  /// 这里只补 shadcn 映射不到的部分：AppBar、底部导航、字阶、FAB。
+  static ThemeData materialize(ThemeData base) {
     return base.copyWith(
-      scaffoldBackgroundColor: AppColors.neutral,
       textTheme: base.textTheme.copyWith(
         titleLarge: AppTypography.h1,
         bodyMedium: AppTypography.bodyMd,
@@ -43,55 +44,6 @@ class AppTheme {
         surfaceTintColor: Colors.transparent,
         centerTitle: false,
       ),
-      // 卡片：白卡浮在灰底上（纯色差分层），不用阴影（DESIGN.md · Elevation）
-      cardTheme: CardThemeData(
-        color: AppColors.surface,
-        elevation: 0,
-        margin: EdgeInsets.zero,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadius.lg),
-        ),
-      ),
-      // 列表行：图标与文字用主文字色
-      listTileTheme: const ListTileThemeData(
-        iconColor: AppColors.onSurface,
-        textColor: AppColors.onSurface,
-      ),
-      // 输入框：neutral 填充 + md 圆角，聚焦描边 primary（DESIGN.md · Components）
-      inputDecorationTheme: InputDecorationTheme(
-        filled: true,
-        fillColor: AppColors.neutral,
-        contentPadding: const EdgeInsets.all(12),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
-        ),
-      ),
-      // 主按钮：一屏至多一个（DESIGN.md · Components）
-      filledButtonTheme: FilledButtonThemeData(
-        style: FilledButton.styleFrom(
-          backgroundColor: AppColors.primary,
-          foregroundColor: AppColors.onPrimary,
-          padding: const EdgeInsets.all(12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadius.md),
-          ),
-        ),
-      ),
-      // 分隔线：从主文字色派生的极淡线（不引入新颜色）
-      dividerTheme: DividerThemeData(
-        color: AppColors.onSurface.withValues(alpha: 0.08),
-        thickness: 1,
-      ),
-      // 浮动按钮跟随强调色
-      floatingActionButtonTheme: const FloatingActionButtonThemeData(
-        backgroundColor: AppColors.primary,
-        foregroundColor: AppColors.onPrimary,
-      ),
       // 底部导航：表面白底，选中用强调色 + 淡染指示器
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: AppColors.surface,
@@ -102,6 +54,16 @@ class AppTheme {
               : const IconThemeData(color: AppColors.secondary),
         ),
         labelTextStyle: const WidgetStatePropertyAll(AppTypography.labelSm),
+      ),
+      // 浮动按钮跟随强调色
+      floatingActionButtonTheme: const FloatingActionButtonThemeData(
+        backgroundColor: AppColors.primary,
+        foregroundColor: AppColors.onPrimary,
+      ),
+      // 分隔线：从主文字色派生的极淡线（不引入新颜色）
+      dividerTheme: DividerThemeData(
+        color: AppColors.onSurface.withValues(alpha: 0.08),
+        thickness: 1,
       ),
     );
   }

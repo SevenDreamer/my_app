@@ -1,5 +1,10 @@
+//! 记事本：需求 / 想法记录列表
 import 'package:flutter/material.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 
+import '../../design/tokens.dart';
+import '../../design/widgets/app_app_bar.dart';
+import '../../design/widgets/app_list_tile.dart';
 import 'note_database.dart';
 import 'note.dart';
 import 'note_edit_page.dart';
@@ -51,66 +56,71 @@ class _NotesListPageState extends State<NotesListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('记事本')),
+      appBar: const AppAppBar(title: '记事本'),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _openEdit(),
-        child: const Icon(Icons.add),
+        child: const Icon(LucideIcons.plus),
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _notes.isEmpty
-              ? const Center(
+              ? Center(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.note_add_outlined,
-                          size: 64, color: Colors.grey),
-                      SizedBox(height: 12),
-                      Text('还没有笔记\n点击右下角 + 记录你的想法',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: Colors.grey)),
+                      Container(
+                        width: 64,
+                        height: 64,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.10),
+                          borderRadius:
+                              BorderRadius.circular(AppRadius.lg),
+                        ),
+                        child: const Icon(
+                          LucideIcons.filePlus2,
+                          size: 32,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      Text(
+                        '还没有笔记\n点击右下角 + 记录你的想法',
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.labelSmall,
+                      ),
                     ],
                   ),
                 )
-              : ListView.separated(
-                  itemCount: _notes.length,
-                  separatorBuilder: (BuildContext context, int index) =>
-                      const Divider(height: 1),
-                  itemBuilder: (context, index) {
-                    final note = _notes[index];
-                    return Dismissible(
-                      key: ValueKey(note.id),
-                      direction: DismissDirection.endToStart,
-                      background: Container(
-                        color: Colors.red,
-                        alignment: Alignment.centerRight,
-                        padding: const EdgeInsets.only(right: 20),
-                        child: const Icon(Icons.delete_outline,
-                            color: Colors.white),
+              : ListView(
+                  children: [
+                    for (final note in _notes)
+                      Dismissible(
+                        key: ValueKey(note.id),
+                        direction: DismissDirection.endToStart,
+                        background: Container(
+                          color: AppColors.error,
+                          alignment: Alignment.centerRight,
+                          padding: const EdgeInsets.only(right: 20),
+                          child: const Icon(LucideIcons.trash2,
+                              color: AppColors.onPrimary),
+                        ),
+                        onDismissed: (direction) async {
+                          await NoteDatabase.instance.delete(note.id!);
+                          _refresh();
+                        },
+                        child: AppListTile(
+                          icon: LucideIcons.fileText,
+                          title: note.title.isEmpty ? '（无标题）' : note.title,
+                          subtitle: note.content,
+                          trailing: Text(
+                            _fmtTime(note.updatedAt),
+                            style: Theme.of(context).textTheme.labelSmall,
+                          ),
+                          onTap: () => _openEdit(note),
+                        ),
                       ),
-                      onDismissed: (direction) async {
-                        await NoteDatabase.instance.delete(note.id!);
-                        _refresh();
-                      },
-                      child: ListTile(
-                        title: Text(
-                          note.title.isEmpty ? '（无标题）' : note.title,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        subtitle: Text(
-                          note.content,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        trailing: Text(
-                          _fmtTime(note.updatedAt),
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                        onTap: () => _openEdit(note),
-                      ),
-                    );
-                  },
+                  ],
                 ),
     );
   }

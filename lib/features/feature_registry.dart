@@ -7,7 +7,9 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 
+import 'device_link/device_link_page.dart';
 import 'notes/notes_list_page.dart';
 import 'robot_eyes/robot_eye_page.dart';
 
@@ -72,15 +74,26 @@ class FeatureEntry {
 /// 通信/组网/分享在移动端为主战场，桌面端承载管理与控制类能力。
 final List<FeatureEntry> kFeatures = [
   FeatureEntry(
+    id: 'device_link',
+    icon: LucideIcons.network,
+    title: '设备互联',
+    subtitle: '控制端 · 被控端 · 多链路组网',
+    builder: (_) => const DeviceLinkPage(),
+    // 通信组网以移动端为主战场（VISION · 平台能力矩阵）
+    desktop: PlatformSupport.limited,
+    limitedNote: '通信功能以移动端为主',
+    mobile: PlatformSupport.full,
+  ),
+  FeatureEntry(
     id: 'robot_eyes',
-    icon: Icons.visibility_outlined,
+    icon: LucideIcons.eye,
     title: '机器人眼睛',
     subtitle: '表情 · 注视 · 眼睛动画',
     builder: (_) => const RobotEyePage(),
   ),
   FeatureEntry(
     id: 'notes',
-    icon: Icons.edit_note,
+    icon: LucideIcons.notebookPen,
     title: '记事本',
     subtitle: '记录想法与需求',
     builder: (_) => const NotesListPage(),
