@@ -4,27 +4,31 @@
 //! 修改视觉基调时：先改 DESIGN.md，再同步这里。
 import 'package:flutter/material.dart';
 
-/// 色彩（DESIGN.md · Colors）
+/// 色彩（DESIGN.md · Colors，与 shadcn zinc 默认值逐一对齐）
+///
+/// shadcn_ui 组件直接用 ShadZincColorScheme 默认值（零覆盖），
+/// 本类只为 Material 侧与自建壳供值——两侧同属一个调色板。
 abstract class AppColors {
-  /// Tool Blue：唯一强调色，仅用于交互（主按钮/选中/链接/焦点）
-  static const Color primary = Color(0xFF1D4ED8);
+  /// 唯一强调色：shadcn zinc-900 近黑（黑即强调，不使用彩色强调）
+  static const Color primary = Color(0xFF18181B);
 
-  /// 强调色之上的文字（白）
-  static const Color onPrimary = Color(0xFFFFFFFF);
+  /// 强调色之上的文字：shadcn primaryForeground
+  static const Color onPrimary = Color(0xFFFAFAFA);
 
-  /// 次要文字与非激活图标
-  static const Color secondary = Color(0xFF64748B);
+  /// 次要文字与非激活图标：shadcn mutedForeground
+  static const Color secondary = Color(0xFF71717A);
 
-  /// 页面底色（近白浅灰，让白色卡片浮出来）
-  static const Color neutral = Color(0xFFF8FAFC);
+  /// 页面底色：shadcn background（纯白，分层靠 1px 描边）
+  static const Color neutral = Color(0xFFFFFFFF);
 
   /// 卡片/输入区/弹层表面
   static const Color surface = Color(0xFFFFFFFF);
 
-  /// 主文字与主要图标（近黑不纯黑）
-  static const Color onSurface = Color(0xFF0F172A);
+  /// 主文字与主要图标：shadcn zinc-950 近黑
+  static const Color onSurface = Color(0xFF09090B);
 
-  /// 错误与危险操作，绝不装饰性使用
+  /// 错误与危险操作（文字/图标档 red-600，白底过 AA；
+  /// 危险按钮底色由 shadcn destructive 提供）
   static const Color error = Color(0xFFDC2626);
 }
 

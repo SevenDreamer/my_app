@@ -58,6 +58,11 @@
 
 ## 未排期想法池
 
+- ⌘K **命令面板**（shadcn `command` 组件的桌面形态）：全局快捷键唤起，
+  模糊搜索功能直达——桌面工具箱的效率杀器
+- **kbd 快捷键提示组件**：机器人眼睛页（1~8 表情/空格）等键盘操作的标准提示样式
+- **暗色主题**：照 shadcn dark-mode 指南切（zinc dark 值在 shadcn_ui 包内自带），
+  需要 DESIGN.md 增补暗色组 + theme.dart 出 `shadDark`——参考 https://ui.shadcn.com/docs/dark-mode
 - Dart primary constructors 语法迁移（门槛：pubspec sdk 下限升 `>=3.13.0` + `.fvmrc`
   的 Flutter 3.41.9/Dart 3.11 升到 3.47+/Dart 3.13，否则语法不可用；
   见技能 `dart-use-primary-constructors`，首个目标类 `_HubSink`）

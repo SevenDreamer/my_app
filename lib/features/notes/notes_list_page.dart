@@ -106,7 +106,16 @@ class _NotesListPageState extends State<NotesListPage> {
                     child: const Icon(LucideIcons.trash2,
                         color: AppColors.onPrimary),
                   ),
-                  onDismissed: (direction) => _viewModel.delete(note.id!),
+                  onDismissed: (direction) {
+                    final id = note.id;
+                    if (id != null) _viewModel.delete(id);
+                    ShadSonner.of(context).show(
+                      ShadToast(
+                        id: DateTime.now().microsecondsSinceEpoch,
+                        title: const Text('已删除'),
+                      ),
+                    );
+                  },
                   child: AppListTile(
                     icon: LucideIcons.fileText,
                     title: note.title.isEmpty ? '（无标题）' : note.title,

@@ -1,13 +1,13 @@
 ---
 version: alpha
 name: my_app
-description: 简洁现代的个人工具箱。克制的中性底色、单一强调色、统一的圆角与间距——工具感优先，装饰最少化。
+description: 简洁现代的个人工具箱。shadcn zinc 近单色（黑白灰）基调、无彩色强调、统一的圆角与间距——工具感优先，装饰最少化。
 colors:
-  primary: "#1D4ED8"
-  secondary: "#64748B"
-  neutral: "#F8FAFC"
+  primary: "#18181B"
+  secondary: "#71717A"
+  neutral: "#FFFFFF"
   surface: "#FFFFFF"
-  on-surface: "#0F172A"
+  on-surface: "#09090B"
   error: "#DC2626"
 typography:
   h1:
@@ -36,7 +36,7 @@ spacing:
 components:
   button-primary:
     backgroundColor: "{colors.primary}"
-    textColor: "#FFFFFF"
+    textColor: "#FAFAFA"
     rounded: "{rounded.md}"
     padding: 12px
   card:
@@ -50,7 +50,7 @@ components:
     typography: "{typography.body-md}"
     padding: "12px 16px"
   icon-block:
-    backgroundColor: "#E8EDFB"
+    backgroundColor: "#E8E8E8"
     textColor: "{colors.primary}"
     rounded: 8px
     size: 40px
@@ -78,19 +78,25 @@ components:
 「工具感优先，装饰最少化」——界面安静、信息密度适中、交互反馈清晰，
 让内容和功能说话，而不是视觉效果。
 
+视觉体系与 **shadcn/ui（zinc 色系）同源**：黑白灰近单色、无彩色强调。
 风格统一与简约是硬要求：任何新页面、新组件都应从本文件取值，
 不允许出现"随手写的颜色/圆角"。个别功能页面（如机器人眼睛）可以在
 自己的画布内做个性化表达，但导航、按钮、列表等公共层必须遵循本规范。
 
 ## Colors
 
-- **Primary (#1D4ED8):** "Tool Blue"——唯一强调色，只用于交互：主按钮、
-  选中态、链接、焦点。不要大面积铺色。
-- **Secondary (#64748B):** 次要文字与非激活图标（描述文本、时间戳、占位符）。
-- **Neutral (#F8FAFC):** 页面底色，接近白的浅灰，让白色卡片能浮出来。
-- **Surface (#FFFFFF):** 卡片、输入区、弹层的表面色。
-- **On-surface (#0F172A):** 主文字与主要图标，近黑但不纯黑。
-- **Error (#DC2626):** 仅用于错误与危险操作，绝不装饰性使用。
+全组色值与 `ShadZincColorScheme.light()` 默认值逐一对齐（shadcn 是源头，本文件是登记处）：
+
+- **Primary (#18181B):** shadcn zinc-900 近黑——唯一强调色，只用于交互：
+  主按钮、选中态、焦点环。**不使用彩色强调**（黑即强调）。
+- **Secondary (#71717A):** 次要文字与非激活图标（shadcn mutedForeground）。
+- **Neutral (#FFFFFF):** 页面底色（shadcn background，纯白）。
+- **Surface (#FFFFFF):** 卡片、输入区的表面色——与页面底同色，
+  **分层改由 1px 描边（border #E4E4E7）+ 字重表达**（shadcn 的分层策略）。
+- **On-surface (#09090B):** 主文字与主要图标（shadcn zinc-950 近黑）。
+- **Border (#E4E4E7):** 卡片与容器描边（shadcn border）。
+- **Error (#DC2626):** 仅用于错误与危险操作的**文字/图标**（red-600 档，
+  白底 4.5:1 过 AA）；危险按钮底色由 shadcn destructive 提供（red-500）。
 
 ## Typography
 
@@ -105,12 +111,12 @@ components:
 
 - 采用 **8pt 网格**：`spacing.sm=8px`（元素内间隙）、`md=16px`（组件间距）、
   `lg=24px`（区块间距）。
-- 页面左右留白 16px；列表类页面用整宽行 + 分隔线（1px，中性色），不套卡片。
+- 页面左右留白 16px；列表类页面用整宽行 + 分隔线（1px，border 色），不套卡片。
 - 导航层级浅：列表 → 详情/工具页，两级为止，桌面端工具页带返回标题栏。
 
 ## Elevation & Depth
 
-**克制**：默认无阴影。层级靠色差（neutral 底 vs surface 卡片）表达；
+**克制**：默认无阴影。层级靠 1px 描边（surface 卡片的 border）与字重表达；
 仅弹层（菜单、对话框）允许一档轻阴影。不使用玻璃拟态、渐变、发光。
 
 ## Shapes
@@ -122,17 +128,18 @@ components:
 ## Components
 
 **组件层实现 = shadcn_ui**（`shadcn_ui` 包，Agent Skill 文档在 `.agents/skills/`）：
-颜色仍从本文件的 tokens 注入（`AppTheme.shadLight` 把 primary/foreground/background 映射进
-`ShadZincColorScheme`），Material 组件经 `ShadApp.custom` 的映射层与 shadcn 同源。
+shadcn 组件直接使用 `ShadZincColorScheme` **完全默认值（零覆盖）**；
+Material 组件经 `ShadApp.custom` 映射层与 shadcn 同源，
+本文件 tokens 只为 Material 侧与自建壳供值（值与 shadcn 同一调色板）。
 shadcn 未提供的"壳"（标题栏/列表行/分节）用 `lib/design/widgets/` 自建，同样只吃 tokens。
 
-- `button-primary` → `ShadButton`（primary 变体）：一屏唯一的高强调动作，
+- `button-primary` → `ShadButton`（primary 变体）：黑底白字，一屏唯一的高强调动作，
   其余动作用 `.secondary` / `.outline` / `.ghost` / `.link` 弱化变体。
-- `card` → `ShadCard`：成组信息容器；能用列表行就不用卡片。
+- `card` → `ShadCard`：白卡 + 1px border 描边；成组信息容器，能用列表行就不用卡片。
 - `list-tile` → 自建 `AppListTile`：图标块 + 标题 + 副标题 + 箭头，
   悬停/按压反馈齐全（shadcn 无独立列表行组件）。
-- `icon-block`：列表行与身份区的图标底色块（primary 淡底 + primary 图标），
-  是"精致感"的统一手法——所有入口图标都装进它。
+- `icon-block`：列表行与身份区的图标底色块（primary 10% 淡底 = #E8E8E8 灰底 +
+  primary 图标），是入口图标的统一容器。
 - `input-field` → `ShadInput` / `ShadTextarea`：聚焦描边走 primary。
 - 图标 → **Lucide**（`LucideIcons.*`，经 shadcn 导出）：全应用统一，
   不再使用 Material Icons 字体（避免图标字形渲染问题）。
@@ -145,7 +152,7 @@ shadcn 未提供的"壳"（标题栏/列表行/分节）用 `lib/design/widgets/
 
 - **Do** 从本文件取色取值；新组件先在 `components:` 登记再使用。
 - **Do** 保持留白与对齐的一致性（8pt 网格），信息层级靠字重与留白拉开。
-- **Don't** 引入第二种强调色；需要弱强调时用透明度/字重，不换色相。
+- **Don't** 引入彩色强调色（本体系以黑为强调）；需要弱强调时用透明度/字重，不换色相。
 - **Don't** 使用大面积渐变、发光、重阴影、动效装饰——动画只用于状态过渡
   （150~300ms，ease-out）。
 - **Don't** 在公共层（导航/按钮/列表）使用功能页的个性化视觉语言。

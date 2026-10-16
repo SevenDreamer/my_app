@@ -56,13 +56,27 @@ class _NoteEditPageState extends State<NoteEditPage> {
       title: _titleCtrl.text.trim(),
       content: _contentCtrl.text.trim(),
     );
-    if (mounted) Navigator.of(context).pop();
+    if (!mounted) return;
+    ShadSonner.of(context).show(
+      ShadToast(
+        id: DateTime.now().microsecondsSinceEpoch,
+        title: const Text('已保存'),
+      ),
+    );
+    Navigator.of(context).pop();
   }
 
   /// 删除：命令交给 ViewModel
   Future<void> _delete() async {
     await widget.viewModel.delete(widget.note!.id!);
-    if (mounted) Navigator.of(context).pop();
+    if (!mounted) return;
+    ShadSonner.of(context).show(
+      ShadToast(
+        id: DateTime.now().microsecondsSinceEpoch,
+        title: const Text('已删除'),
+      ),
+    );
+    Navigator.of(context).pop();
   }
 
   @override

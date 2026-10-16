@@ -1,7 +1,7 @@
-//! 主题：shadcn 主题为视觉唯一来源，Material 组件经映射层继承它
+//! 主题：shadcn 组件直接用 zinc 默认值，Material 组件经映射层与其同源
 //!
 //! 结构（参考 shadcn_ui 的 Material & Cuperertino interop 指南）：
-//!   ShadThemeData（shadcn 色系 + DESIGN.md tokens 覆盖）
+//!   ShadThemeData（ShadZincColorScheme 完全默认，零覆盖）
 //!     → ShadApp 自动生成 Material ThemeData（色系联动）
 //!       → AppTheme.materialize 叠加公共层覆盖（AppBar/导航/字阶）
 //!   Material 组件与 shadcn 组件自此同源，不再有两套配色。
@@ -13,16 +13,13 @@ import 'tokens.dart';
 class AppTheme {
   AppTheme._();
 
-  /// shadcn 亮色主题：zinc 中性系打底 + DESIGN.md 的强调色/文字色覆盖
+  /// shadcn 亮色主题：**完全采用 zinc 默认值（零覆盖）**。
+  ///
+  /// shadcn 组件以包内调色板为唯一真源；Material 侧由 [materialize]
+  /// 从 tokens 供值（tokens 的值与 zinc 同一调色板）。
   static ShadThemeData get shadLight => ShadThemeData(
         brightness: Brightness.light,
-        colorScheme: const ShadZincColorScheme.light(
-          primary: AppColors.primary, // Tool Blue：交互强调色
-          foreground: AppColors.onSurface, // 主文字
-          background: AppColors.neutral, // 页面底色
-          secondary: AppColors.secondary, // 次要文字/非激活
-          destructive: AppColors.error, // 错误与危险
-        ),
+        colorScheme: const ShadZincColorScheme.light(),
       );
 
   /// 在 shadcn 生成的 Material 基础主题之上，叠加公共层组件覆盖。
