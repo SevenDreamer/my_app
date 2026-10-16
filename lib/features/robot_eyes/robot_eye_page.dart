@@ -99,6 +99,9 @@ class _RobotEyePageState extends State<RobotEyePage> {
   @override
   Widget build(BuildContext context) {
     final double screenW = MediaQuery.of(context).size.width;
+    // 响应式约束（官方 responsive 技能）：小屏按 86% 比例取宽，
+    // 宽屏封顶 960，避免大窗口下眼睛被撑成巨物
+    final double eyeWidth = (screenW * 0.86).clamp(240.0, 960.0);
     // 键盘焦点包住整页（含标题栏）：点完按钮后数字键快捷键仍然有效
     return _keyboard.build(
       Scaffold(
@@ -129,8 +132,8 @@ class _RobotEyePageState extends State<RobotEyePage> {
             ),
             child: Center(
               child: SizedBox(
-                width: screenW * 0.86,
-                height: screenW * 0.34,
+                width: eyeWidth,
+                height: eyeWidth * 0.40, // 保持原 0.34/0.86 的宽高比
                 child: LedEyes(
                   lookTarget: _hub.current,
                   type: _type,

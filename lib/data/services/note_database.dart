@@ -1,7 +1,7 @@
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
-import 'note.dart';
+import '../models/note.dart';
 
 /// 笔记本地数据库（SQLite），单例模式
 class NoteDatabase {

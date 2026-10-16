@@ -1,14 +1,23 @@
-//! 笔记编辑页（新建 / 编辑）：shadcn 输入组件 + 统一标题栏
+//! 笔记编辑页（新建 / 编辑）：纯 View（MVVM）
+//!
+//! 保存/删除经 [NotesViewModel] 下发，页面自身不接触数据服务。
 import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
+import '../../data/models/note.dart';
 import '../../design/widgets/app_app_bar.dart';
-import 'note_database.dart';
-import 'note.dart';
+import 'notes_view_model.dart';
 
 /// 笔记编辑页（新建 / 编辑）
 class NoteEditPage extends StatefulWidget {
-  const NoteEditPage({super.key, this.note});
+  const NoteEditPage({
+    super.key,
+    required this.viewModel,
+    this.note,
+  });
+
+  /// 共享的 ViewModel（与列表页同一实例）
+  final NotesViewModel viewModel;
 
   /// 传入则为编辑模式，null 则为新建
   final Note? note;
@@ -38,35 +47,21 @@ class _NoteEditPageState extends State<NoteEditPage> {
     super.dispose();
   }
 
+  /// 保存：命令交给 ViewModel（内部处理空内容与时间戳）
   Future<void> _save() async {
     if (_saving) return;
     setState(() => _saving = true);
-
-    final title = _titleCtrl.text.trim();
-    final content = _contentCtrl.text.trim();
-
-    // 空内容直接返回，不保存
-    if (title.isEmpty && content.isEmpty) {
-      if (mounted) Navigator.of(context).pop();
-      return;
-    }
-
-    final now = DateTime.now();
-    if (_isEditing) {
-      await NoteDatabase.instance.update(
-        widget.note!.copyWith(title: title, content: content, updatedAt: now),
-      );
-    } else {
-      await NoteDatabase.instance.insert(
-        Note(title: title, content: content, createdAt: now, updatedAt: now),
-      );
-    }
-
+    await widget.viewModel.save(
+      existing: widget.note,
+      title: _titleCtrl.text.trim(),
+      content: _contentCtrl.text.trim(),
+    );
     if (mounted) Navigator.of(context).pop();
   }
 
+  /// 删除：命令交给 ViewModel
   Future<void> _delete() async {
-    await NoteDatabase.instance.delete(widget.note!.id!);
+    await widget.viewModel.delete(widget.note!.id!);
     if (mounted) Navigator.of(context).pop();
   }
 

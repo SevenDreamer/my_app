@@ -58,6 +58,9 @@
 
 ## 未排期想法池
 
+- Dart primary constructors 语法迁移（门槛：pubspec sdk 下限升 `>=3.13.0` + `.fvmrc`
+  的 Flutter 3.41.9/Dart 3.11 升到 3.47+/Dart 3.13，否则语法不可用；
+  见技能 `dart-use-primary-constructors`，首个目标类 `_HubSink`）
 - 数据库管理工具（浏览 / 查询 / 备份本地库）
 - NFC 触碰配对（碰一碰建连）
 - 更多工具：时钟、天气、系统监控、剪贴板同步
