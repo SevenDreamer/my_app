@@ -9,6 +9,8 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import '../design/tokens.dart';
 import 'features_page.dart';
 import 'profile_page.dart';
+import 'update/update_notice_dialog.dart';
+import 'update/update_service.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -20,6 +22,22 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   /// 当前选中的 tab
   int _index = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkForUpdate();
+  }
+
+  /// 启动 3 秒后静默检查更新：无授权 / 无新版 / 网络问题 / iOS 全部静默，
+  /// 仅在发现新版时弹 shadcn 提示框（v1 提示型，见 docs/ROADMAP.md）。
+  Future<void> _checkForUpdate() async {
+    await Future<void>.delayed(const Duration(seconds: 3));
+    if (!mounted) return;
+    final info = await UpdateService().check();
+    if (!mounted || info == null) return;
+    await showUpdateNotice(context, info);
+  }
 
   @override
   Widget build(BuildContext context) {

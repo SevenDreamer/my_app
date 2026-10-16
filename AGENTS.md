@@ -52,6 +52,17 @@ flutter analyze                          # 必须 No issues found
 npx -y -p @google/design.md designmd lint DESIGN.md   # DESIGN.md 变更时：0 errors / 0 warnings
 ```
 
+## 版本与发布
+
+- **版本单一来源 = `pubspec.yaml` 的 `version: X.Y.Z+N`**（semver：
+  MAJOR 破结构 / MINOR 新功能 / PATCH 修 bug；`+N` 每次发布自增）。
+- **发布三件套必须同号**：pubspec bump → `git tag vX.Y.Z` → GitHub Release
+  （附构建产物）；历史 `dev-v3` 式标签不再使用。
+- CHANGELOG 由 `git log v旧..v新 --oneline` 生成（commit 已遵循 feat:/fix:/refactor:）。
+- 自动更新：**私仓分发走 GitHub Device Flow**（用户设备授权自己的账号，
+  二进制内禁止内置任何 token）；iOS 明确不支持自动更新；
+  检查服务在 `lib/app/update/`。
+
 ## 环境要点
 
 - 工具链：本机 `D:\flutter` **3.47.7**（Dart 3.13.5）；`.fvmrc` 锁 **3.41.9**（Dart 3.11）。

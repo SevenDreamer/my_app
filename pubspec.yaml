@@ -43,6 +43,10 @@ dependencies:
   # 本地化（shadcn + Material 组件的中文提示等）
   flutter_localizations:
     sdk: flutter
+  # 自动更新（v1 提示型）：HTTP 请求 / Device Flow 凭证存储 / 打开浏览器
+  http: ^1.6.0
+  flutter_secure_storage: ^11.2.0
+  url_launcher: ^6.3.3
 
 dev_dependencies:
   flutter_test:
