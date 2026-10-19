@@ -1,10 +1,12 @@
 //! my_app 桌宠（pet）：独立 Rust/GPUI 小窗，浮在桌面上的机器人眼睛
 //!
-//! P1：LED 点阵眼睛（表情/眨眼/闪变过渡）+ 整窗拖动 + 右键循环表情。
+//! P2：LED 点阵眼睛 + 整窗拖动 + 右键菜单（表情/退出）+ 全局鼠标视线跟随。
 //! 表情语义与点阵移植自 Flutter 侧 robot_eyes 功能。
 mod expressions;
 mod eyes;
+mod menu;
 mod render;
+mod win;
 
 use std::time::Duration;
 
@@ -15,6 +17,7 @@ use gpui::{
 };
 use gpui_platform::application;
 
+use crate::expressions::Expression;
 use crate::eyes::EyeState;
 
 fn main() {
@@ -76,21 +79,35 @@ impl PetWindow {
             eye: EyeState::new(),
         }
     }
+
+    /// 供菜单窗调用：切换表情
+    pub fn set_expression(&mut self, next: Expression) {
+        self.eye.set_expression(next);
+    }
 }
 
 impl Render for PetWindow {
     fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        // ── 视线跟随（全局光标）：光标在屏幕任何位置都盯着看 ──
+        let (cur_x, cur_y) = win::cursor_logical();
+        let bounds = _window.bounds();
+        let center = bounds.center();
+        let half_w = bounds.size.width.as_f32() / 2.0;
+        let half_h = bounds.size.height.as_f32() / 2.0;
+        if half_w > 0.0 && half_h > 0.0 {
+            self.eye.look = (
+                ((cur_x - center.x.as_f32()) / half_w).clamp(-1.0, 1.0),
+                ((cur_y - center.y.as_f32()) / half_h).clamp(-1.0, 1.0),
+            );
+        }
+
         // canvas 闭包要求 'static：每帧克隆一份状态快照进闭包
         let state = self.eye.clone();
 
-        // 右键循环下一个表情（gpui 规则：闭包回调用 entity.update 模式）
-        let entity = cx.entity();
+        // 右键：打开菜单窗（表情列表 + 退出），携带主窗实体引用
+        let pet = cx.entity();
         let on_right_click = move |_: &gpui::MouseDownEvent, _window: &mut gpui::Window, cx: &mut gpui::App| {
-            let _ = entity.update(cx, |this, cx| {
-                let next = this.eye.to.next();
-                this.eye.set_expression(next);
-                cx.notify();
-            });
+            menu::open(cx, pet.clone()); // 闭包须 Fn：每次调用克隆传入
         };
 
         div()
@@ -104,7 +121,7 @@ impl Render for PetWindow {
             .on_mouse_down(MouseButton::Left, |_, window, _| {
                 window.start_window_move();
             })
-            // 右键：切换表情（带 ~200ms 过渡 + LED 闪变）
+            // 右键：菜单（v1 无关闭途径的补全——含「退出」）
             .on_mouse_down(MouseButton::Right, on_right_click)
             // 眼睛画布：paint 回调里走点阵渲染
             .child(canvas(

@@ -58,12 +58,6 @@ impl Expression {
             Expression::Smug => 7,
         }
     }
-
-    /// 下一个表情（循环）
-    pub fn next(self) -> Expression {
-        let all = Expression::ALL;
-        all[(self.index() + 1) % all.len()]
-    }
 }
 
 /// 单眼点阵列数 / 行数
