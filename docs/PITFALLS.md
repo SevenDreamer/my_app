@@ -69,3 +69,20 @@
 - **现象**：配置里写了 `@flutter/dev-knowledge-mcp`——npm 404（包不存在）。
 - **根因**：凭印象写包名，未验证。
 - **解法**：外部包/命令先 `npm view` 或查官方文档验证再入配置（已入 AGENTS.md 规则）。
+
+## 四、Rust / GPUI（桌宠侧）
+
+### 11. stable Rust 编不了 gpui：`use of unstable library feature cold_path`
+- **现象**：`cargo build`（stable 1.94.1）编译 zed 的 gpui 报 E0658——
+  `profiler.rs` 调 `std::hint::cold_path`（issue #136873，未稳定）。
+- **解法**：**用 nightly 构建**：`cargo +nightly build`（本机已装
+  `nightly-x86_64-pc-windows-msvc`，gpui/zed 生态的实际要求）。
+- **配套**：`rust/pet` 依赖锁 Y 项目同 rev（zed `b1a7ef0` / gpui 0.2.2）
+  复用 git 缓存；注意 `CARGO_HOME` 在 scoop 的 rustup 下
+  （`C:\Users\<u>\scoop\persist\rustup\.cargo`），不是 `~/.cargo`。
+
+### 12. gpui 小语义（P0 实测结论）
+- `div` 不在 prelude 里（需 `use gpui::div;`）；`full_size()` 不存在 →
+  改用 `w_full().h_full()`。
+- `WindowKind::PopUp` 在 Windows 实测：**置顶 ✓ + 不进任务栏 ✓ +
+  无标题栏（appears_transparent）✓**——桌宠窗口形态零 FFI 达成。
