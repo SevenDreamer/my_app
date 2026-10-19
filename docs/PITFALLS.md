@@ -86,3 +86,18 @@
   改用 `w_full().h_full()`。
 - `WindowKind::PopUp` 在 Windows 实测：**置顶 ✓ + 不进任务栏 ✓ +
   无标题栏（appears_transparent）✓**——桌宠窗口形态零 FFI 达成。
+
+### 13. gpui 实体/异步语义（P1 实测结论）
+- **async 闭包的第二参本来就是 `&mut AsyncApp`**：`cx.spawn(async move |this, cx| {...})`，
+  内部 `this.update(cx, ...)` **直接传 cx**——写 `&mut cx` 变成引用的引用
+  （报 `&mut AsyncApp: AppContext` 不满足）。
+- `cx.open_window(..., |window, cx| cx.new(|cx| View::new(window, cx)))`：
+  外层构建闭包拿 (window, cx)，**内层 `cx.new` 的闭包只吃 1 参**。
+- `WeakEntity::update` 签名：`update<R, C: AppContext>(cx: &mut C, f: FnOnce(&mut T, &mut Context<T>))`
+  （entity_map.rs；update_in 多带 &mut Window）。
+- 帧循环标准式：`cx.spawn(async move |this, cx| { loop { cx.background_executor()
+  .timer(Duration::from_millis(16)).await; this.update(cx, |t, cx| { t.tick(..); cx.notify(); })..}}).detach();`
+  ——update 返回 `Result`，实体销毁后靠 `.unwrap_or(false)` 退出循环。
+- 画布：`canvas(prepaint, paint)` 两段闭包均 `'static`（状态需克隆进闭包）；
+  画矩形 = `window.paint_quad(fill(bounds, color))`；`Pixels` 间的算术结果仍是 `Pixels`
+  （再包 `px()` 即 E0308）。

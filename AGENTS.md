@@ -63,6 +63,14 @@ npx -y -p @google/design.md designmd lint DESIGN.md   # DESIGN.md 变更时：0 
   二进制内禁止内置任何 token）；iOS 明确不支持自动更新；
   检查服务在 `lib/app/update/`。
 
+## Rust 侧（桌宠 workspace）
+
+- `rust/` 是 Cargo workspace（`pet` 为成员）；将来网络扫描 sidecar 等同放此处。
+- 构建**必须 nightly**：`cargo +nightly build`（stable 编不了 gpui，PITFALLS #11）。
+- gpui/gpui_platform 锁 Y 项目同 rev（zed `b1a7ef0`）以复用本机缓存；
+  gpui API 坑位先查 `docs/PITFALLS.md` 四节 + `gpui-desktop-app` skill。
+- 桌宠架构与路线见 `docs/RUST_PET.md`；FFI 一律零依赖手写 `extern "system"` 声明。
+
 ## 环境要点
 
 - 工具链：本机 `D:\flutter` **3.47.7**（Dart 3.13.5）；`.fvmrc` 锁 **3.41.9**（Dart 3.11）。

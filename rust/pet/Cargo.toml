@@ -7,3 +7,5 @@ edition = "2024"
 # 与 Y 项目同源同 rev（b1a7ef0 / gpui 0.2.2）：复用本机编译缓存，版本稳定
 gpui = { git = "https://github.com/zed-industries/zed", rev = "b1a7ef0cf66dfbf9d7661170c96d97c7df916c68" }
 gpui_platform = { git = "https://github.com/zed-industries/zed", rev = "b1a7ef0cf66dfbf9d7661170c96d97c7df916c68" }
+# 眨眼随机间隔等
+rand = "0.9"
