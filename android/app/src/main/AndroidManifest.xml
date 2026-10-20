@@ -1,4 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 网络权限（更新检查/授权/扫码下载）：Flutter 模板只在 debug manifest 里带，
+         release 必须显式声明——否则包内所有网络操作报 E1001 类 DNS/连接失败 -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
         android:label="my_app"
         android:name="${applicationName}"

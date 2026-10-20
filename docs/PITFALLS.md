@@ -127,3 +127,13 @@
   Secrets 是加密存储，与"密钥不入库"原则不冲突。
 - **附坑**：CI 写 key.properties 别用 heredoc（缩进会进文件）→ 用 `printf`；
   `storeFile` 相对 **app 模块目录**写 `my_app-release.jks`（不是 `android/app/...`）。
+
+### 17. release 包没有 INTERNET 权限（E1001 假象）
+- **现象**：release 包所有网络操作失败（更新检查/授权），报 `E1001`
+  `Failed host lookup: "github.com"`——但手机浏览器能打开同一地址。
+- **根因**：Flutter 模板**只在 `debug`/`profile` manifest 声明 INTERNET**，
+  `main` manifest（release 打包合并源）没有——release 包全断网，
+  无权限在 getaddrinfo 层表现为 DNS 解析失败（E1001 假象）。
+- **解法**：`android/app/src/main/AndroidManifest.xml` 显式加
+  `<uses-permission android:name="android.permission.INTERNET"/>`。
+- **鉴别要点**：浏览器能开、app 报 DNS 错 → 先查 INTERNET 权限，再查网络。
