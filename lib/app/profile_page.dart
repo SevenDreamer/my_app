@@ -96,17 +96,11 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  /// 打开授权链接（指定方式）：preferApp=true 强制找非浏览器应用（GitHub App），
-  /// false 走浏览器；系统匹配不上返回 false（由调用方提示用户换方式）
-  Future<bool> _openAuthUri(String uriString, {required bool preferApp}) async {
+  /// 用系统浏览器打开授权链接（备用路径；主路径是 app 内置 webview）
+  Future<bool> _openAuthUri(String uriString) async {
     final uri = Uri.tryParse(uriString);
     if (uri == null) return false;
-    return launchUrl(
-      uri,
-      mode: preferApp
-          ? LaunchMode.externalNonBrowserApplication // 强制非浏览器应用
-          : LaunchMode.externalApplication, // 普通浏览器
-    );
+    return launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 
   /// Device Flow：申请设备码 → 弹配对码框（可复制/手动打开）→ 轮询授权结果
@@ -114,6 +108,7 @@ class _ProfilePageState extends State<ProfilePage> {
     if (_authorizing) return;
     setState(() => _authorizing = true);
     var dialogOpen = false;
+    BuildContext? dialogCtx; // 配对码弹窗的 context（精准关闭用，try/catch 共用）
     try {
       final auth = GithubAuthService();
       final code = await auth.requestDeviceCode();
@@ -124,7 +119,9 @@ class _ProfilePageState extends State<ProfilePage> {
       // ignore: unawaited_futures
       showShadDialog<void>(
         context: context,
-        builder: (ctx) => ShadDialog(
+        builder: (ctx) {
+          dialogCtx = ctx;
+          return ShadDialog(
           title: const Text('授权 GitHub'),
           actions: [
             ShadButton.outline(
@@ -139,19 +136,9 @@ class _ProfilePageState extends State<ProfilePage> {
                 );
               },
             ),
-            ShadButton.outline(
-              child: const Text('GitHub App 打开'),
-              onPressed: () async {
-                final ok =
-                    await _openAuthUri(code.verificationUriComplete, preferApp: true);
-                if (!ok && mounted) {
-                  _toast('没找到可用的 GitHub App —— 请用「浏览器打开」');
-                }
-              },
-            ),
             ShadButton(
               child: const Text('浏览器打开'),
-              onPressed: () => _openAuthUri(code.verificationUriComplete, preferApp: false),
+              onPressed: () => _openAuthUri(code.verificationUriComplete),
             ),
             ShadButton(
               child: const Text('取消'),
@@ -161,30 +148,31 @@ class _ProfilePageState extends State<ProfilePage> {
               },
             ),
           ],
-          child: Container(
-            width: 320,
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // 大字配对码：核心诉求——先看得到
-                Text(
-                  code.userCode,
-                  style: const TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 3,
+            child: Container(
+              width: 320,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // 大字配对码：核心诉求——先看得到
+                  Text(
+                    code.userCode,
+                    style: const TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 3,
+                    ),
                   ),
-                ),
-                const SizedBox(height: AppSpacing.md),
-                const Text(
-                  '装了 GitHub App 点「GitHub App 打开」直接一键授权；\n没装就点「浏览器打开」（会自动填码）。\n若都没反应，请访问 github.com/login/device\n手动输入上面的配对码。\n\n授权完成后本窗口自动关闭。',
-                  textAlign: TextAlign.center,
-                ),
-              ],
+                  const SizedBox(height: AppSpacing.md),
+                  const Text(
+                    '授权页面已打开（Android 为 app 内置页）。\n完成授权后回到本页——弹窗会自动关闭。\n\n若页面没打开，请点「浏览器打开」，\n或访问 github.com/login/device 手动输入配对码。',
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
             ),
-          ),
-        ),
+          );
+        },
       );
 
       // 自动打开授权页：Android 走内置 webview（受控，不被外部浏览器打断），
@@ -200,21 +188,21 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         );
       } else {
-        await _openAuthUri(code.verificationUriComplete, preferApp: false);
+        await _openAuthUri(code.verificationUriComplete);
       }
       _toast('已打开授权页，等待授权（配对码 ${code.userCode}）');
 
       // 后台轮询直到授权完成/超时
       await auth.pollForToken(code);
-      if (mounted && dialogOpen) {
+      if (mounted && dialogOpen && dialogCtx?.mounted == true) {
         dialogOpen = false;
-        Navigator.of(context).pop(); // 关配对码框
+        Navigator.of(dialogCtx!).pop(); // 精准关配对码弹窗（不影响 webview 页）
       }
       _toast('GitHub 授权成功');
     } catch (e) {
-      if (mounted && dialogOpen) {
+      if (mounted && dialogOpen && dialogCtx?.mounted == true) {
         dialogOpen = false;
-        Navigator.of(context).pop();
+        Navigator.of(dialogCtx!).pop();
       }
       if (mounted) {
         // 错误弹窗完整展示（异常自动归码：如 DNS 解析失败=E1001）
