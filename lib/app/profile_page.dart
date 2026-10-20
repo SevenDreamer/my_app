@@ -2,6 +2,7 @@
 //!
 //! 身份区 + 设置/关于/更新授权入口；后续接账号、偏好设置、设备管理等。
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
@@ -44,21 +45,94 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  /// Device Flow：申请设备码 → 打开浏览器 → 后台轮询直到完成
+  /// Device Flow：申请设备码 → 弹配对码框（可复制/手动打开）→ 轮询授权结果
   Future<void> _authorize() async {
     if (_authorizing) return;
     setState(() => _authorizing = true);
+    var dialogOpen = false;
     try {
       final auth = GithubAuthService();
       final code = await auth.requestDeviceCode();
-      await launchUrl(
-        Uri.parse(code.verificationUriComplete),
-        mode: LaunchMode.externalApplication,
+      if (!mounted) return;
+
+      // 先弹配对码框：码可见、可复制；浏览器跳不跳都能手动完成
+      dialogOpen = true;
+      // ignore: unawaited_futures
+      showShadDialog<void>(
+        context: context,
+        builder: (ctx) => ShadDialog(
+          title: const Text('授权 GitHub'),
+          actions: [
+            ShadButton.outline(
+              child: const Text('复制配对码'),
+              onPressed: () {
+                Clipboard.setData(ClipboardData(text: code.userCode));
+                ShadSonner.of(ctx).show(
+                  ShadToast(
+                    id: DateTime.now().microsecondsSinceEpoch,
+                    title: Text('配对码已复制：${code.userCode}'),
+                  ),
+                );
+              },
+            ),
+            ShadButton.outline(
+              child: const Text('打开授权页'),
+              onPressed: () {
+                launchUrl(Uri.parse(code.verificationUriComplete),
+                    mode: LaunchMode.externalApplication);
+              },
+            ),
+            ShadButton(
+              child: const Text('取消'),
+              onPressed: () {
+                dialogOpen = false;
+                Navigator.of(ctx).pop();
+              },
+            ),
+          ],
+          child: Container(
+            width: 320,
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // 大字配对码：核心诉求——先看得到
+                Text(
+                  code.userCode,
+                  style: const TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 3,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                const Text(
+                  '浏览器会自动打开并填好配对码；\n若没有跳转，请访问 github.com/login/device\n手动输入上面的配对码。\n\n授权完成后本窗口自动关闭。',
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        ),
       );
-      _toast('已打开授权页，完成后自动生效（配对码 ${code.userCode}）');
+
+      // 同时尝试自动打开授权页（保留自动跳转的便利）
+      await launchUrl(Uri.parse(code.verificationUriComplete),
+          mode: LaunchMode.externalApplication);
+      _toast('已打开授权页，等待授权（配对码 ${code.userCode}）');
+
+      // 后台轮询直到授权完成/超时
       await auth.pollForToken(code);
+      if (mounted && dialogOpen) {
+        dialogOpen = false;
+        Navigator.of(context).pop(); // 关配对码框
+      }
       _toast('GitHub 授权成功');
     } catch (e) {
+      if (mounted && dialogOpen) {
+        dialogOpen = false;
+        Navigator.of(context).pop();
+      }
       _toast('授权未完成：$e');
     } finally {
       if (mounted) {
