@@ -15,6 +15,7 @@ import '../../core/errors/app_error.dart';
 import '../../core/errors/error_codes.dart';
 import '../../core/errors/error_dialog.dart';
 import 'github_auth_service.dart';
+import 'update_service.dart';
 
 /// 取最新 Release 里 Android 资产的一次性签名下载 URL。
 /// 返回 (url, err)：成功时 err 为 null；失败时 url 为 null 且 err 是具体原因。
@@ -39,10 +40,11 @@ Future<(String?, AppError?)> fetchAndroidSignedUrl() async {
   };
   final client = http.Client();
   try {
-    // 1) 找最新 Release 的 APK 资产 id
+    // 1) 按更新通道找 Release（dev 通道含 prerelease，桌面扫码与手机更新同步）
+    final ch = await UpdateService().channel();
     final resp = await client.get(
       Uri.parse(
-          'https://api.github.com/repos/SevenDreamer/my_app/releases/latest'),
+          'https://api.github.com/repos/SevenDreamer/my_app/releases?per_page=10'),
       headers: headers,
     );
     if (resp.statusCode == 401) {
@@ -54,7 +56,20 @@ Future<(String?, AppError?)> fetchAndroidSignedUrl() async {
           message: '获取 Release 信息失败（HTTP ${resp.statusCode}）',
           detail: 'HTTP ${resp.statusCode}'));
     }
-    final j = jsonDecode(utf8.decode(resp.bodyBytes)) as Map<String, dynamic>;
+    final releases = jsonDecode(utf8.decode(resp.bodyBytes)) as List;
+    final candidates = releases.where((r) {
+      final release = r as Map<String, dynamic>;
+      if (release['draft'] == true) return false;
+      if (ch == 'stable' && release['prerelease'] == true) return false;
+      return true;
+    }).toList();
+    if (candidates.isEmpty) {
+      return (null, const AppError(
+        code: ErrorCodes.updateNoApk,
+        message: '当前通道还没有可用的 Release',
+      ));
+    }
+    final j = candidates.first as Map<String, dynamic>;
     final assets = (j['assets'] as List?) ?? const [];
     final asset = assets.firstWhere(
       (a) => (a['name'] as String? ?? '').endsWith('.apk'),
