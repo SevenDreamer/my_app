@@ -24,17 +24,21 @@ jobs:
           channel: stable
           cache: true   # 缓存 Flutter SDK 与 pub 依赖
 
-      - name: 缓存 Android SDK/NDK 与 Gradle
+      - name: 缓存 Android SDK 与 Gradle
         uses: actions/cache@v4
         with:
+          save-always: true   # job 失败也存（构建中间产物同样有价值）
           path: |
-            ${{ env.ANDROID_HOME }}/ndk
             ${{ env.ANDROID_HOME }}/build-tools
             ${{ env.ANDROID_HOME }}/platforms
+            ${{ env.ANDROID_HOME }}/cmake
+            ${{ env.ANDROID_HOME }}/ndk
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: ${{ runner.os }}-android-ndk-${{ hashFiles('android/**', 'pubspec.yaml') }}
+          # key 只跟构建配置走（不含 pubspec 版本号）：SDK 缓存不该因发版 bump 失效
+          key: ${{ runner.os }}-android-sdk-v2-${{ hashFiles('android/gradle/**', 'android/app/build.gradle.kts', 'android/gradle.properties') }}
           restore-keys: |
+            ${{ runner.os }}-android-sdk-v2-
             ${{ runner.os }}-android-ndk-
 
       - run: flutter pub get
