@@ -137,3 +137,13 @@
 - **解法**：`android/app/src/main/AndroidManifest.xml` 显式加
   `<uses-permission android:name="android.permission.INTERNET"/>`。
 - **鉴别要点**：浏览器能开、app 报 DNS 错 → 先查 INTERNET 权限，再查网络。
+
+### 18. build.gradle.kts 的 ndkVersion 声明 = CI 强制下载 1GB NDK
+- **现象**：无 native 代码的项目，CI 每次构建都在下载/解压 NDK 28（几百 MB 到 1GB），
+  缓存了也没明显提速（大包 save/restore 本身就慢）。
+- **根因**：Flutter 模板默认写 `ndkVersion = flutter.ndkVersion`——声明即触发
+  AGP 自动安装对应 NDK，哪怕全项目插件都是 Java/Kotlin。
+- **解法**：删掉 `ndkVersion` 声明（本项目 sqflite/webview/url_launcher 等全为
+  Java/Kotlin，无 native 需求）；真要用 NDK 的项目反而应该显式锁版本。
+- **附注**：CI 缓存 key 不要混入 `pubspec.yaml`（版本号 bump 会让 SDK 缓存失效），
+  只跟 `android/` 构建配置的 hash 走。
