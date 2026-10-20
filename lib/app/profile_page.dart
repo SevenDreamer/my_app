@@ -14,6 +14,7 @@ import '../design/widgets/app_list_tile.dart';
 import '../core/errors/app_error.dart';
 import '../core/errors/error_dialog.dart';
 import 'error_log_page.dart';
+import 'update/auth_webview_page.dart';
 import 'update/download_qr.dart';
 import 'update/update_service.dart';
 import 'update/github_auth_service.dart';
@@ -186,8 +187,21 @@ class _ProfilePageState extends State<ProfilePage> {
         ),
       );
 
-      // 自动打开授权页走浏览器（稳定路径；想用 GitHub App 点弹窗里的按钮）
-      await _openAuthUri(code.verificationUriComplete, preferApp: false);
+      // 自动打开授权页：Android 走内置 webview（受控，不被外部浏览器打断），
+      // 桌面走系统浏览器
+      if (defaultTargetPlatform == TargetPlatform.android) {
+        // ignore: unawaited_futures
+        Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => AuthWebviewPage(
+              url: code.verificationUriComplete,
+              userCode: code.userCode,
+            ),
+          ),
+        );
+      } else {
+        await _openAuthUri(code.verificationUriComplete, preferApp: false);
+      }
       _toast('已打开授权页，等待授权（配对码 ${code.userCode}）');
 
       // 后台轮询直到授权完成/超时

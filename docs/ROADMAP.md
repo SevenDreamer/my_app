@@ -58,6 +58,11 @@
 
 ## 未排期想法池
 
+- **无缝回调授权（Authorization Code + Loopback redirect）**：app 内起本地
+  小服务器（`http://127.0.0.1:<固定端口>/callback`），浏览器授权完 redirect 回它
+  ——省掉 device flow 的轮询等待。**触发条件**：① 有了自己的域名（可走 App Links
+  最优雅）或 ② 对 5 秒轮询等待确实不满。**动手前先验证**：GitHub OAuth App 是否
+  接受 loopback 回调地址（RFC 8252 原生应用标准推荐此法）。参考库：`oauth2_client`。
 - ⌘K **命令面板**（shadcn `command` 组件的桌面形态）：全局快捷键唤起，
   模糊搜索功能直达——桌面工具箱的效率杀器
 - **kbd 快捷键提示组件**：机器人眼睛页（1~8 表情/空格）等键盘操作的标准提示样式
