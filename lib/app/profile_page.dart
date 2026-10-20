@@ -80,6 +80,13 @@ class _ProfilePageState extends State<ProfilePage> {
         ),
         actions: [
           ShadButton.outline(
+            child: const Text('重新授权'),
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              _authorize();
+            },
+          ),
+          ShadButton.outline(
             child: const Text('撤销授权'),
             onPressed: () {
               GithubAuthService().revoke();

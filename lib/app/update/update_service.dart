@@ -45,7 +45,7 @@ class UpdateService {
     // iOS 无 App Store 外的更新渠道（AGENTS.md 明确不支持）
     if (defaultTargetPlatform == TargetPlatform.iOS) return null;
 
-    final token = await _auth.token;
+    final token = await _auth.validToken();
     if (token == null) return null;
 
     try {

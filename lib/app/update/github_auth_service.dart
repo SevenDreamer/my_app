@@ -39,6 +39,8 @@ class GithubAuthService {
   static const String clientId = 'Ov23likLbtcSkW7rdHMA';
 
   static const String _kTokenKey = 'github_access_token';
+  static const String _kRefreshKey = 'github_refresh_token';
+  static const String _kExpiresKey = 'github_token_expires_at';
   static const String _deviceCodeEndpoint =
       'https://github.com/login/device/code';
   static const String _accessTokenEndpoint =
@@ -47,14 +49,76 @@ class GithubAuthService {
   final http.Client _client;
   final FlutterSecureStorage _storage;
 
-  /// 已存的 access token（无授权返回 null）
+  /// 已存的 access token 原始读取（不做续期判断）
   Future<String?> get token => _storage.read(key: _kTokenKey);
+
+  /// 获取有效 token：过期（或临期 5 分钟）时用 refresh_token 自动续期；
+  /// 续期失败（refresh_token 也失效）→ 清理本地凭据并返回 null。
+  Future<String?> validToken() async {
+    final token = await _storage.read(key: _kTokenKey);
+    if (token == null) return null;
+
+    final expiresRaw = await _storage.read(key: _kExpiresKey);
+    final expiresAt = int.tryParse(expiresRaw ?? '') ?? 0;
+    final nowMs = DateTime.now().millisecondsSinceEpoch;
+    // 仍在有效期内（留 5 分钟余量）直接返回
+    if (expiresAt > nowMs + 5 * 60 * 1000) return token;
+
+    final refresh = await _storage.read(key: _kRefreshKey);
+    if (refresh == null) {
+      // 旧格式无过期信息：照常返回，是否真失效交给 API 的 401 兜底
+      if (expiresAt == 0) return token;
+      await revoke();
+      return null;
+    }
+
+    // 用 refresh_token 换新 access_token
+    final resp = await _client.post(
+      Uri.parse(_accessTokenEndpoint),
+      headers: const {'Accept': 'application/json'},
+      body: {
+        'client_id': clientId,
+        'grant_type': 'refresh_token',
+        'refresh_token': refresh,
+      },
+    );
+    if (resp.statusCode != 200) {
+      await revoke();
+      return null;
+    }
+    final j = jsonDecode(resp.body) as Map<String, dynamic>;
+    final newToken = j['access_token'] as String?;
+    if (newToken == null) {
+      await revoke();
+      return null;
+    }
+    await _storage.write(key: _kTokenKey, value: newToken);
+    final newRefresh = j['refresh_token'] as String?;
+    if (newRefresh != null) {
+      await _storage.write(key: _kRefreshKey, value: newRefresh);
+    }
+    final expiresIn = (j['expires_in'] as num?)?.toInt() ?? 0;
+    if (expiresIn > 0) {
+      await _storage.write(
+        key: _kExpiresKey,
+        value: DateTime.now()
+            .add(Duration(seconds: expiresIn))
+            .millisecondsSinceEpoch
+            .toString(),
+      );
+    }
+    return newToken;
+  }
 
   /// 是否已授权
   Future<bool> get isAuthorized async => (await token) != null;
 
-  /// 撤销本设备的授权（删除本地 token）
-  Future<void> revoke() => _storage.delete(key: _kTokenKey);
+  /// 撤销本设备的授权（清理全部本地凭据）
+  Future<void> revoke() async {
+    await _storage.delete(key: _kTokenKey);
+    await _storage.delete(key: _kRefreshKey);
+    await _storage.delete(key: _kExpiresKey);
+  }
 
   /// 步骤一：申请设备码（scope: repo——访问私有仓库 release）
   Future<DeviceCode> requestDeviceCode() async {
@@ -114,6 +178,21 @@ class GithubAuthService {
       final accessToken = j['access_token'] as String?;
       if (accessToken != null) {
         await _storage.write(key: _kTokenKey, value: accessToken);
+        // GitHub 在 token 到期策略下会返回 refresh_token：一并保存供自动续期
+        final refreshToken = j['refresh_token'] as String?;
+        if (refreshToken != null) {
+          await _storage.write(key: _kRefreshKey, value: refreshToken);
+        }
+        final expiresIn = (j['expires_in'] as num?)?.toInt() ?? 0;
+        if (expiresIn > 0) {
+          await _storage.write(
+            key: _kExpiresKey,
+            value: DateTime.now()
+                .add(Duration(seconds: expiresIn))
+                .millisecondsSinceEpoch
+                .toString(),
+          );
+        }
         return accessToken;
       }
       final error = j['error'] as String?;
