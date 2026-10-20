@@ -11,6 +11,9 @@ import 'package:url_launcher/url_launcher.dart';
 import '../design/tokens.dart';
 import '../design/widgets/app_app_bar.dart';
 import '../design/widgets/app_list_tile.dart';
+import '../core/errors/app_error.dart';
+import '../core/errors/error_dialog.dart';
+import 'error_log_page.dart';
 import 'update/download_qr.dart';
 import 'update/github_auth_service.dart';
 
@@ -133,7 +136,13 @@ class _ProfilePageState extends State<ProfilePage> {
         dialogOpen = false;
         Navigator.of(context).pop();
       }
-      _toast('授权未完成：$e');
+      if (mounted) {
+        // 错误弹窗完整展示（异常自动归码：如 DNS 解析失败=E1001）
+        await showErrorDialog(
+          context,
+          AppError.from(e, context: '授权', message: '授权未完成'),
+        );
+      }
     } finally {
       if (mounted) {
         setState(() => _authorizing = false);
@@ -261,6 +270,17 @@ class _ProfilePageState extends State<ProfilePage> {
                   title: '设置',
                   showDivider: true,
                   onTap: _comingSoon,
+                ),
+                AppListTile(
+                  icon: LucideIcons.bug,
+                  title: '错误日志',
+                  subtitle: '查看最近的报错记录（带错误码）',
+                  showDivider: true,
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const ErrorLogPage(),
+                    ),
+                  ),
                 ),
                 AppListTile(
                   icon: LucideIcons.refreshCw,

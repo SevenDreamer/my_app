@@ -9,6 +9,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
 
+import '../../core/errors/app_error.dart';
+import '../../core/errors/error_log.dart';
 import 'github_auth_service.dart';
 
 /// 一条可用的更新提示
@@ -76,8 +78,10 @@ class UpdateService {
         notes: (j['body'] as String?) ?? '',
         url: (j['html_url'] as String?) ?? '',
       );
-    } catch (_) {
-      return null; // 网络问题一律静默
+    } catch (e) {
+      // 静默不打扰，但落盘备查（「我」页错误日志可回看）
+      await ErrorLog.record(AppError.from(e, context: '更新检查'));
+      return null;
     }
   }
 

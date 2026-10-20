@@ -30,6 +30,9 @@ abstract class AppColors {
   /// 错误与危险操作（文字/图标档 red-600，白底过 AA；
   /// 危险按钮底色由 shadcn destructive 提供）
   static const Color error = Color(0xFFDC2626);
+
+  /// 1px 描边（shadcn border）：卡片与容器分层用
+  static const Color border = Color(0xFFE4E4E7);
 }
 
 /// 间距（DESIGN.md · Layout，8pt 网格）

@@ -11,15 +11,25 @@ import 'package:http/http.dart' as http;
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
+import '../../core/errors/app_error.dart';
+import '../../core/errors/error_codes.dart';
+import '../../core/errors/error_dialog.dart';
 import 'github_auth_service.dart';
 
 /// 取最新 Release 里 Android 资产的一次性签名下载 URL。
 /// 返回 (url, err)：成功时 err 为 null；失败时 url 为 null 且 err 是具体原因。
-Future<(String?, String?)> fetchAndroidSignedUrl() async {
+Future<(String?, AppError?)> fetchAndroidSignedUrl() async {
   final auth = GithubAuthService();
   final token = await auth.validToken();
   if (token == null) {
-    return (null, '尚未授权或授权已过期，请在「更新检查」重新授权');
+    return (
+      null,
+      const AppError(
+        code: ErrorCodes.authNone,
+        message: '尚未授权或授权已过期',
+        hint: '请在「更新检查」里授权 GitHub（可点重新授权）',
+      ),
+    );
   }
 
   final headers = {
@@ -36,10 +46,13 @@ Future<(String?, String?)> fetchAndroidSignedUrl() async {
       headers: headers,
     );
     if (resp.statusCode == 401) {
-      return (null, '授权已过期，请在「更新检查」重新授权');
+      return (null, const AppError(code: ErrorCodes.authExpired,
+          message: '授权已过期', hint: '请在「更新检查」里重新授权'));
     }
     if (resp.statusCode != 200) {
-      return (null, '获取 Release 信息失败（HTTP ${resp.statusCode}）');
+      return (null, AppError(code: ErrorCodes.updateRelease,
+          message: '获取 Release 信息失败（HTTP ${resp.statusCode}）',
+          detail: 'HTTP ${resp.statusCode}'));
     }
     final j = jsonDecode(utf8.decode(resp.bodyBytes)) as Map<String, dynamic>;
     final assets = (j['assets'] as List?) ?? const [];
@@ -48,7 +61,13 @@ Future<(String?, String?)> fetchAndroidSignedUrl() async {
       orElse: () => null,
     );
     if (asset == null) {
-      return (null, '最新 Release 还没有 Android 安装包');
+      return (
+        null,
+        const AppError(
+          code: ErrorCodes.updateNoApk,
+          message: '最新 Release 还没有 Android 安装包',
+        ),
+      );
     }
     final id = asset['id'];
 
@@ -63,11 +82,12 @@ Future<(String?, String?)> fetchAndroidSignedUrl() async {
     final streamed = await client.send(req);
     final location = streamed.headers['location'];
     if (location == null) {
-      return (null, '获取下载链接失败（未拿到签名地址）');
+      return (null, const AppError(code: ErrorCodes.updateSignedUrl,
+          message: '获取下载链接失败（未拿到签名地址）'));
     }
     return (location, null);
-  } catch (_) {
-    return (null, '网络异常，请稍后重试');
+  } catch (e) {
+    return (null, AppError.from(e, context: '扫码下载'));
   } finally {
     client.close();
   }
@@ -78,12 +98,8 @@ Future<void> showDownloadQrDialog(BuildContext context) async {
   final (url, err) = await fetchAndroidSignedUrl();
   if (!context.mounted) return;
   if (url == null) {
-    ShadSonner.of(context).show(
-      ShadToast(
-        id: DateTime.now().microsecondsSinceEpoch,
-        title: Text(err ?? '获取下载链接失败'),
-      ),
-    );
+    await showErrorDialog(context, err ??
+        const AppError(code: ErrorCodes.unknown, message: '获取下载链接失败'));
     return;
   }
 
