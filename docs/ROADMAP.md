@@ -65,6 +65,14 @@
   接受 loopback 回调地址（RFC 8252 原生应用标准推荐此法）。参考库：`oauth2_client`。
 - ⌘K **命令面板**（shadcn `command` 组件的桌面形态）：全局快捷键唤起，
   模糊搜索功能直达——桌面工具箱的效率杀器
+- **GitHub 流水线监控**：App 内查询 dev-release 流水线状态；流水线开始 / 完成 /
+  异常时推送通知（聚焦版本发布相关，通知带版本号、run 链接、失败摘要）。实现思路：
+  GitHub webhook（`workflow_run` 事件）推送为主 + 轮询 Actions API 兜底；授权复用
+  `lib/app/update/github_auth_service.dart`（scope 需含 `repo` 或 `public_repo`）。
+  **依赖/触发条件**：① GitHub OAuth 已落地（近期 webview 授权可用）；② 推送通道
+  可走设备直连（Phase 1 通信打通后），或先用系统本地通知（仅前台/轮询时触发）。
+  **动手前先验证**：OAuth App 的 scope 能否读 Actions run 状态；webhook 需要一个
+  公网可达的接收端（家用 Mac + frp / 云函数皆可）
 - **kbd 快捷键提示组件**：机器人眼睛页（1~8 表情/空格）等键盘操作的标准提示样式
 - **暗色主题**：照 shadcn dark-mode 指南切（zinc dark 值在 shadcn_ui 包内自带），
   需要 DESIGN.md 增补暗色组 + theme.dart 出 `shadDark`——参考 https://ui.shadcn.com/docs/dark-mode

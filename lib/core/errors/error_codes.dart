@@ -6,30 +6,39 @@ abstract class ErrorCodes {
   // ── E1xxx 网络 ──
   /// DNS 解析失败（如 Failed host lookup: "github.com"）
   static const String netDns = 'E1001';
+
   /// 连接超时 / 拒绝
   static const String netTimeout = 'E1002';
+
   /// 网络不可用
   static const String netUnavailable = 'E1003';
+
   /// 其他网络异常
   static const String netOther = 'E1099';
 
   // ── E2xxx 授权 ──
   /// 尚未授权
   static const String authNone = 'E2001';
+
   /// 授权过期 / 被撤销（API 401）
   static const String authExpired = 'E2002';
+
   /// 设备码申请失败
   static const String authDeviceCode = 'E2003';
+
   /// 授权轮询失败 / 超时
   static const String authPoll = 'E2004';
+
   /// refresh_token 续期失败
   static const String authRefresh = 'E2005';
 
   // ── E3xxx 更新 / 下载 ──
   /// 获取 Release 信息失败
   static const String updateRelease = 'E3001';
+
   /// 最新 Release 没有 Android 包
   static const String updateNoApk = 'E3002';
+
   /// 签名下载链接获取失败
   static const String updateSignedUrl = 'E3003';
 

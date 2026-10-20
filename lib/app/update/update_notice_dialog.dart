@@ -105,14 +105,17 @@ Future<void> _downloadAndInstall(BuildContext ctx, UpdateInfo info) async {
     closeProgress();
     progress.dispose();
     if (ctx.mounted) {
-      await showErrorDialog(ctx, err ??
-          const AppError(code: ErrorCodes.updateSignedUrl, message: '获取下载链接失败'));
+      await showErrorDialog(
+          ctx,
+          err ??
+              const AppError(
+                  code: ErrorCodes.updateSignedUrl, message: '获取下载链接失败'));
     }
     return;
   }
 
-  final installErr = await downloadAndInstallApk(url,
-      onProgress: (p) => progress.value = p);
+  final installErr =
+      await downloadAndInstallApk(url, onProgress: (p) => progress.value = p);
   closeProgress();
   progress.dispose();
   if (installErr != null && ctx.mounted) {

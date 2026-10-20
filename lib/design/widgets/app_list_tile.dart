@@ -62,8 +62,7 @@ class AppListTile extends StatelessWidget {
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
                       color: AppColors.primary.withValues(alpha: 0.10),
-                      borderRadius:
-                          BorderRadius.circular(AppRadius.sm + 2),
+                      borderRadius: BorderRadius.circular(AppRadius.sm + 2),
                     ),
                     child: Icon(
                       icon,
@@ -105,8 +104,7 @@ class AppListTile extends StatelessWidget {
             ),
           ),
         ),
-        if (showDivider)
-          const Divider(height: 1, indent: AppSpacing.md),
+        if (showDivider) const Divider(height: 1, indent: AppSpacing.md),
       ],
     );
   }

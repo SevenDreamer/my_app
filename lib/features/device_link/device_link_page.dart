@@ -24,16 +24,14 @@ class DeviceLinkPage extends StatelessWidget {
           AppSection(
             title: '目标',
             children: [
-              AppParagraph(
-                  '两台手机通过本应用互联：一台作为控制端，一台作为被控端。'
+              AppParagraph('两台手机通过本应用互联：一台作为控制端，一台作为被控端。'
                   '同一份 App 兼任两种角色，配对后自动认领角色，不做两个应用。'),
             ],
           ),
           AppSection(
             title: '总体架构',
             children: [
-              _Mono(
-                  '控制端 Controller            被控端 Device\n'
+              _Mono('控制端 Controller            被控端 Device\n'
                   '┌────────────┐  蓝牙/WiFi/星闪  ┌────────────┐\n'
                   '│ 指令面板   │ ⇄    链路层    ⇄ │ 指令执行器 │\n'
                   '│ 状态回显   │                  │ 能力上报   │\n'

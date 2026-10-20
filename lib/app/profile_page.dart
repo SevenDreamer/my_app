@@ -122,32 +122,32 @@ class _ProfilePageState extends State<ProfilePage> {
         builder: (ctx) {
           dialogCtx = ctx;
           return ShadDialog(
-          title: const Text('授权 GitHub'),
-          actions: [
-            ShadButton.outline(
-              child: const Text('复制配对码'),
-              onPressed: () {
-                Clipboard.setData(ClipboardData(text: code.userCode));
-                ShadSonner.of(ctx).show(
-                  ShadToast(
-                    id: DateTime.now().microsecondsSinceEpoch,
-                    title: Text('配对码已复制：${code.userCode}'),
-                  ),
-                );
-              },
-            ),
-            ShadButton(
-              child: const Text('浏览器打开'),
-              onPressed: () => _openAuthUri(code.verificationUriComplete),
-            ),
-            ShadButton(
-              child: const Text('取消'),
-              onPressed: () {
-                dialogOpen = false;
-                Navigator.of(ctx).pop();
-              },
-            ),
-          ],
+            title: const Text('授权 GitHub'),
+            actions: [
+              ShadButton.outline(
+                child: const Text('复制配对码'),
+                onPressed: () {
+                  Clipboard.setData(ClipboardData(text: code.userCode));
+                  ShadSonner.of(ctx).show(
+                    ShadToast(
+                      id: DateTime.now().microsecondsSinceEpoch,
+                      title: Text('配对码已复制：${code.userCode}'),
+                    ),
+                  );
+                },
+              ),
+              ShadButton(
+                child: const Text('浏览器打开'),
+                onPressed: () => _openAuthUri(code.verificationUriComplete),
+              ),
+              ShadButton(
+                child: const Text('取消'),
+                onPressed: () {
+                  dialogOpen = false;
+                  Navigator.of(ctx).pop();
+                },
+              ),
+            ],
             child: Container(
               width: 320,
               padding: const EdgeInsets.symmetric(vertical: 16),
@@ -384,9 +384,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   trailing: FutureBuilder<PackageInfo>(
                     future: _packageInfo,
                     builder: (context, snapshot) => Text(
-                      snapshot.hasData
-                          ? 'v${snapshot.data!.version}'
-                          : '…',
+                      snapshot.hasData ? 'v${snapshot.data!.version}' : '…',
                       style: textTheme.labelSmall,
                     ),
                   ),

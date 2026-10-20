@@ -42,8 +42,7 @@ class AppAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool back =
-        showBack ?? Navigator.canPop(context);
+    final bool back = showBack ?? Navigator.canPop(context);
     final Color? fg = foregroundColor;
 
     return AppBar(

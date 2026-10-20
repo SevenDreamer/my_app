@@ -50,13 +50,22 @@ Future<(String?, AppError?)> fetchAndroidSignedUrl({String? abi}) async {
       headers: headers,
     );
     if (resp.statusCode == 401) {
-      return (null, const AppError(code: ErrorCodes.authExpired,
-          message: '授权已过期', hint: '请在「更新检查」里重新授权'));
+      return (
+        null,
+        const AppError(
+            code: ErrorCodes.authExpired,
+            message: '授权已过期',
+            hint: '请在「更新检查」里重新授权')
+      );
     }
     if (resp.statusCode != 200) {
-      return (null, AppError(code: ErrorCodes.updateRelease,
-          message: '获取 Release 信息失败（HTTP ${resp.statusCode}）',
-          detail: 'HTTP ${resp.statusCode}'));
+      return (
+        null,
+        AppError(
+            code: ErrorCodes.updateRelease,
+            message: '获取 Release 信息失败（HTTP ${resp.statusCode}）',
+            detail: 'HTTP ${resp.statusCode}')
+      );
     }
     final releases = jsonDecode(utf8.decode(resp.bodyBytes)) as List;
     final candidates = releases.where((r) {
@@ -66,10 +75,13 @@ Future<(String?, AppError?)> fetchAndroidSignedUrl({String? abi}) async {
       return true;
     }).toList();
     if (candidates.isEmpty) {
-      return (null, const AppError(
-        code: ErrorCodes.updateNoApk,
-        message: '当前通道还没有可用的 Release',
-      ));
+      return (
+        null,
+        const AppError(
+          code: ErrorCodes.updateNoApk,
+          message: '当前通道还没有可用的 Release',
+        )
+      );
     }
     final j = candidates.first as Map<String, dynamic>;
     final assets = (j['assets'] as List?) ?? const [];
@@ -107,8 +119,11 @@ Future<(String?, AppError?)> fetchAndroidSignedUrl({String? abi}) async {
     final streamed = await client.send(req);
     final location = streamed.headers['location'];
     if (location == null) {
-      return (null, const AppError(code: ErrorCodes.updateSignedUrl,
-          message: '获取下载链接失败（未拿到签名地址）'));
+      return (
+        null,
+        const AppError(
+            code: ErrorCodes.updateSignedUrl, message: '获取下载链接失败（未拿到签名地址）')
+      );
     }
     return (location, null);
   } catch (e) {
@@ -123,8 +138,8 @@ Future<void> showDownloadQrDialog(BuildContext context) async {
   final (url, err) = await fetchAndroidSignedUrl();
   if (!context.mounted) return;
   if (url == null) {
-    await showErrorDialog(context, err ??
-        const AppError(code: ErrorCodes.unknown, message: '获取下载链接失败'));
+    await showErrorDialog(context,
+        err ?? const AppError(code: ErrorCodes.unknown, message: '获取下载链接失败'));
     return;
   }
 
@@ -132,8 +147,8 @@ Future<void> showDownloadQrDialog(BuildContext context) async {
     context: context,
     builder: (context) => ShadDialog(
       title: const Text('扫码下载 Android 版'),
-      description: const Text(
-          '用手机相机或微信扫码，浏览器打开后下载安装。\n链接 1 小时内有效，过期重新打开本弹窗即可。'),
+      description:
+          const Text('用手机相机或微信扫码，浏览器打开后下载安装。\n链接 1 小时内有效，过期重新打开本弹窗即可。'),
       actions: [
         ShadButton(
           child: const Text('关闭'),

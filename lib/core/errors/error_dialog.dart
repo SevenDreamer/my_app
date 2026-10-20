@@ -22,8 +22,7 @@ Future<void> showErrorDialog(
   await showShadDialog<void>(
     context: context,
     builder: (ctx) => ShadDialog.alert(
-      title: Text(
-          '${error.code} · ${ErrorCodes.categoryOf(error.code)}'
+      title: Text('${error.code} · ${ErrorCodes.categoryOf(error.code)}'
           '${error.context != null ? '（${error.context}）' : ''}'),
       description: Padding(
         padding: const EdgeInsets.only(bottom: AppSpacing.sm),

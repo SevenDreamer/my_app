@@ -143,17 +143,16 @@ class GithubAuthService {
     final userCode = j['user_code'] as String?;
     final uri = j['verification_uri'] as String?;
     if (deviceCode == null || userCode == null || uri == null) {
-      final raw = resp.body.length > 300
-          ? resp.body.substring(0, 300)
-          : resp.body;
+      final raw =
+          resp.body.length > 300 ? resp.body.substring(0, 300) : resp.body;
       throw StateError('设备码响应异常（缺字段）：$raw');
     }
     return DeviceCode(
       deviceCode: deviceCode,
       userCode: userCode,
       verificationUri: uri,
-      verificationUriComplete:
-          (j['verification_uri_complete'] as String?) ?? '$uri?user_code=$userCode',
+      verificationUriComplete: (j['verification_uri_complete'] as String?) ??
+          '$uri?user_code=$userCode',
       expiresIn: (j['expires_in'] as num?)?.toInt() ?? 900,
       interval: (j['interval'] as num?)?.toInt() ?? 5,
     );
