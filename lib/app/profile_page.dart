@@ -15,6 +15,7 @@ import '../core/errors/app_error.dart';
 import '../core/errors/error_dialog.dart';
 import 'error_log_page.dart';
 import 'update/download_qr.dart';
+import 'update/update_service.dart';
 import 'update/github_auth_service.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -32,10 +33,56 @@ class _ProfilePageState extends State<ProfilePage> {
   bool? _authorized;
   bool _authorizing = false;
 
+  /// 更新通道：stable / dev
+  String _channel = 'stable';
+
   @override
   void initState() {
     super.initState();
     _refreshAuth();
+    _loadChannel();
+  }
+
+  Future<void> _loadChannel() async {
+    final ch = await UpdateService().channel();
+    if (mounted) setState(() => _channel = ch);
+  }
+
+  /// 切换更新通道（稳定版 / 开发版）
+  void _pickChannel() {
+    Widget btn(String value, String label, String desc) {
+      final active = _channel == value;
+      final widget = active ? ShadButton.new : ShadButton.outline;
+      return widget.call(
+        child: Text(label),
+        onPressed: () async {
+          await UpdateService().setChannel(value);
+          if (!mounted) return;
+          setState(() => _channel = value);
+          Navigator.of(context).pop();
+          _toast('已切换到$label');
+        },
+      );
+    }
+
+    showShadDialog<void>(
+      context: context,
+      builder: (ctx) => ShadDialog.alert(
+        title: const Text('更新通道'),
+        description: const Text(
+          '稳定版：只推送正式发布的版本（推荐）。\n'
+          '开发版：可收到预发布测试版本（新功能抢先体验，可能不稳定）。',
+        ),
+        actions: [
+          btn('dev', '开发版', ''),
+          btn('stable', '稳定版', ''),
+          ShadButton.outline(
+            child: const Text('取消'),
+            onPressed: () => Navigator.of(ctx).pop(),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _refreshAuth() async {
@@ -300,6 +347,15 @@ class _ProfilePageState extends State<ProfilePage> {
                     showDivider: true,
                     onTap: () => showDownloadQrDialog(context),
                   ),
+                AppListTile(
+                  icon: LucideIcons.gitBranch,
+                  title: '更新通道',
+                  subtitle: _channel == 'dev'
+                      ? '开发版 · 可收到预发布测试版本'
+                      : '稳定版 · 只推送正式发布版本',
+                  showDivider: true,
+                  onTap: _pickChannel,
+                ),
                 AppListTile(
                   icon: LucideIcons.info,
                   title: '关于',

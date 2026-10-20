@@ -38,6 +38,16 @@ class UpdateService {
 
   static const String _repo = 'SevenDreamer/my_app';
   static const String _kIgnoredVersionKey = 'update_ignored_version';
+  static const String _kChannelKey = 'update_channel';
+
+  /// 更新通道：'stable'（默认，只看正式版）/ 'dev'（含预发布版）
+  Future<String> channel() async {
+    return await const FlutterSecureStorage().read(key: _kChannelKey) ??
+        'stable';
+  }
+
+  Future<void> setChannel(String value) =>
+      const FlutterSecureStorage().write(key: _kChannelKey, value: value);
 
   final GithubAuthService _auth;
   final http.Client _client;
@@ -51,8 +61,10 @@ class UpdateService {
     if (token == null) return null;
 
     try {
+      // 按通道取 Release 列表（dev 通道含 prerelease；stable 过滤掉 prerelease）
+      final ch = await channel();
       final resp = await _client.get(
-        Uri.parse('https://api.github.com/repos/$_repo/releases/latest'),
+        Uri.parse('https://api.github.com/repos/$_repo/releases?per_page=10'),
         headers: {
           'Authorization': 'Bearer $token',
           'Accept': 'application/vnd.github+json',
@@ -62,7 +74,15 @@ class UpdateService {
       // 401 = token 失效/被撤销 → 静默降级（设置页可重新授权）
       if (resp.statusCode != 200) return null;
 
-      final j = jsonDecode(utf8.decode(resp.bodyBytes)) as Map<String, dynamic>;
+      final list = jsonDecode(utf8.decode(resp.bodyBytes)) as List;
+      final candidates = list.where((r) {
+        final release = r as Map<String, dynamic>;
+        if (release['draft'] == true) return false;
+        if (ch == 'stable' && release['prerelease'] == true) return false;
+        return true;
+      }).toList();
+      if (candidates.isEmpty) return null;
+      final j = candidates.first as Map<String, dynamic>;
       var version = (j['tag_name'] as String?) ?? '';
       if (version.startsWith('v')) version = version.substring(1);
       if (version.isEmpty) return null;
@@ -101,24 +121,35 @@ class UpdateService {
     return info.version; // 不含 build number
   }
 
-  /// 语义化版本比较：remote 是否比 current 更新
+  /// 语义化版本比较（含预发布）：remote 是否比 current 更新。
+  /// 规则：1.2.0 < 1.3.0-dev.1 < 1.3.0（同三段下，正式版大于预发布版）
   bool _isNewer(String remote, String current) {
-    final r = _parse(remote);
-    final c = _parse(current);
+    final r = _split(remote);
+    final c = _split(current);
     for (var i = 0; i < 3; i++) {
-      if (r[i] != c[i]) return r[i] > c[i];
+      if (r.$1[i] != c.$1[i]) return r.$1[i] > c.$1[i];
     }
-    return false; // 同版本不算新版
+    // 三段相同：正式版 > 预发布版；都有预发布则按字符串比较（dev.1 < dev.2）
+    final rPre = r.$2;
+    final cPre = c.$2;
+    if (rPre == null && cPre == null) return false;
+    if (rPre == null) return true; // remote 是正式、current 是预发布
+    if (cPre == null) return false; // remote 是预发布、current 是正式
+    return rPre.compareTo(cPre) > 0;
   }
 
-  List<int> _parse(String version) {
-    final parts = version.split('+').first.split('.');
+  /// 拆为（三段数值, 预发布段或 null）；忽略 +build 号
+  (List<int>, String?) _split(String version) {
+    final main = version.split('+').first;
+    final dash = main.indexOf('-');
+    final core = dash >= 0 ? main.substring(0, dash) : main;
+    final pre = dash >= 0 ? main.substring(dash + 1) : null;
     final nums = <int>[
-      for (final p in parts) int.tryParse(p) ?? 0,
+      for (final p in core.split('.')) int.tryParse(p) ?? 0,
     ];
     while (nums.length < 3) {
       nums.add(0);
     }
-    return nums.sublist(0, 3);
+    return (nums.sublist(0, 3), pre);
   }
 }

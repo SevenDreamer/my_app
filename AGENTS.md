@@ -59,6 +59,10 @@ npx -y -p @google/design.md designmd lint DESIGN.md   # DESIGN.md 变更时：0 
 - **发布三件套必须同号**：pubspec bump → `git tag vX.Y.Z` → GitHub Release
   （附构建产物）；历史 `dev-v3` 式标签不再使用。
 - CHANGELOG 由 `git log v旧..v新 --oneline` 生成（commit 已遵循 feat:/fix:/refactor:）。
+- **发布通道**：正式版=普通 Release；测试版=GitHub **prerelease** + tag 带预发布段
+  （`vX.Y.Z-dev.N`，pubspec `version: X.Y.Z-dev.N+M`）。`releases/latest` 天然只出
+  正式版；app 内「更新通道」（稳定/开发）决定收哪个通道的推送。
+  预发布排序规则：`1.2.0 < 1.3.0-dev.1 < 1.3.0`。
 - 自动更新：**私仓分发走 GitHub Device Flow**（用户设备授权自己的账号，
   二进制内禁止内置任何 token）；iOS 明确不支持自动更新；
   检查服务在 `lib/app/update/`。
