@@ -47,6 +47,8 @@ dependencies:
   http: ^1.6.0
   flutter_secure_storage: ^11.2.0
   url_launcher: ^6.3.3
+  # 扫码下载二维码（桌面端「手机下载」弹窗）
+  qr_flutter: ^4.1.0
 
 dev_dependencies:
   flutter_test:

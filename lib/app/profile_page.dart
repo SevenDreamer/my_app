@@ -1,6 +1,7 @@
 //! "我"页面：个人信息与设置（占位阶段）
 //!
 //! 身份区 + 设置/关于/更新授权入口；后续接账号、偏好设置、设备管理等。
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
@@ -9,6 +10,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../design/tokens.dart';
 import '../design/widgets/app_app_bar.dart';
 import '../design/widgets/app_list_tile.dart';
+import 'update/download_qr.dart';
 import 'update/github_auth_service.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -112,6 +114,12 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  /// 扫码下载是桌面端入口（手机自己不需要下载自己）
+  bool get _isDesktop =>
+      defaultTargetPlatform == TargetPlatform.windows ||
+      defaultTargetPlatform == TargetPlatform.macOS ||
+      defaultTargetPlatform == TargetPlatform.linux;
+
   String get _authSubtitle {
     if (_authorizing) return '等待浏览器授权中……';
     final auth = _authorized;
@@ -183,6 +191,14 @@ class _ProfilePageState extends State<ProfilePage> {
                       ? null
                       : (_authorized == true ? _authInfo : _authorize),
                 ),
+                if (_isDesktop)
+                  AppListTile(
+                    icon: LucideIcons.qrCode,
+                    title: '手机下载',
+                    subtitle: '显示 Android 安装包下载二维码',
+                    showDivider: true,
+                    onTap: () => showDownloadQrDialog(context),
+                  ),
                 AppListTile(
                   icon: LucideIcons.info,
                   title: '关于',

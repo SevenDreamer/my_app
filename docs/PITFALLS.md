@@ -101,3 +101,18 @@
 - 画布：`canvas(prepaint, paint)` 两段闭包均 `'static`（状态需克隆进闭包）；
   画矩形 = `window.paint_quad(fill(bounds, color))`；`Pixels` 间的算术结果仍是 `Pixels`
   （再包 `px()` 即 E0308）。
+
+### 14. Kotlin 增量编译缓存撞注册（Android release 构建）
+- **现象**：`flutter build apk --release` 卡在 `:package_info_plus:compileReleaseKotlin`，
+  报 `Could not close incremental caches … Storage for … is already registered`
+  （url_launcher_android 同步失败；`flutter clean` 后依然复现）。
+- **根因**：Kotlin 增量编译在多插件模块并发编译时共享缓存注册冲突（daemon 状态污染类问题）。
+- **解法**：`android/gradle.properties` 追加 `kotlin.incremental=false` +
+  `org.gradle.parallel=false`——禁增量/并行保构建稳定（插件模块小，代价可忽略）。
+
+### 15. 私有仓库 Release 资产的扫码分发
+- **现象**：手机浏览器直接打开 `releases/download/...` 的资产 URL **404**（登录墙）。
+- **解法**：桌面端用 Device Flow token 调资产 API（`Accept: application/octet-stream`，
+  `followRedirects=false`）取 **302 的 Location**（Azure 签名 URL）。
+- **有效期实测 1 小时**（`se`/`skt` 窗口）——二维码放这个短时 URL，
+  弹窗文案提示"过期重新打开弹窗"即可。
