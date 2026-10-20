@@ -157,7 +157,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
                 const SizedBox(height: AppSpacing.md),
                 const Text(
-                  '浏览器会自动打开并填好配对码；\n若没有跳转，请访问 github.com/login/device\n手动输入上面的配对码。\n\n授权完成后本窗口自动关闭。',
+                  '装有 GitHub App 的手机会自动唤起 App 一键授权；\n浏览器则会自动打开并填好配对码，\n若都没跳转，请访问 github.com/login/device\n手动输入上面的配对码。\n\n授权完成后本窗口自动关闭。',
                   textAlign: TextAlign.center,
                 ),
               ],
