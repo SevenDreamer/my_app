@@ -25,6 +25,23 @@ jobs:
 
       - run: flutter pub get
 
+      # 用 Secrets 恢复签名（与本地 release 同一把钥匙，覆盖安装不冲突）
+      - name: 恢复签名配置
+        env:
+          ANDROID_KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          if [ -n "$ANDROID_KEYSTORE_B64" ]; then
+            echo "$ANDROID_KEYSTORE_B64" | base64 -d > android/app/my_app-release.jks
+            printf 'storePassword=%s\nkeyPassword=%s\nkeyAlias=%s\nstoreFile=my_app-release.jks\n' \
+              "$ANDROID_KEYSTORE_PASSWORD" "$ANDROID_KEYSTORE_PASSWORD" "$ANDROID_KEY_ALIAS" \
+              > android/key.properties
+            echo "signing restored"
+          else
+            echo "no signing secrets -- debug fallback"
+          fi
+
       - name: 计算 dev 版本号
         id: ver
         run: |
