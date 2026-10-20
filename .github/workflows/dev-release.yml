@@ -3,7 +3,7 @@
 # 用法：Actions 页手动 Run（workflow_dispatch）；
 # 想要「每次 commit 自动推」就取消下面 push 触发的注释。
 # 版本号 = 1.3.0-dev.<构建序号>+100（跳过手动发过的 dev.1~99，永不撞号）。
-name: dev-release
+name: CD · 开发版发布
 
 on:
   workflow_dispatch:
