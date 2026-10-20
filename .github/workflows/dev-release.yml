@@ -35,11 +35,11 @@ jobs:
             ${{ env.ANDROID_HOME }}/ndk
             ~/.gradle/caches
             ~/.gradle/wrapper
-          # key 只跟构建配置走（不含 pubspec 版本号）：SDK 缓存不该因发版 bump 失效
-          key: ${{ runner.os }}-android-sdk-v2-${{ hashFiles('android/gradle/**', 'android/app/build.gradle.kts', 'android/gradle.properties') }}
+          # 固定 key（手工 bump）：SDK 内容极少变；hash 任何配置文件都会
+          # 造成"一改配置就砸缓存"的恶性循环（PITFALLS #19）
+          key: ${{ runner.os }}-android-sdk-cache-v1
           restore-keys: |
-            ${{ runner.os }}-android-sdk-v2-
-            ${{ runner.os }}-android-ndk-
+            ${{ runner.os }}-android-sdk-cache-
 
       - run: flutter pub get
 
