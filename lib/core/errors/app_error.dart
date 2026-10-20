@@ -49,9 +49,17 @@ class AppError {
     var resolved = code;
     var resolvedHint = hint;
 
-    if (e is SocketException) {
+    final text = e.toString();
+    // 连接中断/复位类（package:http 的 ClientException 或字符串特征）
+    if (text.contains('connection abort') ||
+        text.contains('Connection reset') ||
+        text.contains('Software caused connection') ||
+        text.contains('Connection closed')) {
+      resolved = ErrorCodes.netTimeout;
+      resolvedHint ??= '网络连接中断：多为网络抖动/切换或省电策略掐断，'
+          '重试一次通常即可；持续出现请切换网络（Wi-Fi ↔ 流量）。';
+    } else if (e is SocketException) {
       // DNS 解析失败（Failed host lookup）/ 连接失败
-      final text = e.toString();
       if (text.contains('Failed host lookup') ||
           text.contains('No address associated')) {
         resolved = ErrorCodes.netDns;

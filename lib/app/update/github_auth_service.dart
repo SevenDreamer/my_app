@@ -165,16 +165,23 @@ class GithubAuthService {
     var interval = code.interval;
     while (DateTime.now().isBefore(deadline)) {
       await Future<void>.delayed(Duration(seconds: interval));
-      final resp = await _client.post(
-        Uri.parse(_accessTokenEndpoint),
-        headers: const {'Accept': 'application/json'},
-        body: {
-          'client_id': clientId,
-          'device_code': code.deviceCode,
-          'grant_type': 'urn:ietf:params:oauth:grant-type:device_code',
-        },
-      );
-      final j = jsonDecode(resp.body) as Map<String, dynamic>;
+
+      // 单次请求的网络抖动不算失败：视为 pending 继续轮询（授权动作不白费）
+      final Map<String, dynamic> j;
+      try {
+        final resp = await _client.post(
+          Uri.parse(_accessTokenEndpoint),
+          headers: const {'Accept': 'application/json'},
+          body: {
+            'client_id': clientId,
+            'device_code': code.deviceCode,
+            'grant_type': 'urn:ietf:params:oauth:grant-type:device_code',
+          },
+        );
+        j = jsonDecode(resp.body) as Map<String, dynamic>;
+      } catch (_) {
+        continue; // 网络中断/抖动：下一轮再试
+      }
       final accessToken = j['access_token'] as String?;
       if (accessToken != null) {
         await _storage.write(key: _kTokenKey, value: accessToken);

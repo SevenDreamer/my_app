@@ -144,11 +144,11 @@ class _ProfilePageState extends State<ProfilePage> {
                 final ok =
                     await _openAuthUri(code.verificationUriComplete, preferApp: true);
                 if (!ok && mounted) {
-                  _toast('没找到可用的 GitHub App（未安装？）—— 试试浏览器按钮');
+                  _toast('没找到可用的 GitHub App —— 请用「浏览器打开」');
                 }
               },
             ),
-            ShadButton.outline(
+            ShadButton(
               child: const Text('浏览器打开'),
               onPressed: () => _openAuthUri(code.verificationUriComplete, preferApp: false),
             ),
