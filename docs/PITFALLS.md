@@ -116,3 +116,14 @@
   `followRedirects=false`）取 **302 的 Location**（Azure 签名 URL）。
 - **有效期实测 1 小时**（`se`/`skt` 窗口）——二维码放这个短时 URL，
   弹窗文案提示"过期重新打开弹窗"即可。
+
+### 16. Android 签名配置在 CI 上炸（null cannot be cast to String）
+- **现象**：本地构建好好的，GitHub Actions 上 `build.gradle.kts:44` 报
+  `null cannot be cast to non-null type kotlin.String`。
+- **根因**：`key.properties` 被 gitignore（正确），CI 上不存在——
+  `keystoreProperties[...] as String` 读 null 直接炸。
+- **解法**：① gradle 判断 `key.properties` 存在才建 release 签名（缺失降级 debug 并警告）；
+  ② CI 经 **GitHub Secrets**（ANDROID_KEYSTORE_B64/PASSWORD/ALIAS）恢复签名文件——
+  Secrets 是加密存储，与"密钥不入库"原则不冲突。
+- **附坑**：CI 写 key.properties 别用 heredoc（缩进会进文件）→ 用 `printf`；
+  `storeFile` 相对 **app 模块目录**写 `my_app-release.jks`（不是 `android/app/...`）。
