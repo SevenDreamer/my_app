@@ -95,6 +95,21 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  /// 打开授权链接：优先唤起 GitHub App（非浏览器），失败回退浏览器
+  Future<void> _openAuthUri(String uriString) async {
+    final uri = Uri.tryParse(uriString);
+    if (uri == null) return;
+    // externalNonBrowserApplication：强制找非浏览器应用（装了 GitHub App 就直接跳它）
+    final opened = await launchUrl(
+      uri,
+      mode: LaunchMode.externalNonBrowserApplication,
+    );
+    if (!opened) {
+      // 没有可用的非浏览器应用（未装 GitHub App）→ 回退浏览器
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
   /// Device Flow：申请设备码 → 弹配对码框（可复制/手动打开）→ 轮询授权结果
   Future<void> _authorize() async {
     if (_authorizing) return;
@@ -127,10 +142,7 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
             ShadButton.outline(
               child: const Text('打开授权页'),
-              onPressed: () {
-                launchUrl(Uri.parse(code.verificationUriComplete),
-                    mode: LaunchMode.externalApplication);
-              },
+              onPressed: () => _openAuthUri(code.verificationUriComplete),
             ),
             ShadButton(
               child: const Text('取消'),
@@ -166,9 +178,8 @@ class _ProfilePageState extends State<ProfilePage> {
         ),
       );
 
-      // 同时尝试自动打开授权页（保留自动跳转的便利）
-      await launchUrl(Uri.parse(code.verificationUriComplete),
-          mode: LaunchMode.externalApplication);
+      // 同时尝试自动打开授权页（优先 GitHub App，回退浏览器）
+      await _openAuthUri(code.verificationUriComplete);
       _toast('已打开授权页，等待授权（配对码 ${code.userCode}）');
 
       // 后台轮询直到授权完成/超时
