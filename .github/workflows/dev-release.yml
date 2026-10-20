@@ -69,12 +69,14 @@ jobs:
           --build-name=${{ steps.ver.outputs.name }}
           --build-number=${{ steps.ver.outputs.number }}
 
-      - name: 创建 Pre-release
+      - name: 创建 Pre-release（资产名带版本号）
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          cp build/app/outputs/flutter-apk/app-release.apk \
+            "build/my_app-v${{ steps.ver.outputs.name }}-android.apk"
           gh release create "v${{ steps.ver.outputs.name }}" \
-            build/app/outputs/flutter-apk/app-release.apk \
+            "build/my_app-v${{ steps.ver.outputs.name }}-android.apk" \
             --prerelease \
             --title "v${{ steps.ver.outputs.name }}" \
             --notes "开发版自动构建（commit ${GITHUB_SHA::7}）"
