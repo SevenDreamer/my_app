@@ -18,8 +18,10 @@ import 'github_auth_service.dart';
 import 'update_service.dart';
 
 /// 取最新 Release 里 Android 资产的一次性签名下载 URL。
+/// [abi] 指定架构（D2 分架构包）：优先匹配含该 ABI 的资产；
+/// 不指定按 arm64-v8a（2026 主流），匹配不到再退回第一个 apk。
 /// 返回 (url, err)：成功时 err 为 null；失败时 url 为 null 且 err 是具体原因。
-Future<(String?, AppError?)> fetchAndroidSignedUrl() async {
+Future<(String?, AppError?)> fetchAndroidSignedUrl({String? abi}) async {
   final auth = GithubAuthService();
   final token = await auth.validToken();
   if (token == null) {
@@ -71,9 +73,17 @@ Future<(String?, AppError?)> fetchAndroidSignedUrl() async {
     }
     final j = candidates.first as Map<String, dynamic>;
     final assets = (j['assets'] as List?) ?? const [];
+    final wantAbi = abi ?? 'arm64-v8a';
+    // 优先匹配目标 ABI 的架构包，找不到退回任意 apk
     final asset = assets.firstWhere(
-      (a) => (a['name'] as String? ?? '').endsWith('.apk'),
-      orElse: () => null,
+      (a) {
+        final name = (a['name'] as String? ?? '');
+        return name.endsWith('.apk') && name.contains(wantAbi);
+      },
+      orElse: () => assets.firstWhere(
+        (a) => (a['name'] as String? ?? '').endsWith('.apk'),
+        orElse: () => null,
+      ),
     );
     if (asset == null) {
       return (

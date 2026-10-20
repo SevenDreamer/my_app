@@ -53,6 +53,9 @@ dependencies:
   path_provider: ^2.1.6
   # Android 内置授权页（受控 webview，不被外部浏览器打断）
   webview_flutter: ^4.14.1
+  # app 内下载安装更新（D1）+ 设备 ABI 识别（D2 分架构包）
+  open_file: ^4.0.0
+  device_info_plus: ^13.3.0
 
 dev_dependencies:
   flutter_test:
