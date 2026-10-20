@@ -147,3 +147,17 @@
   Java/Kotlin，无 native 需求）；真要用 NDK 的项目反而应该显式锁版本。
 - **附注**：CI 缓存 key 不要混入 `pubspec.yaml`（版本号 bump 会让 SDK 缓存失效），
   只跟 `android/` 构建配置的 hash 走。
+
+### 19. CI 缓存 key hash 配置文件 = "一改配置就砸缓存"的恶性循环
+- **现象**：明明配了 actions/cache、缓存也成功保存（`gh cache list` 可见），但每次
+  构建仍全量下载 SDK/NDK。
+- **根因**：key 里 hash 了 `gradle.properties`/`build.gradle.kts` 这类**会被频繁
+  调优的文件**——每改一次 key 就变，缓存 miss → 重新下载 → 存新缓存 → 下次
+  调优又 miss……调优越勤，缓存越废。
+- **解法**：工具链缓存（SDK/NDK/Gradle）的 key 用**手工版本号**（`...-cache-v1`），
+  确实需要失效时手动改 v2；别用源码/配置文件的 hash。
+- **附注**：`flutter build apk` 会主动安装 NDK（flutter_tools 的 installNdkVersion，
+  即使无 native 代码、即使删了项目里的 ndkVersion 声明、即使禁了
+  android.builder.sdkDownload）——NDK 基本是 Flutter Android 构建的硬需求，
+  接受它并缓存它，比对抗它省时间。判断缓存是否命中看日志的 `Cache mode`：
+  `write`=miss（存），`restore`/`= read-write`=hit。
