@@ -103,6 +103,7 @@ flutter:
     - assets/models/ren/ren.4096/
     - assets/models/ren/expressions/
     - assets/models/ren/motions/
+    - shorebird.yaml
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
