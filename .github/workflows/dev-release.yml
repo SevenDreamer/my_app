@@ -84,10 +84,14 @@ jobs:
       # Flutter engine .so 的调试符号（幻影目录方案实测穿帮——PITFALLS #22）。
       # :jni 编译需求已根治（path_provider_android 钉 2.2.23），CMake 不再需要。
       # 显式安装 + 上方缓存兜底（首次下载一次，之后命中）。
-      - name: 安装 NDK（llvm-strip 需要）
+      - name: 安装 NDK（llvm-strip 与插件 native 构建需要）
         run: |
+          # 先清掉缓存里可能残留的幻影 NDK 目录（会让 sdkmanager 误判已安装）
+          rm -rf "$ANDROID_HOME/ndk/28.2.13676358"
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" \
             "ndk;28.2.13676358" > /dev/null
+          test -f "$ANDROID_HOME/ndk/28.2.13676358/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip" \
+            && echo "NDK 就绪（llvm-strip 存在）" || { echo "NDK 安装不完整"; exit 1; }
 
       - name: 构建 apk（分架构 + 版本参数化）
         run: >
@@ -181,3 +185,22 @@ jobs:
             --prerelease \
             --title "${{ needs.prepare.outputs.name }}" \
             --notes "开发版自动构建（commit ${GITHUB_SHA::7}）"
+
+  # ─────────── 节点 5：失败通知（开 Issue，GitHub App 推送直达手机） ───────────
+  notify:
+    if: failure()
+    needs: [prepare, build-android, build-windows, release]
+    runs-on: ubuntu-24.04
+    steps:
+      - name: 开 Issue 通知构建失败
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue create --repo ${{ github.repository }} \
+            --title "CD 构建失败：run #${{ github.run_number }}" \
+            --body "**失败的流水线**：${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+  commit: ${GITHUB_SHA::7}
+  触发人：${{ github.actor }}
+
+  点链接看日志，修复后此 issue 可关。" || echo "issue 创建失败（忽略）"
