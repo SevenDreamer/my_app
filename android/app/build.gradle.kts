@@ -20,8 +20,10 @@ if (hasKeystore) {
 android {
     namespace = "com.example.my_app"
     compileSdk = flutter.compileSdkVersion
-    // 不声明 ndkVersion：本项目插件均为 Java/Kotlin，无 native 代码——
-    // 声明它会强制 CI/本地下载 ~1GB 的 NDK（PITFALLS 已记）
+    // NDK 版本：默认用 runner 镜像预装的 30.0（零下载）；CI 可用 NDK_VERSION
+    // 环境变量覆盖（双 NDK 对照构建用）。Flutter 默认的 flutter.ndkVersion
+    // (28.2) 恰好不在镜像预装列表里，会导致每次构建下载 1GB NDK。
+    ndkVersion = System.getenv("NDK_VERSION") ?: "30.0.16248370"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
