@@ -60,6 +60,8 @@ dependencies:
   flutter_live2d: ^1.0.2
   # 手机端流水线通知（系统通知栏，成功/失败都推）
   flutter_local_notifications: ^22.3.2
+  # Lucide 图标（全库统一用 LucideIcons——此前是传递依赖，升为直接声明）
+  lucide_icons_flutter: ^3.1.25
 
 # 根治 :jni/NDK 依赖（PITFALLS #20）：path_provider_android 2.3.0 起引入
 # jni（C 桥接模块，需 NDK+CMake）；钉住 2.2.23（最后一个纯 Kotlin 版），

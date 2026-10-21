@@ -4,7 +4,10 @@
 //! 仅 Android/iOS（包的平台限制）——桌面端不可用，注册表已声明。
 import 'package:flutter/material.dart';
 import 'package:flutter_live2d/flutter_live2d.dart';
+import 'package:shadcn_ui/shadcn_ui.dart'; // LucideIcons 由它 re-export
 
+import '../../app/update/log_viewer_dialog.dart';
+import '../../core/logging/app_logger.dart';
 import '../../design/tokens.dart';
 import '../../design/widgets/app_app_bar.dart';
 
@@ -52,15 +55,21 @@ class _Live2dPageState extends State<Live2dPage> {
       _idx = idx;
       _error = null;
     });
+    AppLogger.instance.log(
+        'live2d', '开始加载 ${_models[idx].label}（${_models[idx].dir}${_models[idx].file}）');
     try {
       await _ctrl.whenAttached;
+      AppLogger.instance.log('live2d', 'GL surface 已就绪，调用 loadModel');
       await _ctrl.loadModel(
         modelDir: _models[idx].dir,
         modelFileName: _models[idx].file,
       );
+      AppLogger.instance.log('live2d', 'loadModel 完成：${_ctrl.value}');
     } on Live2DException catch (e) {
+      AppLogger.instance.log('live2d', 'Live2DException：${e.code}: ${e.message}');
       if (mounted) setState(() => _error = '${e.code}: ${e.message}');
     } catch (e) {
+      AppLogger.instance.log('live2d', '异常：$e');
       if (mounted) setState(() => _error = '$e');
     }
   }
@@ -68,7 +77,16 @@ class _Live2dPageState extends State<Live2dPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const AppAppBar(title: 'Live2D 看板娘'),
+      appBar: AppAppBar(
+        title: 'Live2D 看板娘',
+        actions: [
+          // 调试期日志入口——看加载/渲染都发生了什么
+          IconButton(
+            icon: const Icon(LucideIcons.scrollText),
+            onPressed: () => showLogViewerDialog(context),
+          ),
+        ],
+      ),
       body: Column(
         children: [
           // 模型切换
