@@ -58,6 +58,12 @@
 
 ## 未排期想法池
 
+- **Live2D 模型导入（用户自传压缩包）**：支持导入 .zip（含 model3.json+贴图/
+  动作/表情）→ 解压到应用文档目录 → 模型列表动态化（不再写死内置三个）。
+  技术可行点：flutter_live2d 的 loadModel 支持**绝对文件系统路径**（不限于
+  assets）；file_picker 选包 + archive 包解压 + model3.json 完整性校验
+  （引用文件齐全才收录）。分发场景：别人拿到 app 自带自己的模型包即用。
+  触发条件：Live2D 玩法定型、出现"想用自己模型"的真实需求。
 - **无缝回调授权（Authorization Code + Loopback redirect）**：app 内起本地
   小服务器（`http://127.0.0.1:<固定端口>/callback`），浏览器授权完 redirect 回它
   ——省掉 device flow 的轮询等待。**触发条件**：① 有了自己的域名（可走 App Links
