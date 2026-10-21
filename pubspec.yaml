@@ -57,6 +57,12 @@ dependencies:
   open_file: ^4.0.0
   device_info_plus: ^13.3.0
 
+# 根治 :jni/NDK 依赖（PITFALLS #20）：path_provider_android 2.3.0 起引入
+# jni（C 桥接模块，需 NDK+CMake）；钉住 2.2.23（最后一个纯 Kotlin 版），
+# :jni 模块消失，CI 免装 NDK/CMake。上游解决后移除本覆盖。
+dependency_overrides:
+  path_provider_android: 2.2.23
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

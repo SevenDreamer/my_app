@@ -54,8 +54,6 @@ jobs:
           path: |
             ${{ env.ANDROID_HOME }}/build-tools
             ${{ env.ANDROID_HOME }}/platforms
-            ${{ env.ANDROID_HOME }}/cmake
-            ${{ env.ANDROID_HOME }}/ndk
             ~/.gradle/caches
             ~/.gradle/wrapper
           # 固定 key（手工 bump）：SDK 内容极少变；hash 配置文件会造成
@@ -79,12 +77,8 @@ jobs:
             echo "未配置签名（secrets 缺失）——将产出 debug 签名的开发版"
           fi
 
-      # path_provider_android 用 jni（CMake native 构建）；AGP 自动下载已禁，
-      # 显式安装 CMake + 对应版本 NDK（已装则 sdkmanager 幂等跳过），由缓存存取
-      - name: 安装 CMake 与 NDK（path_provider 的 jni 构建需要）
-        run: |
-          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" \
-            "cmake;3.22.1" "ndk;28.2.13676358" > /dev/null
+      # :jni 模块已根治（path_provider_android 钉 2.2.23 纯 Kotlin 版）：
+      # 无需 NDK/CMake，见 PITFALLS #20
 
       - name: 构建 apk（分架构 + 版本参数化）
         run: >

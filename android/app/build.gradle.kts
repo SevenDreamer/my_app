@@ -20,10 +20,8 @@ if (hasKeystore) {
 android {
     namespace = "com.example.my_app"
     compileSdk = flutter.compileSdkVersion
-    // NDK 版本：:jni 模块（path_provider 的 native 构建）钉死 Flutter 默认的
-    // 28.2（实测换 30.0 直接构建失败）——28.2 不在 CI 镜像预装列表里，
-    // 由 workflow 显式安装 + 缓存兜底（PITFALLS #20）。
-    ndkVersion = System.getenv("NDK_VERSION") ?: "28.2.13676358"
+    // 不声明 ndkVersion：:jni 已根治（path_provider_android 钉 2.2.23），
+    // 全项目无 native 代码，NDK 不再是构建需求
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17

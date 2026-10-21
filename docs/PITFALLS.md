@@ -176,3 +176,12 @@
   与 Flutter 的 `ReleaseMinSdkCheck` 任务不兼容（不可序列化对象），会直接
   构建失败；只开 `org.gradle.caching=true`（build cache）是安全的，且收益大
   （本地实测 141s → 3s）。
+
+### 21. :jni/NDK 连环坑的根治：钉 path_provider_android = 2.2.23
+- **终局方案**：`dependency_overrides: path_provider_android: 2.2.23`（pub.dev
+  实测的版本分界：2.3.0 起引入 jni，2.2.23 是最后一个纯 Kotlin 版）。
+- **效果**：`:jni` 模块从依赖树消失（pubspec.lock 中 jni 零命中），
+  NDK/CMake 完全退出构建链——workflow 删掉安装步骤，缓存瘦身，
+  CI 不再有任何 1GB 级工具链下载。
+- **何时解除钉死**：上游 path_provider_android 去掉 jni 依赖（或我们不再用
+  path_provider）后移除 dependency_overrides。
