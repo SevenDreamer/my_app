@@ -200,3 +200,15 @@
   仓库缓存兜底（首次下载一次，之后 Cache hit）。**真正去掉它的唯一路**：
   不用 path_provider（或换无 jni 实现）+ packaging doNotStrip（接受 APK 变大）。
 - **附注**：CMake 可以真正退场（:jni 根治后无 native 编译），只有 NDK 留守。
+
+### 23. NDK 优化全案回退（2026-10-21 决定）：不折腾就是最优解
+- **背景**：为消除 NDK 每次下载，先后尝试删 ndkVersion 声明 / 禁 AGP 自动下载 /
+  双 NDK 矩阵 / 钉 path_provider_android / 幻影 NDK 目录 / 显式安装+环境变量
+  覆盖——共 7 轮 commit（e748478→c39b75f），每一层都冒出新的拦截者。
+- **决定**：全部回退，NDK 恢复 `flutter.ndkVersion` 模板原样 + flutter build
+  全自动下载。**接受每次下载的慢，换构建的稳定**——NDK 的自动化本来就是
+  Flutter 工具链设计好的路径，对抗它的成本已超过收益。
+- **保留的改进**（与 NDK 无关）：四节点并行、Gradle build cache、签名 secrets
+  校验、分架构包、失败 Issue 通知、actions 版本升级。
+- **仍然有效的经验**：#18/#19/#20/#22 的排查方法论（Cache mode 诊断、flutter_tools
+  的清单机制、:jni 的版本钉死）——下次 Flutter 升级若 NDK 行为变化，从这里查起。

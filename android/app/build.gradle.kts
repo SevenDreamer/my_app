@@ -20,12 +20,11 @@ if (hasKeystore) {
 android {
     namespace = "com.example.my_app"
     compileSdk = flutter.compileSdkVersion
-    // NDK 28.2（与 Flutter 默认一致）：AGP 的 stripReleaseDebugSymbols 需要
-    // 它的 llvm-strip 剥离 engine .so 调试符号——NDK 是真需求（PITFALLS #22），
-    // 由 CI 显式安装 + 缓存兜底
-    ndkVersion = "28.2.13676358"
+    ndkVersion = flutter.ndkVersion // 模板原样——NDK 不做任何干预（回退决定见 PITFALLS #23）
 
     compileOptions {
+        // flutter_local_notifications（v10+）要求 core library desugaring
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
@@ -81,4 +80,9 @@ kotlin {
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    // flutter_local_notifications（v10+）要求 core library desugaring（README 指定版本）
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }
