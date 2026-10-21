@@ -78,7 +78,15 @@ jobs:
           fi
 
       # :jni 模块已根治（path_provider_android 钉 2.2.23 纯 Kotlin 版）：
-      # 无需 NDK/CMake，见 PITFALLS #20
+      # 无需 NDK/CMake。但 flutter_tools 仍按"已装 NDK 列表"检查 28.2
+      # （gradle.dart 的 InstalledNdkVersions 属性），列表缺失就触发 1GB 下载。
+      # 检查只验 ndk/<ver>/source.properties 存在性——造一个幻影目录满足它，
+      # 真实构建无人使用 NDK（PITFALLS #22）。
+      - name: 伪造 NDK 版本记录（绕过 flutter_tools 的安装触发）
+        run: |
+          mkdir -p "$ANDROID_HOME/ndk/28.2.13676358"
+          printf 'Pkg.Desc = Android NDK\nPkg.Revision = 28.2.13676358\n' \
+            > "$ANDROID_HOME/ndk/28.2.13676358/source.properties"
 
       - name: 构建 apk（分架构 + 版本参数化）
         run: >

@@ -185,3 +185,15 @@
   CI 不再有任何 1GB 级工具链下载。
 - **何时解除钉死**：上游 path_provider_android 去掉 jni 依赖（或我们不再用
   path_provider）后移除 dependency_overrides。
+
+### 22. NDK 强制下载的真正元凶：flutter_tools 的"已装版本清单"检查
+- **现象**：:jni 根治后（#21），CI 仍每次下载 1GB 的 NDK 28.2。
+- **根因**：`flutter build` 把"已安装 NDK 版本列表"作为 gradle 属性传入
+  （flutter_tools 的 gradle.dart：`-P...InstalledNdkVersions=<已装清单>`）；
+  清单里没有 flutter.ndkVersion（28.2）就触发安装——此前所有"禁下载"
+  尝试（删 ndkVersion 声明 / android.builder.sdkDownload=false）都治不到它。
+- **解法**：清单检查只验 `ndk/<版本>/source.properties` 文件存在性——
+  在 CI 里**造一个幻影 NDK 目录**（只有 source.properties）满足检查。
+  真实构建无人使用 NDK（:jni 已根治），属于"给门卫看的通行证"。
+- **何时移除**：未来某插件真需要 NDK 时（构建会清晰报错），删掉伪造步骤、
+  恢复显式安装即可。
