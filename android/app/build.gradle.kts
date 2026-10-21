@@ -20,10 +20,10 @@ if (hasKeystore) {
 android {
     namespace = "com.example.my_app"
     compileSdk = flutter.compileSdkVersion
-    // NDK 版本：默认用 runner 镜像预装的 30.0（零下载）；CI 可用 NDK_VERSION
-    // 环境变量覆盖（双 NDK 对照构建用）。Flutter 默认的 flutter.ndkVersion
-    // (28.2) 恰好不在镜像预装列表里，会导致每次构建下载 1GB NDK。
-    ndkVersion = System.getenv("NDK_VERSION") ?: "30.0.16248370"
+    // NDK 版本：:jni 模块（path_provider 的 native 构建）钉死 Flutter 默认的
+    // 28.2（实测换 30.0 直接构建失败）——28.2 不在 CI 镜像预装列表里，
+    // 由 workflow 显式安装 + 缓存兜底（PITFALLS #20）。
+    ndkVersion = System.getenv("NDK_VERSION") ?: "28.2.13676358"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17

@@ -161,3 +161,18 @@
   android.builder.sdkDownload）——NDK 基本是 Flutter Android 构建的硬需求，
   接受它并缓存它，比对抗它省时间。判断缓存是否命中看日志的 `Cache mode`：
   `write`=miss（存），`restore`/`= read-write`=hit。
+
+### 20. NDK 版本不是你能选的：:jni 模块钉死 Flutter 默认版本
+- **现象**：想用 CI 镜像预装的 NDK 30.0（零下载）替换 Flutter 默认的 28.2，
+  无论在 :app 还是全局 gradle 覆盖 ndkVersion，构建都报
+  `A problem occurred configuring project ':jni' > NDK not configured.
+  Preferred NDK version is '28.2.13676358'`。
+- **根因**：插件的原生模块（如 path_provider_android 的 :jni）按**Flutter
+  的默认 NDK 版本**（flutter.ndkVersion）查 NDK，不受 app 层 ndkVersion
+  影响；subprojects 级 afterEvaluate 覆盖又会撞 "project already evaluated"。
+- **解法**：认了 28.2——workflow 里显式 `sdkmanager install "ndk;28.2.13676358"`
+  + 仓库缓存兜底（首次下载一次，之后缓存命中）。
+- **附注**：另一个翻车点——gradle.properties 的 `org.gradle.configuration-cache=true`
+  与 Flutter 的 `ReleaseMinSdkCheck` 任务不兼容（不可序列化对象），会直接
+  构建失败；只开 `org.gradle.caching=true`（build cache）是安全的，且收益大
+  （本地实测 141s → 3s）。

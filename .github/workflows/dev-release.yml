@@ -30,20 +30,14 @@ jobs:
           echo "number=${NAME##*-dev.}" >> "$GITHUB_OUTPUT"
           echo "本次版本：$NAME"
 
-  # ─────────── 节点 2：Android 构建（双 NDK 对照，并行矩阵） ───────────
+  # ─────────── 节点 2：Android 构建 ───────────
+  # NDK 实验结论（PITFALLS #20）：:jni 模块钉死 Flutter 默认 28.2，
+  # 换 30.0（镜像预装）直接构建失败——28.2 是硬需求，显式安装+缓存兜底
   build-android:
     needs: prepare
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - ndk: "30.0.16248370"    # 镜像预装，零下载（主）
-            label: "ndk30"
-          - ndk: "28.2.13676358"    # Flutter 默认版本（对照验证用）
-            label: "ndk28"
     env:
-      NDK_VERSION: ${{ matrix.ndk }}
+      NDK_VERSION: "28.2.13676358"
     steps:
       - uses: actions/checkout@v4
 
@@ -86,10 +80,11 @@ jobs:
           fi
 
       # path_provider_android 用 jni（CMake native 构建）；AGP 自动下载已禁，
-      # 显式安装 CMake（版本与 AGP 要求一致），由上方缓存负责存取
-      - name: 安装 CMake（path_provider 的 jni 构建需要）
+      # 显式安装 CMake + 对应版本 NDK（已装则 sdkmanager 幂等跳过），由缓存存取
+      - name: 安装 CMake 与 NDK（path_provider 的 jni 构建需要）
         run: |
-          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "cmake;3.22.1" > /dev/null
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" \
+            "cmake;3.22.1" "ndk;28.2.13676358" > /dev/null
 
       - name: 构建 apk（分架构 + 版本参数化）
         run: >
@@ -97,12 +92,12 @@ jobs:
           --build-name=${{ needs.prepare.outputs.name }}
           --build-number=${{ needs.prepare.outputs.number }}
 
-      - name: 重命名产物（带 NDK 标签，避免双矩阵同名冲突）
+      - name: 重命名产物（带版本号）
         run: |
           cd build/app/outputs/flutter-apk
           for f in app-*-release.apk; do
             abi=$(echo "$f" | sed -E 's/app-(.+)-release\.apk/\1/')
-            mv "$f" "my_app-v${{ needs.prepare.outputs.name }}-android-${abi}-${{ matrix.label }}.apk"
+            mv "$f" "my_app-v${{ needs.prepare.outputs.name }}-android-${abi}.apk"
           done
 
       - name: 上传构建产物
@@ -180,4 +175,4 @@ jobs:
             artifacts/*.apk artifacts/*.zip \
             --prerelease \
             --title "v${{ needs.prepare.outputs.name }}" \
-            --notes "开发版自动构建（commit ${GITHUB_SHA::7}，双 NDK 对照：ndk30 主 / ndk28 对照）"
+            --notes "开发版自动构建（commit ${GITHUB_SHA::7}）"
