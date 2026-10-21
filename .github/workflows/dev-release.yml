@@ -56,7 +56,6 @@ jobs:
           path: |
             ${{ env.ANDROID_HOME }}/build-tools
             ${{ env.ANDROID_HOME }}/platforms
-            ${{ env.ANDROID_HOME }}/ndk
             ~/.gradle/caches
             ~/.gradle/wrapper
           # 固定 key（手工 bump）：SDK 内容极少变；hash 配置文件会造成
@@ -84,10 +83,9 @@ jobs:
       # Flutter engine .so 的调试符号（幻影目录方案实测穿帮——PITFALLS #22）。
       # :jni 编译需求已根治（path_provider_android 钉 2.2.23），CMake 不再需要。
       # 显式安装 + 上方缓存兜底（首次下载一次，之后命中）。
-      - name: 安装 NDK（llvm-strip 与插件 native 构建需要）
+      - name: 安装 NDK（每次老实装，不缓存——简单优先）
         run: |
-          # 先清掉缓存里可能残留的幻影 NDK 目录（会让 sdkmanager 误判已安装）
-          rm -rf "$ANDROID_HOME/ndk/28.2.13676358"
+          rm -rf "$ANDROID_HOME/ndk/28.2.13676358"  # 清残留防 sdkmanager 误判
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" \
             "ndk;28.2.13676358" > /dev/null
           test -f "$ANDROID_HOME/ndk/28.2.13676358/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip" \

@@ -15,6 +15,7 @@ import '../core/errors/app_error.dart';
 import '../core/errors/error_dialog.dart';
 import 'error_log_page.dart';
 import 'update/auth_webview_page.dart';
+import 'update/ci_notifier.dart';
 import 'update/download_qr.dart';
 import 'update/update_service.dart';
 import 'update/github_auth_service.dart';
@@ -33,6 +34,7 @@ class _ProfilePageState extends State<ProfilePage> {
   /// GitHub 授权状态：null=查询中 / true=已授权 / false=未授权
   bool? _authorized;
   bool _authorizing = false;
+  bool _ciNotify = true;
 
   /// 更新通道：stable / dev
   String _channel = 'stable';
@@ -40,6 +42,10 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   void initState() {
     super.initState();
+    // ignore: unawaited_futures
+    CiNotifier.instance.enabled.then((v) {
+      if (mounted) setState(() => _ciNotify = v);
+    });
     _refreshAuth();
     _loadChannel();
   }
@@ -368,6 +374,19 @@ class _ProfilePageState extends State<ProfilePage> {
                     showDivider: true,
                     onTap: () => showDownloadQrDialog(context),
                   ),
+                AppListTile(
+                  icon: LucideIcons.bell,
+                  title: '流水线通知',
+                  subtitle: '构建成功/失败时系统通知栏提醒',
+                  showDivider: true,
+                  trailing: ShadSwitch(
+                    value: _ciNotify,
+                    onChanged: (v) async {
+                      await CiNotifier.instance.setEnabled(v);
+                      if (mounted) setState(() => _ciNotify = v);
+                    },
+                  ),
+                ),
                 AppListTile(
                   icon: LucideIcons.gitBranch,
                   title: '更新通道',
