@@ -45,8 +45,13 @@ android {
         versionName = flutter.versionName
     }
 
+    // 签名四字段完整性校验：任一缺失则视为无签名（降级 debug，避免 as String 空炸）
+    val signingComplete = hasKeystore &&
+        listOf("keyAlias", "keyPassword", "storeFile", "storePassword")
+            .all { keystoreProperties[it] != null }
+
     signingConfigs {
-        if (hasKeystore) {
+        if (signingComplete) {
             create("release") {
                 keyAlias = keystoreProperties["keyAlias"] as String
                 keyPassword = keystoreProperties["keyPassword"] as String
@@ -58,8 +63,8 @@ android {
 
     buildTypes {
         release {
-            // 有本地签名（key.properties）时用 release 签名；否则降级 debug（CI 无密钥时防炸）
-            signingConfig = if (hasKeystore) {
+            // 有完整签名（key.properties 四字段齐）时用 release 签名；否则降级 debug
+            signingConfig = if (signingComplete) {
                 signingConfigs.getByName("release")
             } else {
                 signingConfigs.getByName("debug")

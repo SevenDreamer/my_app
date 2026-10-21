@@ -70,14 +70,16 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-android-sdk-cache-
 
-      - name: 恢复签名配置
+      - name: 恢复签名配置（从三个 secret 构造 key.properties）
         env:
           KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
-          KEY_PROPERTIES: ${{ secrets.ANDROID_KEY_PROPERTIES }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
         run: |
-          if [ -n "$KEYSTORE_B64" ]; then
+          if [ -n "$KEYSTORE_B64" ] && [ -n "$KEY_ALIAS" ] && [ -n "$KEY_PASSWORD" ]; then
             echo "$KEYSTORE_B64" | base64 -d > android/app/my_app-release.jks
-            echo "$KEY_PROPERTIES" > android/key.properties
+            printf 'keyAlias=%s\nkeyPassword=%s\nstoreFile=my_app-release.jks\nstorePassword=%s\n' \
+              "$KEY_ALIAS" "$KEY_PASSWORD" "$KEY_PASSWORD" > android/key.properties
             echo "签名配置已恢复"
           else
             echo "未配置签名（secrets 缺失）——将产出 debug 签名的开发版"
