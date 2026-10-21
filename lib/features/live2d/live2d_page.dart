@@ -120,7 +120,7 @@ class _Live2dPageState extends State<Live2dPage> {
                   right: 0,
                   bottom: AppSpacing.lg,
                   child: Text(
-                    '用手指在画面上移动——她的眼睛和头会跟着你 👀',
+                    '🔥 热更测试 10-21：补丁生效中！用手指逗她 👀',
                     textAlign: TextAlign.center,
                   ),
                 ),
