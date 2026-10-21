@@ -198,9 +198,5 @@ jobs:
         run: |
           gh issue create --repo ${{ github.repository }} \
             --title "CD 构建失败：run #${{ github.run_number }}" \
-            --body "**失败的流水线**：${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-
-  commit: ${GITHUB_SHA::7}
-  触发人：${{ github.actor }}
-
-  点链接看日志，修复后此 issue 可关。" || echo "issue 创建失败（忽略）"
+            --body "流水线：${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\ncommit: ${GITHUB_SHA::7} · 触发人：${{ github.actor }}\n点链接看日志，修复后此 issue 可关。" \
+            || echo "issue 创建失败（忽略）"
