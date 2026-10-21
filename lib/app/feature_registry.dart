@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 import '../features/device_link/device_link_page.dart';
+import '../features/live2d/live2d_page.dart';
 import '../features/notes/notes_list_page.dart';
 import '../features/robot_eyes/robot_eye_page.dart';
 
@@ -90,6 +91,15 @@ final List<FeatureEntry> kFeatures = [
     title: '机器人眼睛',
     subtitle: '表情 · 注视 · 眼睛动画',
     builder: (_) => const RobotEyePage(),
+  ),
+  FeatureEntry(
+    id: 'live2d',
+    icon: LucideIcons.sparkles,
+    title: 'Live2D 看板娘',
+    subtitle: 'Cubism 模型渲染 · 触摸跟踪 · 动作表情',
+    builder: (_) => const Live2dPage(),
+    desktop: PlatformSupport.none, // flutter_live2d 仅 Android/iOS
+    mobile: PlatformSupport.full,
   ),
   FeatureEntry(
     id: 'notes',

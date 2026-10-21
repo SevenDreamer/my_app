@@ -56,6 +56,8 @@ dependencies:
   # app 内下载安装更新（D1）+ 设备 ABI 识别（D2 分架构包）
   open_file: ^4.0.0
   device_info_plus: ^13.3.0
+  # Live2D Cubism 模型渲染（Cubism Native SDK + GLES2，Android/iOS）
+  flutter_live2d: ^1.0.2
 
 # 根治 :jni/NDK 依赖（PITFALLS #20）：path_provider_android 2.3.0 起引入
 # jni（C 桥接模块，需 NDK+CMake）；钉住 2.2.23（最后一个纯 Kotlin 版），
