@@ -9,14 +9,14 @@ permissions:
 jobs:
   # ─────────── 节点 1：编译前准备（版本号计算，下游共用） ───────────
   prepare:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       name: ${{ steps.ver.outputs.name }}
       # bare = 去掉 v 前缀的版本号（--build-name 用，APK 版本显示才规范）
       bare: ${{ steps.ver.outputs.bare }}
       number: ${{ steps.ver.outputs.number }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: 计算 dev 版本号（v1.3.0-dev.N 自增）
         id: ver
@@ -38,11 +38,11 @@ jobs:
   # 换 30.0（镜像预装）直接构建失败——28.2 是硬需求，显式安装+缓存兜底
   build-android:
     needs: prepare
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       NDK_VERSION: "28.2.13676358"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: 安装 Flutter
         uses: subosito/flutter-action@v2
@@ -51,9 +51,8 @@ jobs:
           cache: true
 
       - name: 缓存 Android SDK 与 Gradle
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
-          save-always: true
           path: |
             ${{ env.ANDROID_HOME }}/build-tools
             ${{ env.ANDROID_HOME }}/platforms
@@ -105,7 +104,7 @@ jobs:
           done
 
       - name: 上传构建产物
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: apk-${{ matrix.label }}
           path: build/app/outputs/flutter-apk/my_app-*.apk
@@ -116,7 +115,7 @@ jobs:
     needs: prepare
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: 安装 Flutter
         uses: subosito/flutter-action@v2
@@ -152,7 +151,7 @@ jobs:
             -DestinationPath "my_app-v${{ needs.prepare.outputs.name }}-windows-x64.zip"
 
       - name: 上传构建产物
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: windows
           path: my_app-v${{ needs.prepare.outputs.name }}-windows-x64.zip
@@ -161,10 +160,10 @@ jobs:
   # ─────────── 节点 4：编译后收尾（汇总发布） ───────────
   release:
     needs: [prepare, build-android, build-windows]  # prepare 必须在列，否则拿不到版本号
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: 下载全部构建产物
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: artifacts
           merge-multiple: true
