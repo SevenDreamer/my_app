@@ -20,8 +20,10 @@ if (hasKeystore) {
 android {
     namespace = "com.example.my_app"
     compileSdk = flutter.compileSdkVersion
-    // 不声明 ndkVersion：:jni 已根治（path_provider_android 钉 2.2.23），
-    // 全项目无 native 代码，NDK 不再是构建需求
+    // NDK 28.2（与 Flutter 默认一致）：AGP 的 stripReleaseDebugSymbols 需要
+    // 它的 llvm-strip 剥离 engine .so 调试符号——NDK 是真需求（PITFALLS #22），
+    // 由 CI 显式安装 + 缓存兜底
+    ndkVersion = "28.2.13676358"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17

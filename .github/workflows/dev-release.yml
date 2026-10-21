@@ -54,6 +54,7 @@ jobs:
           path: |
             ${{ env.ANDROID_HOME }}/build-tools
             ${{ env.ANDROID_HOME }}/platforms
+            ${{ env.ANDROID_HOME }}/ndk
             ~/.gradle/caches
             ~/.gradle/wrapper
           # 固定 key（手工 bump）：SDK 内容极少变；hash 配置文件会造成
@@ -77,16 +78,14 @@ jobs:
             echo "未配置签名（secrets 缺失）——将产出 debug 签名的开发版"
           fi
 
-      # :jni 模块已根治（path_provider_android 钉 2.2.23 纯 Kotlin 版）：
-      # 无需 NDK/CMake。但 flutter_tools 仍按"已装 NDK 列表"检查 28.2
-      # （gradle.dart 的 InstalledNdkVersions 属性），列表缺失就触发 1GB 下载。
-      # 检查只验 ndk/<ver>/source.properties 存在性——造一个幻影目录满足它，
-      # 真实构建无人使用 NDK（PITFALLS #22）。
-      - name: 伪造 NDK 版本记录（绕过 flutter_tools 的安装触发）
+      # NDK 是真需求：AGP 的 stripReleaseDebugSymbols 用它的 llvm-strip 剥离
+      # Flutter engine .so 的调试符号（幻影目录方案实测穿帮——PITFALLS #22）。
+      # :jni 编译需求已根治（path_provider_android 钉 2.2.23），CMake 不再需要。
+      # 显式安装 + 上方缓存兜底（首次下载一次，之后命中）。
+      - name: 安装 NDK（llvm-strip 需要）
         run: |
-          mkdir -p "$ANDROID_HOME/ndk/28.2.13676358"
-          printf 'Pkg.Desc = Android NDK\nPkg.Revision = 28.2.13676358\n' \
-            > "$ANDROID_HOME/ndk/28.2.13676358/source.properties"
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" \
+            "ndk;28.2.13676358" > /dev/null
 
       - name: 构建 apk（分架构 + 版本参数化）
         run: >

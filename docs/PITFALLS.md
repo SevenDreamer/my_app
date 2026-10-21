@@ -192,8 +192,11 @@
   （flutter_tools 的 gradle.dart：`-P...InstalledNdkVersions=<已装清单>`）；
   清单里没有 flutter.ndkVersion（28.2）就触发安装——此前所有"禁下载"
   尝试（删 ndkVersion 声明 / android.builder.sdkDownload=false）都治不到它。
-- **解法**：清单检查只验 `ndk/<版本>/source.properties` 文件存在性——
-  在 CI 里**造一个幻影 NDK 目录**（只有 source.properties）满足检查。
-  真实构建无人使用 NDK（:jni 已根治），属于"给门卫看的通行证"。
-- **何时移除**：未来某插件真需要 NDK 时（构建会清晰报错），删掉伪造步骤、
-  恢复显式安装即可。
+- **失败的尝试（诚实记录）**：造幻影 NDK 目录（只有 source.properties）骗过
+  清单检查——立刻穿帮：AGP 的 `stripReleaseDebugSymbols` 任务要用 NDK 的
+  `llvm-strip` 剥离 Flutter engine .so 的调试符号，**即使项目无 native 代码，
+  engine 的 .so 也要 strip**——NDK 是真需求，骗不过要真干活的工具。
+- **终态解法**：认了 NDK——显式 `sdkmanager install "ndk;28.2.13676358"` +
+  仓库缓存兜底（首次下载一次，之后 Cache hit）。**真正去掉它的唯一路**：
+  不用 path_provider（或换无 jni 实现）+ packaging doNotStrip（接受 APK 变大）。
+- **附注**：CMake 可以真正退场（:jni 根治后无 native 编译），只有 NDK 留守。
