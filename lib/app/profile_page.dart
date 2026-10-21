@@ -15,6 +15,8 @@ import '../core/errors/app_error.dart';
 import '../core/errors/error_dialog.dart';
 import 'error_log_page.dart';
 import 'update/auth_webview_page.dart';
+import 'package:shorebird_code_push/shorebird_code_push.dart';
+
 import 'update/ci_notifier.dart';
 import 'update/download_qr.dart';
 import 'update/update_service.dart';
@@ -35,6 +37,7 @@ class _ProfilePageState extends State<ProfilePage> {
   bool? _authorized;
   bool _authorizing = false;
   bool _ciNotify = true;
+  String _patchInfo = '检测中…';
 
   /// 更新通道：stable / dev
   String _channel = 'stable';
@@ -46,6 +49,8 @@ class _ProfilePageState extends State<ProfilePage> {
     CiNotifier.instance.enabled.then((v) {
       if (mounted) setState(() => _ciNotify = v);
     });
+    // ignore: unawaited_futures
+    _refreshPatchInfo();
     _refreshAuth();
     _loadChannel();
   }
@@ -261,6 +266,20 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  /// 热更状态（当前 Patch 号 + 是否有已下载待重启的更新）
+  Future<void> _refreshPatchInfo() async {
+    try {
+      final updater = ShorebirdUpdater();
+      final current = await updater.readCurrentPatch();
+      final next = await updater.readNextPatch();
+      final text = 'Patch ${current?.number ?? '基线（无补丁）'}'
+          '${next != null ? ' · Patch ${next.number} 已下载，重启生效' : ''}';
+      if (mounted) setState(() => _patchInfo = text);
+    } catch (e) {
+      if (mounted) setState(() => _patchInfo = '非热更包/检测失败：$e');
+    }
+  }
+
   void _toast(String message) {
     if (!mounted) return;
     ShadSonner.of(context).show(
@@ -374,6 +393,13 @@ class _ProfilePageState extends State<ProfilePage> {
                     showDivider: true,
                     onTap: () => showDownloadQrDialog(context),
                   ),
+                AppListTile(
+                  icon: LucideIcons.refreshCw,
+                  title: '热更状态',
+                  subtitle: _patchInfo,
+                  showDivider: true,
+                  onTap: _refreshPatchInfo,
+                ),
                 AppListTile(
                   icon: LucideIcons.bell,
                   title: '流水线通知',
