@@ -12,6 +12,8 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       name: ${{ steps.ver.outputs.name }}
+      # bare = 去掉 v 前缀的版本号（--build-name 用，APK 版本显示才规范）
+      bare: ${{ steps.ver.outputs.bare }}
       number: ${{ steps.ver.outputs.number }}
     steps:
       - uses: actions/checkout@v4
@@ -27,6 +29,7 @@ jobs:
                   (if length == 0 then 0 else max end) + 1 as $n |
                   "v1.3.0-dev.\($n)"')
           echo "name=$NAME" >> "$GITHUB_OUTPUT"
+          echo "bare=${NAME#v}" >> "$GITHUB_OUTPUT"
           echo "number=${NAME##*-dev.}" >> "$GITHUB_OUTPUT"
           echo "本次版本：$NAME"
 
@@ -90,7 +93,7 @@ jobs:
       - name: 构建 apk（分架构 + 版本参数化）
         run: >
           flutter build apk --release --split-per-abi
-          --build-name=${{ needs.prepare.outputs.name }}
+          --build-name=${{ needs.prepare.outputs.bare }}
           --build-number=${{ needs.prepare.outputs.number }}
 
       - name: 重命名产物（带版本号）
@@ -136,7 +139,7 @@ jobs:
       - name: 构建 Windows 版
         run: >
           flutter build windows --release
-          --build-name=${{ needs.prepare.outputs.name }}
+          --build-name=${{ needs.prepare.outputs.bare }}
           --build-number=${{ needs.prepare.outputs.number }}
 
       - name: 打包 zip（exe + pet）
@@ -157,7 +160,7 @@ jobs:
 
   # ─────────── 节点 4：编译后收尾（汇总发布） ───────────
   release:
-    needs: [build-android, build-windows]
+    needs: [prepare, build-android, build-windows]  # prepare 必须在列，否则拿不到版本号
     runs-on: ubuntu-latest
     steps:
       - name: 下载全部构建产物
@@ -174,6 +177,7 @@ jobs:
           # 资产已在各构建节点内完成重命名（带版本号+NDK 标签）
           gh release create "v${{ needs.prepare.outputs.name }}" \
             artifacts/*.apk artifacts/*.zip \
+            --repo ${{ github.repository }} \
             --prerelease \
             --title "v${{ needs.prepare.outputs.name }}" \
             --notes "开发版自动构建（commit ${GITHUB_SHA::7}）"
