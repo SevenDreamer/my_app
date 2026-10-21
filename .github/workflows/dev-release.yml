@@ -175,9 +175,10 @@ jobs:
         run: |
           shopt -s nullglob
           # 资产已在各构建节点内完成重命名（带版本号+NDK 标签）
-          gh release create "v${{ needs.prepare.outputs.name }}" \
+          # name 输出已带 v 前缀，直接用（勿再拼 v——曾拼出 vv1.3.0 双 v bug）
+          gh release create "${{ needs.prepare.outputs.name }}" \
             artifacts/*.apk artifacts/*.zip \
             --repo ${{ github.repository }} \
             --prerelease \
-            --title "v${{ needs.prepare.outputs.name }}" \
+            --title "${{ needs.prepare.outputs.name }}" \
             --notes "开发版自动构建（commit ${GITHUB_SHA::7}）"
