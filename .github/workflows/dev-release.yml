@@ -114,6 +114,7 @@ jobs:
 
   # ─────────── 节点 3：Windows 构建（与 Android 并行） ───────────
   build-windows:
+    if: false   # 暂时禁用 Windows 构建（恢复：删本行 + release 的 needs 加回 build-windows）
     needs: prepare
     runs-on: windows-latest
     steps:
@@ -161,7 +162,7 @@ jobs:
 
   # ─────────── 节点 4：编译后收尾（汇总发布） ───────────
   release:
-    needs: [prepare, build-android, build-windows]  # prepare 必须在列，否则拿不到版本号
+    needs: [prepare, build-android]  # prepare 必须在列，否则拿不到版本号（build-windows 已禁用）
     runs-on: ubuntu-24.04
     steps:
       - name: 下载全部构建产物
