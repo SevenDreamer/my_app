@@ -98,7 +98,9 @@ final List<FeatureEntry> kFeatures = [
     title: 'Live2D 看板娘',
     subtitle: 'Cubism 模型渲染 · 触摸跟踪 · 动作表情',
     builder: (_) => const Live2dPage(),
-    desktop: PlatformSupport.none, // flutter_live2d 仅 Android/iOS
+    // WebView 方案理论上跨平台（webview_flutter 支持桌面），桌面端未实测
+    desktop: PlatformSupport.limited,
+    limitedNote: '桌面端未实测，问题请反馈',
     mobile: PlatformSupport.full,
   ),
   FeatureEntry(

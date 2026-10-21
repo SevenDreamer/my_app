@@ -1,9 +1,10 @@
-//! Live2D 看板娘演示页（flutter_live2d：Cubism Native SDK + GLES2）
+//! Live2D 看板娘页（WebView + WebGL 方案：live2d 包 = PixiJS + pixi-live2d-display）
 //!
 //! 三模型切换、透明背景（看板娘浮在 UI 上）、内置触摸跟踪（眼/头跟手指）。
-//! 仅 Android/iOS（包的平台限制）——桌面端不可用，注册表已声明。
+//! JS 引擎默认走 CDN（可经 Live2DViewer 的 cubismCoreJsUrl 等参数换本地资产）。
+//! 模型资产经包内置的本地 HttpServer 喂给 WebView，Flutter assets 直接可用。
 import 'package:flutter/material.dart';
-import 'package:flutter_live2d/flutter_live2d.dart';
+import 'package:live2d/live2d.dart';
 import 'package:shadcn_ui/shadcn_ui.dart'; // LucideIcons 由它 re-export
 
 import '../../app/update/log_viewer_dialog.dart';
@@ -19,28 +20,31 @@ class Live2dPage extends StatefulWidget {
 }
 
 class _ModelDef {
-  const _ModelDef(this.label, this.dir, this.file);
+  const _ModelDef(this.label, this.assetPath);
   final String label;
-  final String dir;
-  final String file;
+  final String assetPath;
 }
 
 const _models = <_ModelDef>[
-  // Mao/Ren 打头：贴图 4096，兼容所有设备；IceGirl 是 8192 贴图，
-  // 部分设备 GL_MAX_TEXTURE_SIZE=4096 会渲染空白
-  _ModelDef('Mao', 'assets/models/mao/', 'mao_pro.model3.json'),
-  _ModelDef('Ren', 'assets/models/ren/', 'ren.model3.json'),
-  _ModelDef('IceGirl', 'assets/models/icegirl/', 'IceGirl.model3.json'),
+  _ModelDef('Mao', 'assets/models/mao/mao_pro.model3.json'),
+  _ModelDef('Ren', 'assets/models/ren/ren.model3.json'),
+  _ModelDef('IceGirl', 'assets/models/icegirl/IceGirl.model3.json'),
 ];
 
 class _Live2dPageState extends State<Live2dPage> {
-  final _ctrl = Live2DViewController();
+  final _ctrl = Live2DController();
   int _idx = 0;
-  String? _error;
 
   @override
   void initState() {
     super.initState();
+    _ctrl.onModelLoaded = (info) {
+      AppLogger.instance.log('live2d',
+          '模型加载完成：${info.modelUrl}（画布 ${info.width.toInt()}x${info.height.toInt()}，动作组 ${info.motionGroups.length} 个）');
+    };
+    _ctrl.onError = (error) {
+      AppLogger.instance.log('live2d', '错误：$error');
+    };
     _load(_idx);
   }
 
@@ -51,26 +55,14 @@ class _Live2dPageState extends State<Live2dPage> {
   }
 
   Future<void> _load(int idx) async {
-    setState(() {
-      _idx = idx;
-      _error = null;
-    });
-    AppLogger.instance.log(
-        'live2d', '开始加载 ${_models[idx].label}（${_models[idx].dir}${_models[idx].file}）');
+    setState(() => _idx = idx);
+    AppLogger.instance
+        .log('live2d', '开始加载 ${_models[idx].label}（${_models[idx].assetPath}）');
     try {
-      await _ctrl.whenAttached;
-      AppLogger.instance.log('live2d', 'GL surface 已就绪，调用 loadModel');
-      await _ctrl.loadModel(
-        modelDir: _models[idx].dir,
-        modelFileName: _models[idx].file,
-      );
-      AppLogger.instance.log('live2d', 'loadModel 完成：${_ctrl.value}');
-    } on Live2DException catch (e) {
-      AppLogger.instance.log('live2d', 'Live2DException：${e.code}: ${e.message}');
-      if (mounted) setState(() => _error = '${e.code}: ${e.message}');
+      await _ctrl.loadModel(_models[idx].assetPath);
+      AppLogger.instance.log('live2d', 'loadModel 调用完成');
     } catch (e) {
       AppLogger.instance.log('live2d', '异常：$e');
-      if (mounted) setState(() => _error = '$e');
     }
   }
 
@@ -106,14 +98,23 @@ class _Live2dPageState extends State<Live2dPage> {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                Live2DView(controller: _ctrl),
-                if (_error != null)
-                  Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(AppSpacing.lg),
-                      child: Text('加载失败：$_error', textAlign: TextAlign.center),
-                    ),
-                  ),
+                Live2DViewer(
+                  controller: _ctrl,
+                  // 本地 Core 运行时（assets/live2d/），已打 Cubism Core 6 兼容补丁。
+                  //
+                  // 为什么不用官方 CDN：Ren 的 .moc3 是 moc3 v6 格式，只有 Core 6.x 能
+                  // 加载；但 Core 6.0.1 移除了 drawables.renderOrders（挪到 Model 上），
+                  // 渲染库 pixi-live2d-display@0.4.0 仍读旧字段 → 取到 undefined 再 [0]
+                  // → 每帧抛 "Cannot read properties of undefined (reading '0')" → 全员
+                  // 空白。本地这份在 Core 定义后包了 Model.fromMoc，把该字段补回去。
+                  // 详见 docs/PITFALLS.md #26 / #27。
+                  //
+                  // 相对路径：player 页由包内 HttpServer 提供，其 /assets/* 路由会剥掉
+                  // 一层前缀后用 rootBundle 加载，而 Flutter 资产 key 本身要带 "assets/"，
+                  // 因此这里是**双层** assets/（与模型 URL 同构：/assets/assets/models/…）。
+                  cubismCoreJsUrl:
+                      'assets/assets/live2d/live2dcubismcore.min.js',
+                ),
                 // 触摸跟踪提示（包内置：眼/头跟手指）
                 const Positioned(
                   left: 0,
@@ -128,10 +129,13 @@ class _Live2dPageState extends State<Live2dPage> {
                 Positioned(
                   top: AppSpacing.sm,
                   right: AppSpacing.sm,
-                  child: ValueListenableBuilder<Live2DViewState>(
+                  child: ValueListenableBuilder<Live2DState>(
                     valueListenable: _ctrl,
                     builder: (_, st, __) => Text(
-                      '$st',
+                      st.error != null
+                          ? '加载失败：${st.error}'
+                          : 'ready:${st.isReady} loading:${st.isLoading} '
+                              'loaded:${st.isLoaded}',
                       style: const TextStyle(fontSize: 10),
                     ),
                   ),

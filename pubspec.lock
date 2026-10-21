@@ -174,14 +174,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.2"
-  flutter_live2d:
-    dependency: "direct main"
-    description:
-      name: flutter_live2d
-      sha256: "0de86420758951c3be961ea05b0ec8e96f9e267355008ef0f7985ddc5fcd5d6d"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.2"
   flutter_local_notifications:
     dependency: "direct main"
     description:
@@ -381,6 +373,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.0"
+  live2d:
+    dependency: "direct main"
+    description:
+      name: live2d
+      sha256: "703aaa902d7b55af1871024bd579f155969864485b3da10f2574267de06f8f45"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.1"
   logging:
     dependency: transitive
     description:
@@ -421,6 +421,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.19.0"
+  mime:
+    dependency: transitive
+    description:
+      name: mime
+      sha256: "801fd0b26f14a4a58ccb09d5892c3fbdeff209594300a542492cf13fba9d247a"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.6"
   objective_c:
     dependency: transitive
     description:

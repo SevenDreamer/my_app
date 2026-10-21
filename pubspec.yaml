@@ -56,8 +56,8 @@ dependencies:
   # app 内下载安装更新（D1）+ 设备 ABI 识别（D2 分架构包）
   open_file: ^4.0.0
   device_info_plus: ^13.3.0
-  # Live2D Cubism 模型渲染（Cubism Native SDK + GLES2，Android/iOS）
-  flutter_live2d: ^1.0.2
+  # Live2D Cubism 模型渲染（WebView + WebGL + PixiJS 方案，跨平台）
+  live2d: ^1.0.1
   # 手机端流水线通知（系统通知栏，成功/失败都推）
   flutter_local_notifications: ^22.3.2
   # Lucide 图标（全库统一用 LucideIcons——此前是传递依赖，升为直接声明）
@@ -105,6 +105,8 @@ flutter:
     - assets/models/ren/ren.4096/
     - assets/models/ren/expressions/
     - assets/models/ren/motions/
+    # 打过 Cubism Core 6 renderOrders 兼容补丁的 Core 运行时（见 docs/PITFALLS.md #27）
+    - assets/live2d/
     - shorebird.yaml
 
   # An image asset can refer to one or more resolution-specific "variants", see

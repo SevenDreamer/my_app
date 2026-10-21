@@ -60,7 +60,8 @@ class CiNotifier {
   }
 
   /// 启动前台轮询（每 5 分钟查一次最新 run）
-  Future<void> startPolling({Duration interval = const Duration(minutes: 5)}) async {
+  Future<void> startPolling(
+      {Duration interval = const Duration(minutes: 5)}) async {
     stopPolling();
     // 申请 Android 13+ 通知权限（首次弹系统授权框）
     final android = _plugin.resolvePlatformSpecificImplementation<
@@ -90,9 +91,9 @@ class CiNotifier {
         },
       );
       if (resp.statusCode != 200) return;
-      final runs = (jsonDecode(utf8.decode(resp.bodyBytes))['workflow_runs']
-              as List?) ??
-          const [];
+      final runs =
+          (jsonDecode(utf8.decode(resp.bodyBytes))['workflow_runs'] as List?) ??
+              const [];
       if (runs.isEmpty) return;
       // 找最新的「开发版发布」run（其他流水线不打扰）
       Map<String, dynamic>? latest;

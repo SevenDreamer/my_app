@@ -219,3 +219,51 @@
   注册块、pubspec 资产段、NDK 版本行），每次都要等下游报错才暴露。
 - **解法**：替换后立即断言标志物（如 `assert '关键字' in s` 或比对新旧差异），
   或改用 patch 工具（有 diff 反馈）。**批量脚本改文件 = 校验是义务不是可选**。
+
+## 五、Live2D / WebView（Android 渲染侧）
+
+### 25. WebView 加载本地资源报 ERR_CLEARTEXT_NOT_PERMITTED
+- **现象**：`live2d` 包（WebView + WebGL）在 Android 上加载模型失败，JS 控制台
+  报 `ERR_CLEARTEXT_NOT_PERMITTED`；iOS/桌面正常。
+- **根因**：WebView 走 Flutter dev server / 本地 HTTP 服务取 assets
+  （`http://127.0.0.1:<port>/...`）是**明文 HTTP**，Android 9+（API 28）默认
+  禁止 cleartext，WebView 直接拦掉——与 INTERNET 权限（#17）是两道独立关卡。
+- **解法**：`android/app/src/main/res/xml/network_security_config.xml` 只放行
+  `127.0.0.1`/`localhost`（**不开全局明文**），Manifest 挂
+  `android:networkSecurityConfig`。
+- **出处**：官方文档 "Android 9.0 behavior changes — Cleartext traffic"。
+
+### 26. 部分 Live2D 模型报 Unknown error：moc3 v5/v6 格式与 Core 版本不匹配
+- **现象**：同一页加载 Mao/IceGirl 正常，唯独 Ren 报 `Unknown error`（包内部
+  catch 掉了真实错误，只吐这一句）。
+- **根因**：模型的 `.moc3` 由 Cubism Editor 5.3 导出 = **v6 格式**，而包默认
+  打包的 Cubism Core 只认 v5——格式不匹配，且错误被包吞掉后只剩 "Unknown error"。
+- **解法**：换官方**版本化分发**的 Core：`sdk-web/core/06/`（Cubism 5.3 Core），
+  与包解耦、按模型格式选版本。
+- **鉴别要点**：同页多模型只有一个挂 → 优先怀疑该模型的导出版本，而不是代码；
+  排查手段用日志流（APPLOG/JS 控制台）而不是截图问人。
+
+### 27. Core 6 白屏：渲染库读已被移除的 `drawables.renderOrders`
+- **现象**：模型一路「加载完成」，但画布**全白**，看不到任何东西；JS 控制台每帧刷
+  `Uncaught TypeError: Cannot read properties of undefined (reading '0')`
+  （`pixi-live2d-display@0.4.0` 的 `CubismRenderer_WebGL.doDrawModel`）。
+- **根因**：`#26` 为支持 Ren（moc3 v6）切到 Core 6.0.1 后，Core 6 **把
+  `drawables.renderOrders` 移除了**（改挂到 `Model.renderOrders`，含
+  drawable + offscreen 两段）。渲染库仍读旧字段 → `undefined`，取 `[0]` 即抛，
+  整帧绘制中断。全量比对确认：渲染库依赖的 15 个 `drawables.*` 字段里**只有这一个**
+  在 Core 6 缺失，其余 14 个都在——所以补这一个就够，不会连锁崩。
+- **解法**：vendor 一份打过补丁的 Core 到 `assets/live2d/live2dcubismcore.min.js`，
+  在 Core 定义之后包住唯一的模型创建入口 `Live2DCubismCore.Model.fromMoc`，
+  建好模型后把 `drawables.renderOrders` 指回 `Model.renderOrders` 的前
+  `drawables.count` 个（裁掉 offscreen 段，语义与 Core 5 完全一致）。
+  页面改用本地 `cubismCoreJsUrl` 指向它。补丁幂等、Core 5 下不覆盖原生字段。
+- **⚠️ 附坑（走了两小时弯路）**：包内 HttpServer 的路由是
+  `/assets/<path>` → 剥一层前缀 → `rootBundle.load(<path>)`，而 Flutter 资产 key
+  **本身要带 `assets/`**。所以喂给 `cubismCoreJsUrl` 的是**双层**
+  `assets/assets/live2d/xxx.js`（与模型 URL 同构：`/assets/assets/models/…`）。
+  写成单层 → 404 → 404 响应体是 `text/plain` → 浏览器报
+  `Refused to execute script ... MIME type not executable`，表象完全不像「路径写错」，
+  实际上是它。
+- **参考**：上游同款问题 [guansss/pixi-live2d-display#177](https://github.com/guansss/pixi-live2d-display/issues/177)、
+  [untitled-pixi-live2d-engine#11](https://github.com/Untitled-Story/untitled-pixi-live2d-engine/issues/11)
+  （后者给出的结论是「换回 Core 5.1」——即放弃 v6 模型；我们选择补字段以兼容两者）。
