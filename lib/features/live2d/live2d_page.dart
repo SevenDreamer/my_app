@@ -139,8 +139,18 @@ class _Live2dPageState extends State<Live2dPage> {
                 ),
                 // 加载态转圈（首开 WebGL 冷启动可见的等待）
                 if (_loading)
-                  const Center(
-                    child: CupertinoActivityIndicator(radius: 14),
+                  Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const CupertinoActivityIndicator(radius: 14),
+                        const SizedBox(height: AppSpacing.md),
+                        Text(
+                          _idx == 0 ? '首次加载较慢（贴图解码中）…' : '加载中…',
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                      ],
+                    ),
                   ),
                 // 渲染状态调试条（controller 状态，排查空白用）
                 Positioned(

@@ -141,6 +141,35 @@ String buildLive2DHtml({
         window._live2dDiag.push('' + Date.now() + ': ' + m);
         console.log('[live2d]', m);
       };
+      // XHR 包装（诊断）：pixi-live2d-display 用的是 XHR 而非 fetch——
+      // 首开挂起时看最后一个 XHR 停在 open 还是 send
+      const _origXhrOpen = XMLHttpRequest.prototype.open;
+      const _origXhrSend = XMLHttpRequest.prototype.send;
+      XMLHttpRequest.prototype.open = function (m, u, ...rest) {
+        this._diagUrl = u;
+        dlog('XHR open ' + m + ' ' + u);
+        return _origXhrOpen.call(this, m, u, ...rest);
+      };
+      XMLHttpRequest.prototype.send = function (...args) {
+        dlog('XHR send ' + this._diagUrl);
+        this.addEventListener('load', () => dlog('XHR ← ' + this._diagUrl + ' [' + this.status + ']'));
+        this.addEventListener('error', () => dlog('XHR ✗ ' + this._diagUrl));
+        return _origXhrSend.apply(this, args);
+      };
+      // fetch 包装（诊断）：Live2DModel.from 内部的每个请求都留痕——
+      // "卡死"还是"慢"，看最后一个 fetch 有没有 ← 响应就一目了然
+      const _origFetch = window.fetch.bind(window);
+      window.fetch = async (...args) => {
+        dlog('fetch → ' + args[0]);
+        try {
+          const r = await _origFetch(...args);
+          dlog('fetch ← ' + args[0] + ' [' + r.status + ']');
+          return r;
+        } catch (e) {
+          dlog('fetch ✗ ' + args[0] + '（' + e + '）');
+          throw e;
+        }
+      };
 
       async function loadModel(modelUrl, options = {}) {
         dlog('loadModel 请求: ' + modelUrl);
@@ -155,11 +184,13 @@ String buildLive2DHtml({
             currentModel = null;
           }
 
-          dlog('Live2DModel.from 开始（含 .moc3 解析+贴图加载）');
-          const model = await PIXI.live2d.Live2DModel.from(modelUrl, {
+          dlog('Live2DModel.from 开始（含 .moc3 解析+贴图加载）URL=' + modelUrl);
+          const _fromPromise = PIXI.live2d.Live2DModel.from(modelUrl, {
 
             autoInteract: autoInteractEnabled
           });
+          _fromPromise.then(() => dlog('from resolve ✓')).catch((e) => dlog('from reject ✗: ' + e));
+          const model = await _fromPromise;
 
           currentModel = model;
           dlog('模型 ready，加入 stage');

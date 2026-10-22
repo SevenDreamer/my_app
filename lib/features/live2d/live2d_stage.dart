@@ -7,6 +7,7 @@
 //!
 //! 差异只有"谁来执行 JS"：mobile 走包的 Live2DController，桌面用
 //! WebviewController.executeScript 直调同款命令。
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -89,7 +90,7 @@ class MobileStageController implements Live2dStageController {
 class DesktopStageController extends Live2dStageController {
   WebviewController? _wc;
   Live2dPlayerServer? _server;
-  final _pendingJs = <String>[];
+  final _pendingJs = <(String Function(), Completer<void>)>[];
   bool _pageReady = false;
 
   @override
@@ -126,8 +127,8 @@ class DesktopStageController extends Live2dStageController {
         if (ok == true || ok?.toString() == 'true') {
           _pageReady = true;
           AppLogger.instance.log('live2d', 'player 就绪+WebGL 预热完成（探测 ${i + 1} 轮）');
-          for (final js in _pendingJs) {
-            _wc?.executeScript(js);
+          for (final (buildJs, done) in _pendingJs) {
+            _wc?.executeScript(buildJs()).whenComplete(done.complete);
           }
           _pendingJs.clear();
           return;
@@ -141,18 +142,21 @@ class DesktopStageController extends Live2dStageController {
       AppLogger.instance.log('live2d', 'player 就绪探测超时——JS 诊断：$diag');
     } catch (_) {}
     _pageReady = true;
-    for (final js in _pendingJs) {
-      _wc?.executeScript(js);
+    for (final (buildJs, done) in _pendingJs) {
+      _wc?.executeScript(buildJs()).whenComplete(done.complete);
     }
     _pendingJs.clear();
   }
 
-  Future<void> _eval(String js) async {
+  /// [buildJs] 延迟到 flush 时才调用——排队时 _server 可能还没 attach，
+  /// 提前拼 URL 会退化成裸路径（404 的根因）
+  Future<void> _eval(String Function() buildJs) {
     if (!_pageReady) {
-      _pendingJs.add(js); // 首开时序：等 player 就绪再执行
-      return;
+      final completer = Completer<void>();
+      _pendingJs.add((buildJs, completer));
+      return completer.future;
     }
-    await _wc?.executeScript(js);
+    return _wc?.executeScript(buildJs()) ?? Future<void>.value();
   }
 
   String _resolve(String assetPath) =>
@@ -161,7 +165,7 @@ class DesktopStageController extends Live2dStageController {
   @override
   Future<void> loadModel(String assetPath, {bool autoInteract = true}) async {
     try {
-      await _eval(
+      await _eval(() =>
           'window.live2d.loadModel("${_resolve(assetPath)}", {"fit":"contain","scale":1,"autoInteract":$autoInteract});');
       // 轮询渲染完成钩子（vendor 模板的 getRenderedAt）——画面真的上屏才回调
       final elapsed = await _waitRendered();
@@ -176,7 +180,8 @@ class DesktopStageController extends Live2dStageController {
   /// 轮询 getRenderedAt：>0 表示 pixi 第一帧已绘制。返回等待毫秒（-1=超时）
   Future<int> _waitRendered() async {
     final sw = Stopwatch()..start();
-    while (sw.elapsedMilliseconds < 5000) {
+    // 首开冷 IO/贴图解码可达数秒（热缓存后几百毫秒）
+    while (sw.elapsedMilliseconds < 12000) {
       await Future<void>.delayed(const Duration(milliseconds: 200));
       try {
         final r = await _wc?.executeScript(
@@ -184,16 +189,22 @@ class DesktopStageController extends Live2dStageController {
         if (r != null && r != 0 && r != '0') return sw.elapsedMilliseconds;
       } catch (_) {}
     }
+    // 超时：拉 JS 诊断时间线（看 loadModel 卡在哪一步）
+    try {
+      final diag = await _wc
+          ?.executeScript('JSON.stringify(window._live2dDiag || []);');
+      AppLogger.instance.log('live2d', '渲染钩子 12s 未触发——JS 诊断：$diag');
+    } catch (_) {}
     return -1;
   }
 
   @override
   Future<void> setExpression(String name) =>
-      _eval('window.live2d.setExpression("$name");');
+      _eval(() => 'window.live2d.setExpression("$name");');
 
   @override
   Future<void> startMotion(String group, int index) =>
-      _eval('window.live2d.startMotion("$group", $index, 2);');
+      _eval(() => 'window.live2d.startMotion("$group", $index, 2);');
 
   @override
   void dispose() {
