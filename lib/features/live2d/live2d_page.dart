@@ -4,7 +4,7 @@
 //! JS 引擎默认走 CDN（可经 Live2DViewer 的 cubismCoreJsUrl 等参数换本地资产）。
 //! 模型资产经包内置的本地 HttpServer 喂给 WebView，Flutter assets 直接可用。
 import 'package:flutter/material.dart';
-import 'package:live2d/live2d.dart';
+import 'live2d_stage.dart';
 import 'package:shadcn_ui/shadcn_ui.dart'; // LucideIcons 由它 re-export
 
 import '../../app/update/log_viewer_dialog.dart';
@@ -32,8 +32,9 @@ const _models = <_ModelDef>[
 ];
 
 class _Live2dPageState extends State<Live2dPage> {
-  final _ctrl = Live2DController();
+  final _ctrl = createLive2dController();
   int _idx = 0;
+  String? _lastError;
 
   @override
   void initState() {
@@ -44,6 +45,7 @@ class _Live2dPageState extends State<Live2dPage> {
     };
     _ctrl.onError = (error) {
       AppLogger.instance.log('live2d', '错误：$error');
+      if (mounted) setState(() => _lastError = error);
     };
     _load(_idx);
   }
@@ -98,7 +100,7 @@ class _Live2dPageState extends State<Live2dPage> {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                Live2DViewer(
+                Live2dStage(
                   controller: _ctrl,
                   // 本地 Core 运行时（assets/live2d/），已打 Cubism Core 6 兼容补丁。
                   //
@@ -129,15 +131,9 @@ class _Live2dPageState extends State<Live2dPage> {
                 Positioned(
                   top: AppSpacing.sm,
                   right: AppSpacing.sm,
-                  child: ValueListenableBuilder<Live2DState>(
-                    valueListenable: _ctrl,
-                    builder: (_, st, __) => Text(
-                      st.error != null
-                          ? '加载失败：${st.error}'
-                          : 'ready:${st.isReady} loading:${st.isLoading} '
-                              'loaded:${st.isLoaded}',
-                      style: const TextStyle(fontSize: 10),
-                    ),
+                  child: Text(
+                    _lastError != null ? '加载失败：$_lastError' : '舞台运行中（${_models[_idx].label}）',
+                    style: const TextStyle(fontSize: 10),
                   ),
                 ),
               ],
