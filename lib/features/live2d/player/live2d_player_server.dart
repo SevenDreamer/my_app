@@ -99,11 +99,14 @@ class Live2dPlayerServer {
 
     // 1. Serve Player HTML
     if (rawPath == '/' || rawPath == '/index.html') {
+      // 全部本地资产（CDN 是首开慢/渲染失败的来源——已 vendor 到 assets/live2d/）
       final html = buildLive2DHtml(
         cubismCoreJsUrl: cubismCoreJsUrl,
-        cubism2CoreJsUrl: cubism2CoreJsUrl,
-        pixiJsUrl: pixiJsUrl,
-        pixiLive2dJsUrl: pixiLive2dJsUrl,
+        cubism2CoreJsUrl: cubism2CoreJsUrl ??
+            getAssetUrl('assets/assets/live2d/live2dcubism2core.min.js'),
+        pixiJsUrl: pixiJsUrl ?? getAssetUrl('assets/assets/live2d/pixi.min.js'),
+        pixiLive2dJsUrl: pixiLive2dJsUrl ??
+            getAssetUrl('assets/assets/live2d/pixi-live2d-display.min.js'),
       );
       response.headers.contentType = ContentType.html;
       response.write(html);

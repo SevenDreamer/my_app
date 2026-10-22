@@ -105,13 +105,37 @@ class DesktopStageController extends Live2dStageController {
     // player 页加载完成前发出的 JS 命令会丢（首开不显示的根因）——排队等就绪
     wc.loadingState.listen((state) {
       if (!_pageReady && state == LoadingState.navigationCompleted) {
-        _pageReady = true;
-        for (final js in _pendingJs) {
-          wc.executeScript(js);
-        }
-        _pendingJs.clear();
+        // navigationCompleted 只是 HTML 完了——pixi/Core 还在异步加载，
+        // 要等 window.live2d 定义后命令才有效（首开不显示的深层原因）
+        _flushWhenPlayerReady();
       }
     });
+  }
+
+  /// 轮询 window.live2d 出现后才 flush 排队命令
+  Future<void> _flushWhenPlayerReady() async {
+    for (var i = 0; i < 25; i++) {
+      // 最多 5s
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+      try {
+        final ok = await _wc
+            ?.executeScript('typeof window.live2d !== "undefined";');
+        if (ok == true || ok?.toString() == 'true') {
+          _pageReady = true;
+          for (final js in _pendingJs) {
+            _wc?.executeScript(js);
+          }
+          _pendingJs.clear();
+          return;
+        }
+      } catch (_) {}
+    }
+    // 超时也放行（让错误暴露出来，而不是静默吞命令）
+    _pageReady = true;
+    for (final js in _pendingJs) {
+      _wc?.executeScript(js);
+    }
+    _pendingJs.clear();
   }
 
   Future<void> _eval(String js) async {
