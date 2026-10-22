@@ -121,6 +121,8 @@ class DesktopStageController extends Live2dStageController {
         final ok = await _wc
             ?.executeScript('typeof window.live2d !== "undefined";');
         if (ok == true || ok?.toString() == 'true') {
+          // 先预热（WebGL context 冷启动），再放行排队命令
+          await _wc?.executeScript('window.live2d.warmup && window.live2d.warmup();');
           _pageReady = true;
           for (final js in _pendingJs) {
             _wc?.executeScript(js);

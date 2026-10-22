@@ -284,7 +284,12 @@ String buildLive2DHtml({
         setFit: setFit,
         setInteractive: setInteractive,
         reset: reset,
-        getRenderedAt: () => window.live2d._renderedAt || 0
+        getRenderedAt: () => window.live2d._renderedAt || 0,
+        // 预热：强制渲染一帧（WebGL context 冷启动是首开慢/失败的来源）
+        warmup: () => {
+          try { app.renderer.render(app.stage); return true; }
+          catch (e) { return false; }
+        }
       };
 
       window.addEventListener('DOMContentLoaded', initApp);

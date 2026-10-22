@@ -3,6 +3,7 @@
 //! 三模型切换、透明背景（看板娘浮在 UI 上）、内置触摸跟踪（眼/头跟手指）。
 //! JS 引擎默认走 CDN（可经 Live2DViewer 的 cubismCoreJsUrl 等参数换本地资产）。
 //! 模型资产经包内置的本地 HttpServer 喂给 WebView，Flutter assets 直接可用。
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'live2d_stage.dart';
 import 'package:shadcn_ui/shadcn_ui.dart'; // LucideIcons 由它 re-export
@@ -35,17 +36,24 @@ class _Live2dPageState extends State<Live2dPage> {
   final _ctrl = createLive2dController();
   int _idx = 0;
   String? _lastError;
+  bool _loading = true;
 
   @override
   void initState() {
     super.initState();
     _ctrl.onModelLoaded = (info) {
+      if (mounted) {
+        setState(() => _loading = false);
+      }
       AppLogger.instance.log('live2d',
           '模型加载完成：${info.modelUrl}（画布 ${info.width.toInt()}x${info.height.toInt()}，动作组 ${info.motionGroups.length} 个）');
     };
     _ctrl.onError = (error) {
       AppLogger.instance.log('live2d', '错误：$error');
-      if (mounted) setState(() => _lastError = error);
+      if (mounted) setState(() {
+        _lastError = error;
+        _loading = false;
+      });
     };
     _load(_idx);
   }
@@ -127,6 +135,11 @@ class _Live2dPageState extends State<Live2dPage> {
                     textAlign: TextAlign.center,
                   ),
                 ),
+                // 加载态转圈（首开 WebGL 冷启动可见的等待）
+                if (_loading)
+                  const Center(
+                    child: CupertinoActivityIndicator(radius: 14),
+                  ),
                 // 渲染状态调试条（controller 状态，排查空白用）
                 Positioned(
                   top: AppSpacing.sm,
