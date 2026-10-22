@@ -5,6 +5,7 @@
 //! 公共层覆盖——Material 组件（NavigationBar/FAB 等）与 shadcn 组件同源。
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:forui/forui.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 import 'design/theme.dart';
@@ -23,7 +24,10 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ShadApp.custom(
+    // FTheme（Forui 主题）——去 Material 化目标库；shadcn 期间双包共存
+    return FTheme(
+      data: FTheme.neutral.light.touch,
+      child: ShadApp.custom(
       // 调试角标由内部的 MaterialApp 关闭（ShadApp.custom 无此参数）
       themeMode: ThemeMode.light,
       theme: AppTheme.shadLight,
@@ -42,8 +46,9 @@ class MyApp extends StatelessWidget {
           ],
           home: const HomePage(),
           builder: (context, child) => ShadAppBuilder(child: child!),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }

@@ -2,6 +2,7 @@
 //!
 //! 状态与数据访问全部来自 [NotesViewModel]，本页只做渲染与交互转发。
 import 'package:flutter/material.dart';
+import '../../design/widgets/app_spinner.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 import '../../data/models/note.dart';
@@ -61,7 +62,7 @@ class _NotesListPageState extends State<NotesListPage> {
         listenable: _viewModel,
         builder: (context, _) {
           if (_viewModel.loading) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(child: AppSpinner());
           }
           final notes = _viewModel.notes;
           if (notes.isEmpty) {

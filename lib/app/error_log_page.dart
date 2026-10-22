@@ -1,5 +1,6 @@
 //! 错误日志页：历史错误列表（最新在前，点条目回看完整详情）
 import 'package:flutter/material.dart';
+import '../design/widgets/app_spinner.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 import '../core/errors/error_codes.dart';
@@ -44,7 +45,7 @@ class _ErrorLogPageState extends State<ErrorLogPage> {
     return Scaffold(
       appBar: const AppHeader(title: '错误日志'),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: AppSpinner())
           : _entries.isEmpty
               ? const Center(
                   child: Text(

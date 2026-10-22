@@ -1,7 +1,7 @@
-//! 组件库：列表行（DESIGN.md · Components · list-tile 的实现）
+//! 设置/列表行（纯 widgets 实现——去 Material 化）
 //!
-//! 比原生 ListTile 精致：带底色的图标块、加粗标题 + 次要色副标题、
-//! 悬停/按压反馈、可选底部分隔线。颜色只从 tokens 取。
+//! 悬停/按压反馈由 MouseRegion + AnimatedContainer 自绘（不依赖 Material
+//! 的 InkWell——shadcn 弹层等无 Material 祖先的上下文也能用）。
 import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
@@ -19,25 +19,14 @@ class AppListTile extends StatelessWidget {
     this.showDivider = true,
   });
 
-  /// 左侧图标（会放进 primary 10% 淡底色块）
   final IconData? icon;
 
   /// 字母图标方块（与 icon 二选一——模型/角色行用首字母）
   final String? iconLabel;
-
-  /// 主标题
   final String title;
-
-  /// 副标题（次要色小字）
   final String? subtitle;
-
-  /// 右侧内容，默认是 chevron 箭头
   final Widget? trailing;
-
-  /// 点击回调；null = 不可点击（无按压反馈）
   final VoidCallback? onTap;
-
-  /// 是否显示底部分隔线
   final bool showDivider;
 
   @override
@@ -45,15 +34,8 @@ class AppListTile extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Material(
-          // InkWell 需要 Material 祖先——自带透明层，shadcn 弹层里也能用
-          type: MaterialType.transparency,
-          child: InkWell(
+        _HoverRow(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          // 悬停/按压反馈：从主文字色派生的透明度变化（不引入新颜色）
-          hoverColor: AppColors.onSurface.withValues(alpha: 0.04),
-          highlightColor: AppColors.onSurface.withValues(alpha: 0.06),
           child: Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: AppSpacing.md,
@@ -93,16 +75,19 @@ class AppListTile extends StatelessWidget {
                     children: [
                       Text(
                         title,
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodyMedium
-                            ?.copyWith(fontWeight: FontWeight.w600),
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                       if (subtitle != null) ...[
                         const SizedBox(height: 2),
                         Text(
                           subtitle!,
-                          style: Theme.of(context).textTheme.labelSmall,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.secondary,
+                          ),
                         ),
                       ],
                     ],
@@ -118,10 +103,45 @@ class AppListTile extends StatelessWidget {
               ],
             ),
           ),
-          ),
         ),
-        if (showDivider) const Divider(height: 1, indent: AppSpacing.md),
+        if (showDivider) const ShadSeparator.horizontal(),
       ],
+    );
+  }
+}
+
+/// 自绘悬停/按压行（去 Material：MouseRegion + AnimatedContainer）
+class _HoverRow extends StatefulWidget {
+  const _HoverRow({required this.child, this.onTap});
+  final Widget child;
+  final VoidCallback? onTap;
+
+  @override
+  State<_HoverRow> createState() => _HoverRowState();
+}
+
+class _HoverRowState extends State<_HoverRow> {
+  bool _hovering = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hovering = true),
+      onExit: (_) => setState(() => _hovering = false),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 120),
+          decoration: BoxDecoration(
+            color: _hovering
+                ? AppColors.onSurface.withValues(alpha: 0.04)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(AppRadius.md),
+          ),
+          child: widget.child,
+        ),
+      ),
     );
   }
 }

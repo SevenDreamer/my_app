@@ -78,7 +78,7 @@ Future<void> _downloadAndInstall(BuildContext ctx, UpdateInfo info) async {
             builder: (_, p, __) => Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                LinearProgressIndicator(value: p > 0 ? p : null),
+                ShadProgress(value: p),
                 const SizedBox(height: AppSpacing.sm),
                 Text('${(p * 100).toStringAsFixed(0)}%'),
               ],

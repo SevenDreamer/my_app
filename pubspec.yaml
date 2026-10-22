@@ -40,6 +40,7 @@ dependencies:
   path: ^1.9.1
   # 现代组件库（shadcn/ui 的 Flutter 移植）——组件层唯一依赖
   shadcn_ui: ^0.57.1
+  forui: ^0.27.6
   # 本地化（shadcn + Material 组件的中文提示等）
   flutter_localizations:
     sdk: flutter

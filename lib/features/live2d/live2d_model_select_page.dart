@@ -1,5 +1,6 @@
 //! 模型选择页（设置 → 功能 → 模型选择）——B 样式模型列表
 import 'package:flutter/material.dart';
+import '../../design/widgets/app_toast.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 import '../../data/live2d_models.dart';
@@ -87,12 +88,11 @@ Future<void> _showImportSheet(BuildContext context) async {
     ),
   );
   if (choice == null || !context.mounted) return;
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      content: Text(choice == 'local'
-          ? '本地导入开发中——支持自定义 .zip 模型包'
-          : '在线模型库开发中——敬请期待'),
-    ),
+  AppToast.show(
+    context,
+    choice == 'local'
+        ? '本地导入开发中——支持自定义 .zip 模型包'
+        : '在线模型库开发中——敬请期待',
   );
 }
 

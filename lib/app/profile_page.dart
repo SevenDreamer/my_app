@@ -4,6 +4,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
+import '../design/widgets/app_toast.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -292,9 +293,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
   /// 占位动作：敬请期待
   void _comingSoon() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('敬请期待')),
-    );
+    AppToast.show(context, '敬请期待');
   }
 
   /// 扫码下载是桌面端入口（手机自己不需要下载自己）

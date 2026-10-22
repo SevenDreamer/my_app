@@ -9,6 +9,7 @@
 # packages, and plugins designed to encourage good coding practices.
 analyzer:
   exclude:
+    - lib/features/gallery/**   # Gallery 暂停中（去 Material 化优先），恢复时移除
     - build/**
     - android/**
     - ios/**

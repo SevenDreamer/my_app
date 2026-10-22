@@ -1,10 +1,9 @@
-//! 组件库：统一标题栏（DESIGN.md · Layout · 导航的实现）
+//! 页面头（纯 widgets 实现——去 Material 化）
 //!
-//! 封装 AppBar 的重复配置：自动返回按钮（在可返回的子页面显示，
-//! tab 根页面不显示）、统一标题字重与配色；支持自定义背景
-//! （如机器人眼睛的黑底个性页面）。
+//! shadcn_ui 无 AppBar，本组件是纯布局壳：SafeArea + Row（返回/标题/actions）。
+//! 不依赖 Material——任何上下文（含 shadcn 弹层）可用。
 import 'package:flutter/material.dart';
-import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:shadcn_ui/shadcn_ui.dart'; // LucideIcons
 
 import '../tokens.dart';
 
@@ -34,41 +33,49 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
   /// 前景色：标题与图标（默认主文字色）
   final Color? foregroundColor;
 
-  /// 是否显示返回按钮；null = 按"当前能否返回上一页"自动判断
+  /// 强制显示/隐藏返回箭头（不传=自动判断可返回才显示）
   final bool? showBack;
 
   @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+  Size get preferredSize => const Size.fromHeight(52);
 
   @override
   Widget build(BuildContext context) {
-    final bool back = showBack ?? Navigator.canPop(context);
-    final Color? fg = foregroundColor;
-
-    return AppBar(
-      backgroundColor: backgroundColor,
-      surfaceTintColor: Colors.transparent,
-      foregroundColor: fg,
-      elevation: 0,
-      automaticallyImplyLeading: false,
-      leading: back
-          ? IconButton(
-              icon: const Icon(LucideIcons.arrowLeft),
-              tooltip: '返回',
-              onPressed: () => Navigator.of(context).maybePop(),
-            )
-          : null,
-      title: titleWidget ??
-          Text(
-            title,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w600,
-                  color: fg ?? AppColors.onSurface,
-                ),
+    final canPop = showBack ?? Navigator.of(context).canPop();
+    final fg = foregroundColor ?? AppColors.onSurface;
+    return Material(
+      color: backgroundColor ?? AppColors.surface,
+      child: SafeArea(
+        bottom: false,
+        child: SizedBox(
+          height: 52,
+          child: Row(
+            children: [
+              if (canPop)
+                IconButton(
+                  icon: Icon(LucideIcons.chevronLeft, color: fg),
+                  onPressed: () => Navigator.of(context).maybePop(),
+                )
+              else
+                const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: titleWidget ??
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w600,
+                        color: fg,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+              ),
+              ...?actions,
+              const SizedBox(width: AppSpacing.xs),
+            ],
           ),
-      titleSpacing: back ? AppSpacing.sm : AppSpacing.md,
-      actions: actions,
+        ),
+      ),
     );
   }
 }
