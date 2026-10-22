@@ -5,10 +5,12 @@
 //! 模型资产经包内置的本地 HttpServer 喂给 WebView，Flutter assets 直接可用。
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'live2d_settings_page.dart';
 import 'live2d_stage.dart';
 import 'package:shadcn_ui/shadcn_ui.dart'; // LucideIcons 由它 re-export
 
 import '../../core/logging/app_logger.dart';
+import '../../data/live2d_models.dart';
 import '../../design/tokens.dart';
 import '../../design/widgets/app_header.dart';
 
@@ -19,17 +21,7 @@ class Live2dPage extends StatefulWidget {
   State<Live2dPage> createState() => _Live2dPageState();
 }
 
-class _ModelDef {
-  const _ModelDef(this.label, this.assetPath);
-  final String label;
-  final String assetPath;
-}
 
-const _models = <_ModelDef>[
-  _ModelDef('Mao', 'assets/models/mao/mao_pro.model3.json'),
-  _ModelDef('Ren', 'assets/models/ren/ren.model3.json'),
-  _ModelDef('IceGirl', 'assets/models/icegirl/IceGirl.model3.json'),
-];
 
 class _Live2dPageState extends State<Live2dPage> {
   final _ctrl = createLive2dController();
@@ -68,9 +60,9 @@ class _Live2dPageState extends State<Live2dPage> {
   Future<void> _load(int idx) async {
     setState(() => _idx = idx);
     AppLogger.instance
-        .log('live2d', '开始加载 ${_models[idx].label}（${_models[idx].assetPath}）');
+        .log('live2d', '开始加载 ${live2dModels[idx].label}（${live2dModels[idx].assetPath}）');
     try {
-      await _ctrl.loadModel(_models[idx].assetPath);
+      await _ctrl.loadModel(live2dModels[idx].assetPath);
       AppLogger.instance.log('live2d', 'loadModel 调用完成');
     } catch (e) {
       AppLogger.instance.log('live2d', '异常：$e');
@@ -83,20 +75,20 @@ class _Live2dPageState extends State<Live2dPage> {
       appBar: AppHeader(
         title: 'Live2D 看板娘',
         actions: [
-          // 模型切换：shadcn 的 Select（trigger=汉堡图标，语义=下拉选择）
+          // 方案 B：汉堡按钮直达 Live2D 设置页（模型选择/导入管理）
           Padding(
             padding: const EdgeInsets.only(right: AppSpacing.sm),
-            child: ShadSelect<String>(
-              selectedOptionBuilder: (_, __) =>
-                  const Icon(LucideIcons.menu, size: 20),
-              options: [
-                for (var i = 0; i < _models.length; i++)
-                  ShadOption(value: '$i', child: Text(_models[i].label)),
-              ],
-              onChanged: (v) {
-                if (v != null) {
-                  _load(int.parse(v));
-                }
+            child: IconButton(
+              icon: const Icon(LucideIcons.menu, size: 20),
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => Live2dSettingsPage(
+                      currentIndex: _idx,
+                      onSelect: (i) => _load(i),
+                    ),
+                  ),
+                );
               },
             ),
           ),
@@ -146,7 +138,7 @@ class _Live2dPageState extends State<Live2dPage> {
                   top: AppSpacing.sm,
                   right: AppSpacing.sm,
                   child: Text(
-                    _lastError != null ? '加载失败：$_lastError' : '舞台运行中（${_models[_idx].label}）',
+                    _lastError != null ? '加载失败：$_lastError' : '舞台运行中（${live2dModels[_idx].label}）',
                     style: const TextStyle(fontSize: 10),
                   ),
                 ),

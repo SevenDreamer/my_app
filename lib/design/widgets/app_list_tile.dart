@@ -11,6 +11,7 @@ class AppListTile extends StatelessWidget {
   const AppListTile({
     super.key,
     this.icon,
+    this.iconLabel,
     required this.title,
     this.subtitle,
     this.trailing,
@@ -20,6 +21,9 @@ class AppListTile extends StatelessWidget {
 
   /// 左侧图标（会放进 primary 10% 淡底色块）
   final IconData? icon;
+
+  /// 字母图标方块（与 icon 二选一——模型/角色行用首字母）
+  final String? iconLabel;
 
   /// 主标题
   final String title;
@@ -41,7 +45,10 @@ class AppListTile extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        InkWell(
+        Material(
+          // InkWell 需要 Material 祖先——自带透明层，shadcn 弹层里也能用
+          type: MaterialType.transparency,
+          child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(AppRadius.md),
           // 悬停/按压反馈：从主文字色派生的透明度变化（不引入新颜色）
@@ -54,8 +61,8 @@ class AppListTile extends StatelessWidget {
             ),
             child: Row(
               children: [
-                if (icon != null) ...[
-                  // 图标底色块：primary 淡染 + primary 图标
+                if (icon != null || iconLabel != null) ...[
+                  // 图标底色块：primary 淡染 + primary 图标/字母
                   Container(
                     width: 40,
                     height: 40,
@@ -64,11 +71,19 @@ class AppListTile extends StatelessWidget {
                       color: AppColors.primary.withValues(alpha: 0.10),
                       borderRadius: BorderRadius.circular(AppRadius.sm + 2),
                     ),
-                    child: Icon(
-                      icon,
-                      size: 20,
-                      color: AppColors.primary,
-                    ),
+                    child: icon != null
+                        ? Icon(
+                            icon,
+                            size: 20,
+                            color: AppColors.primary,
+                          )
+                        : Text(
+                            iconLabel!,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.primary,
+                            ),
+                          ),
                   ),
                   const SizedBox(width: 12),
                 ],
@@ -102,6 +117,7 @@ class AppListTile extends StatelessWidget {
                     ),
               ],
             ),
+          ),
           ),
         ),
         if (showDivider) const Divider(height: 1, indent: AppSpacing.md),

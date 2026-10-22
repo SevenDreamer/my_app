@@ -38,6 +38,7 @@ abstract class AppColors {
 /// 间距（DESIGN.md · Layout，8pt 网格）
 abstract class AppSpacing {
   /// 元素内间隙
+  static const double xs = 4;
   static const double sm = 8;
 
   /// 组件间距 / 页面左右留白
