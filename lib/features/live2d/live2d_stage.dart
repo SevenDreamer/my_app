@@ -137,7 +137,7 @@ class DesktopStageController extends Live2dStageController {
     // 超时：拉取 JS 侧诊断时间线（看卡在哪一步）再放行
     try {
       final diag = await _wc
-          ?.executeScript('JSON.stringify(window.live2d && window.live2d._diag || []);');
+          ?.executeScript('JSON.stringify(window._live2dDiag || []);');
       AppLogger.instance.log('live2d', 'player 就绪探测超时——JS 诊断：$diag');
     } catch (_) {}
     _pageReady = true;

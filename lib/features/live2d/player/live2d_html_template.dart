@@ -134,10 +134,11 @@ String buildLive2DHtml({
         currentModel.y = (screenH / 2) + offsetY;
       }
 
-      // 诊断时间线（Dart 轮询拉取——排查"不显示"用）
-      window.live2d._diag = [];
+      // 诊断时间线（Dart 轮询拉取）——挂独立对象，勿挂 window.live2d
+      // （它在本 IIFE 尾部才定义，提前挂属性会抛错毁掉整个 player 脚本）
+      window._live2dDiag = [];
       const dlog = (m) => {
-        window.live2d._diag.push('' + Date.now() + ': ' + m);
+        window._live2dDiag.push('' + Date.now() + ': ' + m);
         console.log('[live2d]', m);
       };
 
