@@ -134,7 +134,15 @@ String buildLive2DHtml({
         currentModel.y = (screenH / 2) + offsetY;
       }
 
+      // 诊断时间线（Dart 轮询拉取——排查"不显示"用）
+      window.live2d._diag = [];
+      const dlog = (m) => {
+        window.live2d._diag.push('' + Date.now() + ': ' + m);
+        console.log('[live2d]', m);
+      };
+
       async function loadModel(modelUrl, options = {}) {
+        dlog('loadModel 请求: ' + modelUrl);
         try {
           if (options.fit) fitMode = options.fit;
           if (options.scale !== undefined) userScale = options.scale;
@@ -146,11 +154,14 @@ String buildLive2DHtml({
             currentModel = null;
           }
 
+          dlog('Live2DModel.from 开始（含 .moc3 解析+贴图加载）');
           const model = await PIXI.live2d.Live2DModel.from(modelUrl, {
+
             autoInteract: autoInteractEnabled
           });
 
           currentModel = model;
+          dlog('模型 ready，加入 stage');
           app.stage.addChild(model);
           // 渲染完成钩子：下一帧真正绘制后标记——Dart 轮询它=画面已上屏
           app.ticker.addOnce(() => { window.live2d._renderedAt = Date.now(); });

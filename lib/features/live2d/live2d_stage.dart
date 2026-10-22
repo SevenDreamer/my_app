@@ -118,12 +118,14 @@ class DesktopStageController extends Live2dStageController {
       // 最多 5s
       await Future<void>.delayed(const Duration(milliseconds: 200));
       try {
-        final ok = await _wc
-            ?.executeScript('typeof window.live2d !== "undefined";');
+        // 就绪=app 已创建（DOMContentLoaded 后 initApp 才建 app——window.live2d
+        // 对象本身在 IIFE 里同步定义，探测它不够！）。warmup 返回 true 同时
+        // 完成 WebGL context 预热——探测与预热合一。
+        final ok = await _wc?.executeScript(
+            'window.live2d && window.live2d.warmup ? window.live2d.warmup() : false;');
         if (ok == true || ok?.toString() == 'true') {
-          // 先预热（WebGL context 冷启动），再放行排队命令
-          await _wc?.executeScript('window.live2d.warmup && window.live2d.warmup();');
           _pageReady = true;
+          AppLogger.instance.log('live2d', 'player 就绪+WebGL 预热完成（探测 ${i + 1} 轮）');
           for (final js in _pendingJs) {
             _wc?.executeScript(js);
           }
@@ -132,7 +134,12 @@ class DesktopStageController extends Live2dStageController {
         }
       } catch (_) {}
     }
-    // 超时也放行（让错误暴露出来，而不是静默吞命令）
+    // 超时：拉取 JS 侧诊断时间线（看卡在哪一步）再放行
+    try {
+      final diag = await _wc
+          ?.executeScript('JSON.stringify(window.live2d && window.live2d._diag || []);');
+      AppLogger.instance.log('live2d', 'player 就绪探测超时——JS 诊断：$diag');
+    } catch (_) {}
     _pageReady = true;
     for (final js in _pendingJs) {
       _wc?.executeScript(js);
