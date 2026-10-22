@@ -50,10 +50,12 @@ class _Live2dPageState extends State<Live2dPage> {
     };
     _ctrl.onError = (error) {
       AppLogger.instance.log('live2d', '错误：$error');
-      if (mounted) setState(() {
-        _lastError = error;
-        _loading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _lastError = error;
+          _loading = false;
+        });
+      }
     };
     _load(_idx);
   }
