@@ -66,6 +66,8 @@ dependencies:
   shorebird_code_push: ^2.0.7
   # Windows WebView2 容器（Live2D 桌面舞台用——与 webview_flutter 同款 player 页）
   webview_windows: ^0.4.0
+  # vendor 的 Live2D 资产服务需要（mime 类型表）
+  mime: ^1.0.6
 
 # 根治 :jni/NDK 依赖（PITFALLS #20）：path_provider_android 2.3.0 起引入
 # jni（C 桥接模块，需 NDK+CMake）；钉住 2.2.23（最后一个纯 Kotlin 版），

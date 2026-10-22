@@ -10,7 +10,11 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+
+import '../../core/logging/app_logger.dart';
 import 'package:live2d/live2d.dart';
+
+import 'player/live2d_player_server.dart';
 import 'package:webview_windows/webview_windows.dart';
 
 /// 创建平台对应的控制器（页面入口）
@@ -84,7 +88,7 @@ class MobileStageController implements Live2dStageController {
 /// Windows 端：webview_windows 容器 + 同款 JS 协议直调
 class DesktopStageController extends Live2dStageController {
   WebviewController? _wc;
-  Live2DAssetServer? _server;
+  Live2dPlayerServer? _server;
   final _pendingJs = <String>[];
   bool _pageReady = false;
 
@@ -95,7 +99,7 @@ class DesktopStageController extends Live2dStageController {
   void Function(String error)? onError;
 
   /// 由 [_DesktopLive2dView] 在就绪后绑定（stage 内部使用）
-  void attach({required WebviewController wc, required Live2DAssetServer server}) {
+  void attach({required WebviewController wc, required Live2dPlayerServer server}) {
     _wc = wc;
     _server = server;
     // player 页加载完成前发出的 JS 命令会丢（首开不显示的根因）——排队等就绪
@@ -126,11 +130,28 @@ class DesktopStageController extends Live2dStageController {
     try {
       await _eval(
           'window.live2d.loadModel("${_resolve(assetPath)}", {"fit":"contain","scale":1,"autoInteract":$autoInteract});');
-      // WebView2 侧没有结构化回调——尺寸/动作组取不到（不代表加载失败）
+      // 轮询渲染完成钩子（vendor 模板的 getRenderedAt）——画面真的上屏才回调
+      final elapsed = await _waitRendered();
       onModelLoaded?.call(Live2dModelInfo(modelUrl: assetPath));
+      AppLogger.instance.log(
+          'live2d', '画面已渲染：$assetPath（${elapsed}ms 后首帧上屏${elapsed < 0 ? '，5s 超时未确认' : ''}）');
     } catch (e) {
-      onError?.call('$e');
+      onError?.call(e.toString());
     }
+  }
+
+  /// 轮询 getRenderedAt：>0 表示 pixi 第一帧已绘制。返回等待毫秒（-1=超时）
+  Future<int> _waitRendered() async {
+    final sw = Stopwatch()..start();
+    while (sw.elapsedMilliseconds < 5000) {
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+      try {
+        final r = await _wc?.executeScript(
+            'window.live2d.getRenderedAt && window.live2d.getRenderedAt();');
+        if (r != null && r != 0 && r != '0') return sw.elapsedMilliseconds;
+      } catch (_) {}
+    }
+    return -1;
   }
 
   @override
@@ -169,7 +190,7 @@ class Live2dStage extends StatefulWidget {
 }
 
 class _Live2dStageState extends State<Live2dStage> {
-  Live2DAssetServer? _server;
+  Live2dPlayerServer? _server;
   WebviewController? _wc;
   bool _ready = false;
 
@@ -181,8 +202,9 @@ class _Live2dStageState extends State<Live2dStage> {
 
   Future<void> _initDesktop() async {
     // cubismCoreJsUrl 走同一注入链（server→player 页）——Ren 的 moc3 v6
-    // 需要 vendor 的 Core 6 补丁版，漏传就会只有旧格式模型能显示
-    final server = Live2DAssetServer(cubismCoreJsUrl: widget.cubismCoreJsUrl);
+    // 需要 vendor 的 Core 6 补丁版，漏传就会只有旧格式模型能显示。
+    // server 用 vendor 版（player 模板带渲染完成钩子 getRenderedAt）。
+    final server = Live2dPlayerServer(cubismCoreJsUrl: widget.cubismCoreJsUrl);
     await server.start();
     final wc = WebviewController();
     await wc.initialize();
