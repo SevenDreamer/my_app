@@ -103,10 +103,10 @@ class Live2dPlayerServer {
       final html = buildLive2DHtml(
         cubismCoreJsUrl: cubismCoreJsUrl,
         cubism2CoreJsUrl: cubism2CoreJsUrl ??
-            getAssetUrl('assets/assets/live2d/live2dcubism2core.min.js'),
-        pixiJsUrl: pixiJsUrl ?? getAssetUrl('assets/assets/live2d/pixi.min.js'),
+            getAssetUrl('assets/live2d/live2dcubism2core.min.js'),
+        pixiJsUrl: pixiJsUrl ?? getAssetUrl('assets/live2d/pixi.min.js'),
         pixiLive2dJsUrl: pixiLive2dJsUrl ??
-            getAssetUrl('assets/assets/live2d/pixi-live2d-display.min.js'),
+            getAssetUrl('assets/live2d/pixi-live2d-display.min.js'),
       );
       response.headers.contentType = ContentType.html;
       response.write(html);
