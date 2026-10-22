@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 import '../../data/models/note.dart';
-import '../../design/widgets/app_app_bar.dart';
+import '../../design/widgets/app_header.dart';
 import 'notes_view_model.dart';
 
 /// 笔记编辑页（新建 / 编辑）
@@ -82,7 +82,7 @@ class _NoteEditPageState extends State<NoteEditPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppAppBar(
+      appBar: AppHeader(
         title: _isEditing ? '编辑笔记' : '新建笔记',
         actions: [
           if (_isEditing)

@@ -9,7 +9,7 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../design/tokens.dart';
-import '../design/widgets/app_app_bar.dart';
+import '../design/widgets/app_header.dart';
 import '../design/widgets/app_list_tile.dart';
 import '../core/errors/app_error.dart';
 import '../core/errors/error_dialog.dart';
@@ -314,7 +314,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     final TextTheme textTheme = Theme.of(context).textTheme;
     return Scaffold(
-      appBar: const AppAppBar(title: '我'),
+      appBar: const AppHeader(title: '我'),
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.md),
         children: [

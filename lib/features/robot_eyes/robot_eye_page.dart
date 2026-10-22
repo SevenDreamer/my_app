@@ -8,7 +8,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
-import '../../design/widgets/app_app_bar.dart';
+import '../../design/widgets/app_header.dart';
 import 'expressions.dart';
 import 'eyes/eye_renderer.dart';
 import 'eyes/led_dot_renderer.dart';
@@ -106,8 +106,8 @@ class _RobotEyePageState extends State<RobotEyePage> {
     return _keyboard.build(
       Scaffold(
         backgroundColor: Colors.black,
-        // 顶部标题栏：黑底个性页面（AppAppBar 自动带返回按钮）
-        appBar: AppAppBar(
+        // 顶部标题栏：黑底个性页面（AppHeader 自动带返回按钮）
+        appBar: AppHeader(
           title: '机器人眼睛',
           backgroundColor: Colors.black,
           foregroundColor: Colors.white,

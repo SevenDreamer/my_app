@@ -8,10 +8,9 @@ import 'package:flutter/material.dart';
 import 'live2d_stage.dart';
 import 'package:shadcn_ui/shadcn_ui.dart'; // LucideIcons 由它 re-export
 
-import '../../app/update/log_viewer_dialog.dart';
 import '../../core/logging/app_logger.dart';
 import '../../design/tokens.dart';
-import '../../design/widgets/app_app_bar.dart';
+import '../../design/widgets/app_header.dart';
 
 class Live2dPage extends StatefulWidget {
   const Live2dPage({super.key});
@@ -81,28 +80,25 @@ class _Live2dPageState extends State<Live2dPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppAppBar(
+      appBar: AppHeader(
         title: 'Live2D 看板娘',
         actions: [
-          // 汉堡菜单：切换模型 + 调试日志（body 不再放模型单选框）
-          PopupMenuButton<String>(
-            icon: const Icon(LucideIcons.menu),
-            onSelected: (v) {
-              if (v == 'log') {
-                showLogViewerDialog(context);
-              } else {
-                _load(int.parse(v));
-              }
-            },
-            itemBuilder: (_) => [
-              for (var i = 0; i < _models.length; i++)
-                CheckedPopupMenuItem<String>(
-                  value: '$i',
-                  checked: _idx == i,
-                  child: Text(_models[i].label),
-                ),
-
-            ],
+          // 模型切换：shadcn 的 Select（trigger=汉堡图标，语义=下拉选择）
+          Padding(
+            padding: const EdgeInsets.only(right: AppSpacing.sm),
+            child: ShadSelect<String>(
+              selectedOptionBuilder: (_, __) =>
+                  const Icon(LucideIcons.menu, size: 20),
+              options: [
+                for (var i = 0; i < _models.length; i++)
+                  ShadOption(value: '$i', child: Text(_models[i].label)),
+              ],
+              onChanged: (v) {
+                if (v != null) {
+                  _load(int.parse(v));
+                }
+              },
+            ),
           ),
         ],
       ),

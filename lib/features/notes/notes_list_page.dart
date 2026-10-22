@@ -6,7 +6,7 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 
 import '../../data/models/note.dart';
 import '../../design/tokens.dart';
-import '../../design/widgets/app_app_bar.dart';
+import '../../design/widgets/app_header.dart';
 import '../../design/widgets/app_list_tile.dart';
 import 'note_edit_page.dart';
 import 'notes_view_model.dart';
@@ -51,7 +51,7 @@ class _NotesListPageState extends State<NotesListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const AppAppBar(title: '记事本'),
+      appBar: const AppHeader(title: '记事本'),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _openEdit(),
         child: const Icon(LucideIcons.plus),

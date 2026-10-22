@@ -8,8 +8,8 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 
 import '../tokens.dart';
 
-class AppAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const AppAppBar({
+class AppHeader extends StatelessWidget implements PreferredSizeWidget {
+  const AppHeader({
     super.key,
     required this.title,
     this.titleWidget,

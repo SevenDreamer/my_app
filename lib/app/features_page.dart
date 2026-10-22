@@ -4,7 +4,7 @@
 //! 按当前平台能力过滤展示：不支持的隐藏，受限的标注说明。
 import 'package:flutter/material.dart';
 
-import '../design/widgets/app_app_bar.dart';
+import '../design/widgets/app_header.dart';
 import '../design/widgets/app_list_tile.dart';
 import 'feature_registry.dart';
 
@@ -20,7 +20,7 @@ class FeaturesPage extends StatelessWidget {
         .toList(growable: false);
 
     return Scaffold(
-      appBar: const AppAppBar(title: '功能'),
+      appBar: const AppHeader(title: '功能'),
       body: ListView.builder(
         itemCount: features.length,
         itemBuilder: (context, index) {

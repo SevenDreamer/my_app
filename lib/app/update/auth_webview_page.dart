@@ -5,7 +5,7 @@
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
-import '../../design/widgets/app_app_bar.dart';
+import '../../design/widgets/app_header.dart';
 
 class AuthWebviewPage extends StatefulWidget {
   const AuthWebviewPage({
@@ -38,7 +38,7 @@ class _AuthWebviewPageState extends State<AuthWebviewPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppAppBar(title: '授权 GitHub · ${widget.userCode}'),
+      appBar: AppHeader(title: '授权 GitHub · ${widget.userCode}'),
       body: WebViewWidget(controller: _controller),
       bottomNavigationBar: SafeArea(
         child: Container(

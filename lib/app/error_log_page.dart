@@ -5,7 +5,7 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import '../core/errors/error_codes.dart';
 import '../core/errors/error_dialog.dart';
 import '../core/errors/error_log.dart';
-import '../design/widgets/app_app_bar.dart';
+import '../design/widgets/app_header.dart';
 import '../design/widgets/app_list_tile.dart';
 
 class ErrorLogPage extends StatefulWidget {
@@ -42,7 +42,7 @@ class _ErrorLogPageState extends State<ErrorLogPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const AppAppBar(title: '错误日志'),
+      appBar: const AppHeader(title: '错误日志'),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _entries.isEmpty

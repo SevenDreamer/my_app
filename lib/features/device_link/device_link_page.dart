@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 import '../../design/tokens.dart';
-import '../../design/widgets/app_app_bar.dart';
+import '../../design/widgets/app_header.dart';
 import '../../design/widgets/app_section.dart';
 
 class DeviceLinkPage extends StatelessWidget {
@@ -15,7 +15,7 @@ class DeviceLinkPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const AppAppBar(title: '设备互联'),
+      appBar: const AppHeader(title: '设备互联'),
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.md),
         children: const [
