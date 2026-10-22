@@ -85,6 +85,8 @@ class MobileStageController implements Live2dStageController {
 class DesktopStageController extends Live2dStageController {
   WebviewController? _wc;
   Live2DAssetServer? _server;
+  final _pendingJs = <String>[];
+  bool _pageReady = false;
 
   @override
   void Function(Live2dModelInfo info)? onModelLoaded;
@@ -96,9 +98,23 @@ class DesktopStageController extends Live2dStageController {
   void attach({required WebviewController wc, required Live2DAssetServer server}) {
     _wc = wc;
     _server = server;
+    // player 页加载完成前发出的 JS 命令会丢（首开不显示的根因）——排队等就绪
+    wc.loadingState.listen((state) {
+      if (!_pageReady && state == LoadingState.navigationCompleted) {
+        _pageReady = true;
+        for (final js in _pendingJs) {
+          wc.executeScript(js);
+        }
+        _pendingJs.clear();
+      }
+    });
   }
 
   Future<void> _eval(String js) async {
+    if (!_pageReady) {
+      _pendingJs.add(js); // 首开时序：等 player 就绪再执行
+      return;
+    }
     await _wc?.executeScript(js);
   }
 
@@ -110,7 +126,7 @@ class DesktopStageController extends Live2dStageController {
     try {
       await _eval(
           'window.live2d.loadModel("${_resolve(assetPath)}", {"fit":"contain","scale":1,"autoInteract":$autoInteract});');
-      // WebView2 侧没有结构化回调——用可用子集通知（尺寸/动作组取不到）
+      // WebView2 侧没有结构化回调——尺寸/动作组取不到（不代表加载失败）
       onModelLoaded?.call(Live2dModelInfo(modelUrl: assetPath));
     } catch (e) {
       onError?.call('$e');
@@ -164,7 +180,9 @@ class _Live2dStageState extends State<Live2dStage> {
   }
 
   Future<void> _initDesktop() async {
-    final server = Live2DAssetServer();
+    // cubismCoreJsUrl 走同一注入链（server→player 页）——Ren 的 moc3 v6
+    // 需要 vendor 的 Core 6 补丁版，漏传就会只有旧格式模型能显示
+    final server = Live2DAssetServer(cubismCoreJsUrl: widget.cubismCoreJsUrl);
     await server.start();
     final wc = WebviewController();
     await wc.initialize();
