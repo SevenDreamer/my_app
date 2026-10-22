@@ -84,28 +84,31 @@ class _Live2dPageState extends State<Live2dPage> {
       appBar: AppAppBar(
         title: 'Live2D 看板娘',
         actions: [
-          // 调试期日志入口——看加载/渲染都发生了什么
-          IconButton(
-            icon: const Icon(LucideIcons.scrollText),
-            onPressed: () => showLogViewerDialog(context),
+          // 汉堡菜单：切换模型 + 调试日志（body 不再放模型单选框）
+          PopupMenuButton<String>(
+            icon: const Icon(LucideIcons.menu),
+            onSelected: (v) {
+              if (v == 'log') {
+                showLogViewerDialog(context);
+              } else {
+                _load(int.parse(v));
+              }
+            },
+            itemBuilder: (_) => [
+              for (var i = 0; i < _models.length; i++)
+                CheckedPopupMenuItem<String>(
+                  value: '$i',
+                  checked: _idx == i,
+                  child: Text(_models[i].label),
+                ),
+
+            ],
           ),
         ],
       ),
       body: Column(
         children: [
-          // 模型切换
-          Padding(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            child: SegmentedButton<int>(
-              segments: [
-                for (var i = 0; i < _models.length; i++)
-                  ButtonSegment(value: i, label: Text(_models[i].label)),
-              ],
-              selected: {_idx},
-              onSelectionChanged: (s) => _load(s.first),
-            ),
-          ),
-          // 模型舞台（透明背景——看板娘可浮在任意 UI 上）
+          // 模型舞台（透明背景——看板娘可浮在任意 UI 上；切换在右上角汉堡菜单）
           Expanded(
             child: Stack(
               fit: StackFit.expand,
@@ -126,16 +129,6 @@ class _Live2dPageState extends State<Live2dPage> {
                   // 因此这里是**双层** assets/（与模型 URL 同构：/assets/assets/models/…）。
                   cubismCoreJsUrl:
                       'assets/assets/live2d/live2dcubismcore.min.js',
-                ),
-                // 触摸跟踪提示（包内置：眼/头跟手指）
-                const Positioned(
-                  left: 0,
-                  right: 0,
-                  bottom: AppSpacing.lg,
-                  child: Text(
-                    '🔥 热更测试 10-21：补丁生效中！用手指逗她 👀',
-                    textAlign: TextAlign.center,
-                  ),
                 ),
                 // 加载态转圈（首开 WebGL 冷启动可见的等待）
                 if (_loading)
