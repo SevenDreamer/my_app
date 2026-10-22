@@ -36,10 +36,10 @@ class CiNotifier {
     if (_inited) return;
     _inited = true;
     await _plugin.initialize(
-      settings: InitializationSettings(
+      settings: const InitializationSettings(
         android: const AndroidInitializationSettings('@mipmap/ic_launcher'),
         // Windows 通知（桌面跑时必填——否则 ArgumentError）
-        windows: const WindowsInitializationSettings(
+        windows: WindowsInitializationSettings(
           appName: 'my_app',
           appUserModelId: 'com.example.my_app',
           guid: '72dc77eb-9633-45e5-8c4e-bd1418e43cca', // 通知分组标识（固定值，勿改）
