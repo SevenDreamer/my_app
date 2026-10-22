@@ -37,7 +37,7 @@ class CiNotifier {
     _inited = true;
     await _plugin.initialize(
       settings: const InitializationSettings(
-        android: const AndroidInitializationSettings('@mipmap/ic_launcher'),
+        android: AndroidInitializationSettings('@mipmap/ic_launcher'),
         // Windows 通知（桌面跑时必填——否则 ArgumentError）
         windows: WindowsInitializationSettings(
           appName: 'my_app',
