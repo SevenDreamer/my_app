@@ -1,9 +1,9 @@
 //! "我"页面：个人信息与设置（占位阶段）
 //!
-//! 身份区 + 设置/关于/更新授权入口；后续接账号、偏好设置、设备管理等。
+//! 设置/关于/更新授权入口；后续接账号、偏好设置、设备管理等。
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import '../design/widgets/app_toast.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
@@ -11,7 +11,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../design/tokens.dart';
 import '../design/widgets/app_header.dart';
-import '../design/widgets/app_list_tile.dart';
+import '../design/widgets/app_scaffold.dart';
 import '../core/errors/app_error.dart';
 import '../core/errors/error_dialog.dart';
 import 'error_log_page.dart';
@@ -192,11 +192,13 @@ class _ProfilePageState extends State<ProfilePage> {
       if (defaultTargetPlatform == TargetPlatform.android) {
         // ignore: unawaited_futures
         Navigator.of(context).push(
-          MaterialPageRoute<void>(
-            builder: (_) => AuthWebviewPage(
+          PageRouteBuilder<void>(
+            pageBuilder: (_, __, ___) => AuthWebviewPage(
               url: code.verificationUriComplete,
               userCode: code.userCode,
             ),
+            transitionsBuilder: (_, animation, __, child) =>
+                FadeTransition(opacity: animation, child: child),
           ),
         );
       } else {
@@ -336,116 +338,71 @@ class _ProfilePageState extends State<ProfilePage> {
       defaultTargetPlatform == TargetPlatform.macOS ||
       defaultTargetPlatform == TargetPlatform.linux;
 
-  String get _authSubtitle {
-    if (_authorizing) return '等待浏览器授权中……';
-    final auth = _authorized;
-    if (auth == null) return '查询授权状态……';
-    return auth ? '已授权 · 流水线通知可用' : '未授权 · 点击后在浏览器授权（私有仓库）';
-  }
-
   @override
   Widget build(BuildContext context) {
-    final TextTheme textTheme = Theme.of(context).textTheme;
-    return Scaffold(
-      appBar: const AppHeader(title: '我'),
+    return AppScaffold(
+      header: const AppHeader(title: '我'),
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.md),
         children: [
-          // 身份区
-          ShadCard(
-            child: Row(
-              children: [
-                Container(
-                  width: 56,
-                  height: 56,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.10),
-                    borderRadius: BorderRadius.circular(AppRadius.lg),
-                  ),
-                  child: const Icon(
-                    LucideIcons.user,
-                    size: 28,
-                    color: AppColors.primary,
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.md),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'my_app',
-                      style: textTheme.bodyMedium
-                          ?.copyWith(fontWeight: FontWeight.w600),
-                    ),
-                    const SizedBox(height: 4),
-                    Text('个人工具箱', style: textTheme.labelSmall),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: AppSpacing.md),
           // 设置与关于
           ShadCard(
             padding: EdgeInsets.zero,
             child: Column(
               children: [
-                AppListTile(
+                _SettingRow(
                   icon: LucideIcons.settings,
                   title: '设置',
-                  showDivider: true,
                   onTap: _comingSoon,
                 ),
-                AppListTile(
+                _SettingRow(
                   icon: LucideIcons.bug,
                   title: '错误日志',
-                  subtitle: '查看最近的报错记录（带错误码）',
-                  showDivider: true,
                   onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => const ErrorLogPage(),
+                    PageRouteBuilder<void>(
+                      pageBuilder: (_, __, ___) => const ErrorLogPage(),
+                      transitionsBuilder: (_, animation, __, child) =>
+                          FadeTransition(opacity: animation, child: child),
                     ),
                   ),
                 ),
-                AppListTile(
+                _SettingRow(
                   icon: LucideIcons.refreshCw,
                   title: 'GitHub 授权',
-                  subtitle: _authSubtitle,
-                  showDivider: true,
+                  detail: _authorizing
+                      ? '授权中…'
+                      : (_authorized == true
+                          ? '已授权'
+                          : (_authorized == null ? '查询中…' : '未授权')),
                   // 未授权/查询中 → 授权流程；已授权 → 状态框；授权中禁点
                   onTap: _authorizing
                       ? null
                       : (_authorized == true ? _authInfo : _authorize),
                 ),
                 if (_isDesktop)
-                  AppListTile(
+                  _SettingRow(
                     icon: LucideIcons.qrCode,
                     title: '手机下载',
-                    subtitle: '显示 Android 安装包下载二维码',
-                    showDivider: true,
                     onTap: () => showDownloadQrDialog(context),
                   ),
-                AppListTile(
+                _SettingRow(
                   icon: LucideIcons.refreshCw,
                   title: '检查更新',
-                  subtitle: '热更 + 大版本两层检查',
                   trailing: ShadButton.outline(
+                    size: ShadButtonSize.sm,
                     onPressed: _checkUpdates,
                     child: const Text('检查'),
                   ),
                 ),
-                AppListTile(
+                _SettingRow(
+                  icon: LucideIcons.zap,
                   title: '热更状态',
-                  subtitle: _patchInfo,
-                  showDivider: true,
+                  detail: _patchInfo,
                   onTap: _refreshPatchInfo,
                 ),
-                AppListTile(
+                _SettingRow(
                   icon: LucideIcons.bell,
                   title: '流水线通知',
-                  subtitle: '构建成功/失败时系统通知栏提醒',
-                  showDivider: true,
                   trailing: ShadSwitch(
                     value: _ciNotify,
                     onChanged: (v) async {
@@ -454,24 +411,20 @@ class _ProfilePageState extends State<ProfilePage> {
                     },
                   ),
                 ),
-                AppListTile(
+                _SettingRow(
                   icon: LucideIcons.gitBranch,
                   title: '更新通道',
-                  subtitle: _channel == 'dev'
-                      ? '开发版 · 可收到预发布测试版本'
-                      : '稳定版 · 只推送正式发布版本',
-                  showDivider: true,
+                  detail: _channel == 'dev' ? '开发版' : '稳定版',
                   onTap: _pickChannel,
                 ),
-                AppListTile(
+                _SettingRow(
                   icon: LucideIcons.info,
                   title: '关于',
-                  subtitle: '个人工具箱 · 遵循 DESIGN.md 视觉规范',
                   trailing: FutureBuilder<PackageInfo>(
                     future: _packageInfo,
                     builder: (context, snapshot) => Text(
                       snapshot.hasData ? 'v${snapshot.data!.version}' : '…',
-                      style: textTheme.labelSmall,
+                      style: AppTypography.labelSm,
                     ),
                   ),
                   showDivider: false,
@@ -482,6 +435,110 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// 设置行（紧凑单行：小图标 + 标题 + 右侧灰字/控件；去 Material）
+///
+/// 页面内私有组件——后续统一重构进 design/widgets 时再抽离。
+/// 悬停/按压反馈自绘（MouseRegion + AnimatedContainer），行间 ShadSeparator。
+class _SettingRow extends StatefulWidget {
+  const _SettingRow({
+    this.icon,
+    required this.title,
+    this.detail,
+    this.trailing,
+    this.onTap,
+    this.showDivider = true,
+  });
+
+  /// 行首小图标（18px 弱化色）
+  final IconData? icon;
+  final String title;
+
+  /// 右侧灰字状态（如「已授权」「开发版」），过长自动省略
+  final String? detail;
+
+  /// 右侧控件（优先于默认箭头）
+  final Widget? trailing;
+  final VoidCallback? onTap;
+  final bool showDivider;
+
+  @override
+  State<_SettingRow> createState() => _SettingRowState();
+}
+
+class _SettingRowState extends State<_SettingRow> {
+  bool _hovering = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final row = Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: 10,
+      ),
+      child: Row(
+        children: [
+          if (widget.icon != null) ...[
+            Icon(widget.icon, size: 18, color: AppColors.secondary),
+            const SizedBox(width: AppSpacing.sm),
+          ],
+          Expanded(
+            child: Text(
+              widget.title,
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          if (widget.detail != null) ...[
+            Text(
+              widget.detail!,
+              style: const TextStyle(
+                fontSize: 12,
+                color: AppColors.secondary,
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+          ],
+          widget.trailing ??
+              Icon(
+                LucideIcons.chevronRight,
+                size: 16,
+                color: AppColors.secondary.withValues(alpha: 0.6),
+              ),
+        ],
+      ),
+    );
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        MouseRegion(
+          onEnter: (_) => setState(() => _hovering = true),
+          onExit: (_) => setState(() => _hovering = false),
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: widget.onTap,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 120),
+              decoration: BoxDecoration(
+                color: _hovering
+                    ? AppColors.onSurface.withValues(alpha: 0.04)
+                    : null,
+                borderRadius: BorderRadius.circular(AppRadius.md),
+              ),
+              child: row,
+            ),
+          ),
+        ),
+        if (widget.showDivider)
+          const ShadSeparator.horizontal(
+            margin: EdgeInsets.zero,
+            thickness: 1,
+            color: AppColors.border,
+          ),
+      ],
     );
   }
 }

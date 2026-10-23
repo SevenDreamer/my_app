@@ -2,8 +2,8 @@
 //!
 //! shadcn_ui 无 AppBar，本组件是纯布局壳：SafeArea + Row（返回/标题/actions）。
 //! 不依赖 Material——任何上下文（含 shadcn 弹层）可用。
-import 'package:flutter/material.dart';
-import 'package:shadcn_ui/shadcn_ui.dart'; // LucideIcons
+import 'package:flutter/widgets.dart';
+import 'package:shadcn_ui/shadcn_ui.dart'; // LucideIcons + ShadIconButton
 
 import '../tokens.dart';
 
@@ -43,7 +43,7 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     final canPop = showBack ?? Navigator.of(context).canPop();
     final fg = foregroundColor ?? AppColors.onSurface;
-    return Material(
+    return ColoredBox(
       color: backgroundColor ?? AppColors.surface,
       child: SafeArea(
         bottom: false,
@@ -52,7 +52,7 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
           child: Row(
             children: [
               if (canPop)
-                IconButton(
+                ShadIconButton.ghost(
                   icon: Icon(LucideIcons.chevronLeft, color: fg),
                   onPressed: () => Navigator.of(context).maybePop(),
                 )
