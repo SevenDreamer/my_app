@@ -1,7 +1,10 @@
-//! 更新检查（v1 提示型）：GitHub Releases latest → semver 对比 → 提示跳转
+//! 更新检查（v2 分发）：匿名拉 R2 manifest → semver 对比 → 提示下载安装
 //!
+//! 安装包与 manifest 托管在 Cloudflare R2 公开桶，匿名 GET 即可——
+//! 不再依赖 GitHub token（Device Flow 现在只剩流水线通知在用）。
+//! manifest 每通道一份：stable → manifest.json，dev → manifest-dev.json。
 //! 一切异常都静默返回 null——更新检查绝不打断使用
-//!（无授权 / 网络失败 / iOS 平台 / 已忽略版本 / 非新版）。
+//!（无新版 / 网络失败 / iOS 平台 / 已忽略版本）。
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
@@ -11,7 +14,6 @@ import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../core/errors/app_error.dart';
 import '../../core/errors/error_log.dart';
-import 'github_auth_service.dart';
 
 /// 一条可用的更新提示
 class UpdateInfo {
@@ -19,24 +21,77 @@ class UpdateInfo {
     required this.version,
     required this.notes,
     required this.url,
+    required this.apks,
   });
 
-  /// 纯版本号（tag 剥掉 v 前缀，如 1.2.0）
+  /// 纯版本号（如 1.3.0-dev.5）
   final String version;
 
-  /// Release notes（截取展示由 UI 决定）
+  /// 更新说明（截取展示由 UI 决定）
   final String notes;
 
-  /// Release 页面地址
+  /// 下载页地址（桌面「前往下载」）
   final String url;
+
+  /// Android 安装包：ABI → 下载 URL（可含 'universal' 兜底项）
+  final Map<String, String> apks;
+
+  /// 按设备 ABI 解析安装包 URL：精确匹配 → universal → 首个
+  String? resolveApk(String? abi) {
+    if (apks.isEmpty) return null;
+    if (abi != null && apks.containsKey(abi)) return apks[abi];
+    return apks['universal'] ?? apks.values.first;
+  }
+}
+
+/// 更新源：返回该通道的最新版本元数据；网络/解析异常向上抛，调用方静默落盘
+abstract class UpdateSource {
+  Future<UpdateInfo?> fetchLatest(String channel);
+}
+
+/// R2 静态 manifest 源：GET {baseUrl}/{manifest 文件} 解析 UpdateInfo
+class ManifestUpdateSource implements UpdateSource {
+  ManifestUpdateSource({http.Client? client})
+      : _client = client ?? http.Client();
+
+  final http.Client _client;
+
+  /// R2 公开桶地址（my-app-apks 桶 my_app_dist/ 前缀，公共开发 URL）
+  static const String baseUrl =
+      'https://pub-887a8744be9247ceba718deacb4e03eb.r2.dev/my_app_dist';
+
+  /// 通道 → manifest 文件名
+  String manifestFile(String channel) =>
+      channel == 'dev' ? 'manifest-dev.json' : 'manifest.json';
+
+  @override
+  Future<UpdateInfo?> fetchLatest(String channel) async {
+    final resp =
+        await _client.get(Uri.parse('$baseUrl/${manifestFile(channel)}'));
+    if (resp.statusCode != 200) return null;
+    final j = jsonDecode(utf8.decode(resp.bodyBytes)) as Map<String, dynamic>;
+    final version = (j['version'] as String?) ?? '';
+    if (version.isEmpty) return null;
+    final apks = <String, String>{};
+    final rawApks = (j['apks'] as Map?) ?? const {};
+    for (final e in rawApks.entries) {
+      if (e.key is String && e.value is String) {
+        apks[e.key] = e.value as String;
+      }
+    }
+    return UpdateInfo(
+      version: version,
+      notes: (j['notes'] as String?) ?? '',
+      url: (j['page'] as String?) ?? '',
+      apks: apks,
+    );
+  }
 }
 
 class UpdateService {
-  UpdateService({GithubAuthService? auth, http.Client? client})
-      : _auth = auth ?? GithubAuthService(),
-        _client = client ?? http.Client();
+  UpdateService({UpdateSource? source})
+      : _source = source ?? ManifestUpdateSource();
 
-  static const String _repo = 'SevenDreamer/my_app';
   static const String _kIgnoredVersionKey = 'update_ignored_version';
   static const String _kChannelKey = 'update_channel';
 
@@ -49,60 +104,34 @@ class UpdateService {
   Future<void> setChannel(String value) =>
       const FlutterSecureStorage().write(key: _kChannelKey, value: value);
 
-  final GithubAuthService _auth;
-  final http.Client _client;
+  final UpdateSource _source;
+
+  /// 最新版本元数据（不做新旧/忽略过滤；扫码下载等场景用）
+  Future<UpdateInfo?> latest() async {
+    try {
+      return await _source.fetchLatest(await channel());
+    } catch (e) {
+      // 静默不打扰，但落盘备查（「我」页错误日志可回看）
+      await ErrorLog.record(AppError.from(e, context: '更新检查'));
+      return null;
+    }
+  }
 
   /// 静默检查；无新版或任何异常返回 null
   Future<UpdateInfo?> check() async {
     // iOS 无 App Store 外的更新渠道（AGENTS.md 明确不支持）
     if (defaultTargetPlatform == TargetPlatform.iOS) return null;
 
-    final token = await _auth.validToken();
-    if (token == null) return null;
+    final info = await latest();
+    if (info == null) return null;
 
-    try {
-      // 按通道取 Release 列表（dev 通道含 prerelease；stable 过滤掉 prerelease）
-      final ch = await channel();
-      final resp = await _client.get(
-        Uri.parse('https://api.github.com/repos/$_repo/releases?per_page=10'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/vnd.github+json',
-          'X-GitHub-Api-Version': '2022-11-28',
-        },
-      );
-      // 401 = token 失效/被撤销 → 静默降级（设置页可重新授权）
-      if (resp.statusCode != 200) return null;
+    final ignored = await ignoredVersion();
+    if (ignored == info.version) return null;
 
-      final list = jsonDecode(utf8.decode(resp.bodyBytes)) as List;
-      final candidates = list.where((r) {
-        final release = r as Map<String, dynamic>;
-        if (release['draft'] == true) return false;
-        if (ch == 'stable' && release['prerelease'] == true) return false;
-        return true;
-      }).toList();
-      if (candidates.isEmpty) return null;
-      final j = candidates.first as Map<String, dynamic>;
-      var version = (j['tag_name'] as String?) ?? '';
-      if (version.startsWith('v')) version = version.substring(1);
-      if (version.isEmpty) return null;
+    final current = await _currentVersion();
+    if (!_isNewer(info.version, current)) return null;
 
-      final ignored = await ignoredVersion();
-      if (ignored == version) return null;
-
-      final current = await _currentVersion();
-      if (!_isNewer(version, current)) return null;
-
-      return UpdateInfo(
-        version: version,
-        notes: (j['body'] as String?) ?? '',
-        url: (j['html_url'] as String?) ?? '',
-      );
-    } catch (e) {
-      // 静默不打扰，但落盘备查（「我」页错误日志可回看）
-      await ErrorLog.record(AppError.from(e, context: '更新检查'));
-      return null;
-    }
+    return info;
   }
 
   /// 「忽略本版」：记下版本号，同版本不再提示（本机存储，非敏感数据）

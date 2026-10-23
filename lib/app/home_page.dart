@@ -35,7 +35,7 @@ class _HomePageState extends State<HomePage> {
     _checkForUpdate();
   }
 
-  /// 启动 3 秒后静默检查更新：无授权 / 无新版 / 网络问题 / iOS 全部静默，
+  /// 启动 3 秒后静默检查更新：无新版 / 网络问题 / iOS 全部静默，
   /// 仅在发现新版时弹 shadcn 提示框（v1 提示型，见 docs/ROADMAP.md）。
   Future<void> _checkForUpdate() async {
     await Future<void>.delayed(const Duration(seconds: 3));

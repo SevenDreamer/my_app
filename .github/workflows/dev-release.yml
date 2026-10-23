@@ -116,8 +116,9 @@ jobs:
           platform: android
           args: >-
             --artifact=apk --target-platform=android-arm64
-            --build-name=${{ needs.prepare.outputs.bare }}
-            --build-number=${{ github.run_number }}
+            # build 号自动化已 disable（版本号回归 pubspec 独管）：
+            # --build-name=${{ needs.prepare.outputs.bare }}
+            # --build-number=${{ github.run_number }}
 
       - name: 重命名产物（带版本号）
         run: |

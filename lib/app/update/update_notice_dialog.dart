@@ -1,7 +1,7 @@
 //! 更新提示对话框 + Android 内置下载安装（D1：跳过浏览器）
 //!
 //! Android：点「下载并安装」→ 进度框（0..1）→ 下载完成自动调起系统安装器；
-//! 桌面：「前往下载」打开 Release 页（zip 手动解压）。
+//! 桌面：「前往下载」打开下载页。
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
@@ -12,7 +12,6 @@ import '../../core/errors/app_error.dart';
 import '../../core/errors/error_codes.dart';
 import '../../core/errors/error_dialog.dart';
 import 'apk_installer.dart';
-import 'download_qr.dart';
 import 'update_service.dart';
 
 /// 有新版时弹出提示；[info] 为 null 时不展示
@@ -89,9 +88,8 @@ Future<void> _downloadAndInstall(BuildContext ctx, UpdateInfo info) async {
     },
   );
 
-  // 按设备 ABI 选架构包（D2）
-  final abi = await deviceAbi();
-  final (url, err) = await fetchAndroidSignedUrl(abi: abi);
+  // 按设备 ABI 选架构包（D2）；下载 URL 来自 R2 manifest（匿名公开）
+  final url = info.resolveApk(await deviceAbi());
 
   // 关进度框（下载/安装完成或失败）
   void closeProgress() {
@@ -106,10 +104,12 @@ Future<void> _downloadAndInstall(BuildContext ctx, UpdateInfo info) async {
     progress.dispose();
     if (ctx.mounted) {
       await showErrorDialog(
-          ctx,
-          err ??
-              const AppError(
-                  code: ErrorCodes.updateSignedUrl, message: '获取下载链接失败'));
+        ctx,
+        const AppError(
+          code: ErrorCodes.updateNoApk,
+          message: '最新版本还没有 Android 安装包',
+        ),
+      );
     }
     return;
   }

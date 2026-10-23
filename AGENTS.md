@@ -63,9 +63,38 @@ npx -y -p @google/design.md designmd lint DESIGN.md   # DESIGN.md 变更时：0 
   （`vX.Y.Z-dev.N`，pubspec `version: X.Y.Z-dev.N+M`）。`releases/latest` 天然只出
   正式版；app 内「更新通道」（稳定/开发）决定收哪个通道的推送。
   预发布排序规则：`1.2.0 < 1.3.0-dev.1 < 1.3.0`。
-- 自动更新：**私仓分发走 GitHub Device Flow**（用户设备授权自己的账号，
-  二进制内禁止内置任何 token）；iOS 明确不支持自动更新；
-  检查服务在 `lib/app/update/`。
+- 更新与分发（v2）：**大版本走 Cloudflare R2 manifest 免授权分发**——
+  `manifest.json`（stable）/ `manifest-dev.json`（dev）与安装包托管在 R2 公开桶，
+  app 匿名 GET 检查更新 + 下载安装（`lib/app/update/`，源抽象 `UpdateSource`）；
+  iOS 明确不支持自动更新。发版本地一键：`tool/release.sh [stable|dev] ["更新说明"]`
+  （Shorebird release → S3 直传 R2 → 刷 manifest，上传走 `tool/r2_upload.py`；
+  需 S3_ACCESS_KEY_ID / S3_SECRET_ACCESS_KEY / R2_BASE_URL）。
+- **GitHub Device Flow 仅用于流水线通知**（CiNotifier 查私仓 Actions API）；
+  用户设备授权自己的账号，二进制内禁止内置任何 token。
+
+### 热更（Shorebird patch）
+
+- 热更 = **Shorebird patch，只替换 Dart 代码**；原生代码 / assets / Manifest /
+  插件原生部分改动**必须走新 release + 重装**，patch 带不动。
+- Shorebird 以 `version+build` 唯一注册 release（`shorebird release`）；
+  patch 挂在 release 下（Patch 1、2、3…）**不占版本号**。
+  **设备只收自己 `version+build` 的 patch，不跨 release**：
+  发了新 release 后老设备不会自动升级，仍走 GitHub Release 重装。
+- 因此两条硬规矩：`+N` 每次 `shorebird release` 前必须自增（重发也算，否则撞
+  "release already exists"）；`shorebird patch` 构建时 pubspec 版本必须与
+  目标 release 同号（`--release-version=X.Y.Z+N` 显式指定）。
+- 本地 CLI 一律走仓库包装脚本 **`tool/shorebird.sh`**（已内置构建环境变量，
+  并绕过官方 shim 的 MSYS 路径 bug）：
+  ```bash
+  tool/shorebird.sh release android --artifact=apk          # 注册新 release（先 bump +N）
+  tool/shorebird.sh patch android --release-version=X.Y.Z+N  # 发热更 patch
+  tool/shorebird.sh releases list --app-id <app_id>
+  tool/shorebird.sh patches list --app-id <id> --release-version <ver>
+  ```
+  直接调 `~/.shorebird/bin/shorebird` 会因 shim 把 MSYS 路径喂给原生 dart 而报错；
+  构建类命令缺 `ANDROID_HOME`/`JAVA_HOME` 时报 "No Android SDK found"（脚本均已兜底）。
+  引擎版本由 CLI 锁定（当前 Flutter 3.47.7，与 dev-release.yml 的
+  `flutter-version` 一致，改一边必须同步另一边）。
 
 ## Rust 侧（桌宠 workspace）
 

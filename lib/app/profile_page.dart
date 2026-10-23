@@ -236,10 +236,10 @@ class _ProfilePageState extends State<ProfilePage> {
     showShadDialog<void>(
       context: context,
       builder: (ctx) => ShadDialog.alert(
-        title: const Text('更新检查已授权'),
+        title: const Text('GitHub 已授权'),
         description: const Text(
-          '本设备已获授权访问私有仓库的 Release（token 仅存于本机安全存储）。'
-          '应用启动 3 秒后会静默检查更新。',
+          '本设备已获授权访问私有仓库（token 仅存于本机安全存储）。'
+          '流水线通知使用；大版本更新检查已不需要授权。',
         ),
         actions: [
           ShadButton.outline(
@@ -267,7 +267,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  /// 更新中心：热更（Shorebird patch）+ 大版本（GitHub Release）两层检查
+  /// 更新中心：热更（Shorebird patch）+ 大版本（R2 manifest）两层检查
   Future<void> _checkUpdates() async {
     final sb = StringBuffer();
     try {
@@ -340,7 +340,7 @@ class _ProfilePageState extends State<ProfilePage> {
     if (_authorizing) return '等待浏览器授权中……';
     final auth = _authorized;
     if (auth == null) return '查询授权状态……';
-    return auth ? '已授权 · 启动时自动检查新版本' : '未授权 · 点击后在浏览器授权（私有仓库）';
+    return auth ? '已授权 · 流水线通知可用' : '未授权 · 点击后在浏览器授权（私有仓库）';
   }
 
   @override
@@ -410,7 +410,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
                 AppListTile(
                   icon: LucideIcons.refreshCw,
-                  title: '更新检查',
+                  title: 'GitHub 授权',
                   subtitle: _authSubtitle,
                   showDivider: true,
                   // 未授权/查询中 → 授权流程；已授权 → 状态框；授权中禁点
