@@ -38,6 +38,8 @@ jobs:
     runs-on: ubuntu-24.04
     env:
       NDK_VERSION: "28.2.13676358"
+      # runner 预装 SDK 路径——显式定义（缓存路径与 Shorebird/Flutter 都靠它）
+      ANDROID_HOME: /usr/local/lib/android/sdk
     steps:
       - uses: actions/checkout@v5
 
@@ -92,7 +94,8 @@ jobs:
       # ubuntu runner 14GB 会满——构建前清理 runner 自带的无用工具链（~20GB）
       - name: 清理磁盘（runner 无用工具链）
         run: |
-          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc \
+          # 注意：/usr/local/lib/android 是 runner 的 Android SDK——不能删！
+          sudo rm -rf /usr/share/dotnet /opt/ghc \
             /opt/hostedtoolcache/CodeQL /usr/local/share/powershell \
             /usr/local/share/boost /usr/share/swift /usr/local/.ghcup || true
           df -h /
