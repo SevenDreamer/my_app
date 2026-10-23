@@ -197,7 +197,7 @@ jobs:
           # name 输出已带 v 前缀，直接用（勿再拼 v——曾拼出 vv1.3.0 双 v bug）
           # 同号重发：先删旧 release+tag 再建（--cleanup-tag 连 tag 一起清，
           # 否则 create 撞 "release with the same tag already exists"）
-          gh release delete "${{ needs.prepare.outputs.name }}" --yes --cleanup-tag || true
+          gh release delete "${{ needs.prepare.outputs.name }}" --yes --cleanup-tag --repo ${{ github.repository }} || true
           gh release create "${{ needs.prepare.outputs.name }}" \
             artifacts/*.apk artifacts/*.zip \
             --repo ${{ github.repository }} \
