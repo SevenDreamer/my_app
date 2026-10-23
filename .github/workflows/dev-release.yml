@@ -124,7 +124,7 @@ jobs:
       - name: 重命名产物（带版本号）
         run: |
           cd build/app/outputs/flutter-apk
-          mv app-release.apk "***-vv${{ needs.prepare.outputs.bare }}-android-arm64-v8a.apk"
+          mv app-release.apk "my_app-v${{ needs.prepare.outputs.bare }}-android-arm64-v8a.apk"
 
       - name: 上传构建产物
         uses: actions/upload-artifact@v7
