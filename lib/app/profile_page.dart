@@ -267,6 +267,40 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  /// 更新中心：热更（Shorebird patch）+ 大版本（GitHub Release）两层检查
+  Future<void> _checkUpdates() async {
+    final sb = StringBuffer();
+    try {
+      final updater = ShorebirdUpdater();
+      final current = await updater.readCurrentPatch();
+      final next = await updater.readNextPatch();
+      sb.writeln('热更：Patch ${current?.number ?? 0}（当前生效）');
+      sb.writeln(next != null
+          ? '热更新已下载，重启应用后生效（Patch ${next.number}）'
+          : '热更：无待生效补丁');
+    } catch (e) {
+      sb.writeln('热更：$e');
+    }
+    final info = await UpdateService().check();
+    sb.writeln(info != null
+        ? '大版本：${info.version} 可更新'
+        : '大版本：已是最新');
+    if (!mounted) return;
+    await showShadDialog(
+      context: context,
+      builder: (ctx) => ShadDialog(
+        title: const Text('检查更新'),
+        description: Text(sb.toString()),
+        actions: [
+          ShadButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('知道了'),
+          ),
+        ],
+      ),
+    );
+  }
+
   /// 热更状态（当前 Patch 号 + 是否有已下载待重启的更新）
   Future<void> _refreshPatchInfo() async {
     try {
@@ -394,6 +428,14 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                 AppListTile(
                   icon: LucideIcons.refreshCw,
+                  title: '检查更新',
+                  subtitle: '热更 + 大版本两层检查',
+                  trailing: ShadButton.outline(
+                    onPressed: _checkUpdates,
+                    child: const Text('检查'),
+                  ),
+                ),
+                AppListTile(
                   title: '热更状态',
                   subtitle: _patchInfo,
                   showDivider: true,

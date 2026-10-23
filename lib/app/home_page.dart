@@ -4,6 +4,8 @@
 //! （机器人眼睛/记事本）以全屏 push 进入，不受底部栏影响。
 //! 中间位置等想好用途后替换 _ComingSoonTab 即可。
 import 'package:flutter/material.dart';
+
+import 'update/patch_notifier.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 import '../design/tokens.dart';
@@ -26,6 +28,10 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+    // 热更新提示（静默下载，重启生效时告知 Patch 号）
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) PatchNotifier.checkOnLaunch(context);
+    });
     _checkForUpdate();
   }
 
