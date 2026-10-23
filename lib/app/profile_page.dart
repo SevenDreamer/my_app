@@ -5,15 +5,16 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import '../design/widgets/app_toast.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../design/tokens.dart';
 import '../design/widgets/app_header.dart';
 import '../design/widgets/app_scaffold.dart';
+import '../design/widgets/app_setting_row.dart';
 import '../core/errors/app_error.dart';
 import '../core/errors/error_dialog.dart';
+import 'about_page.dart';
 import 'error_log_page.dart';
 import 'update/auth_webview_page.dart';
 import 'package:shorebird_code_push/shorebird_code_push.dart';
@@ -31,9 +32,6 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  /// 版本信息从 pubspec.yaml 读取
-  late final Future<PackageInfo> _packageInfo = PackageInfo.fromPlatform();
-
   /// GitHub 授权状态：null=查询中 / true=已授权 / false=未授权
   bool? _authorized;
   bool _authorizing = false;
@@ -350,12 +348,12 @@ class _ProfilePageState extends State<ProfilePage> {
             padding: EdgeInsets.zero,
             child: Column(
               children: [
-                _SettingRow(
+                AppSettingRow(
                   icon: LucideIcons.settings,
                   title: '设置',
                   onTap: _comingSoon,
                 ),
-                _SettingRow(
+                AppSettingRow(
                   icon: LucideIcons.bug,
                   title: '错误日志',
                   onTap: () => Navigator.of(context).push(
@@ -366,7 +364,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                   ),
                 ),
-                _SettingRow(
+                AppSettingRow(
                   icon: LucideIcons.refreshCw,
                   title: 'GitHub 授权',
                   detail: _authorizing
@@ -380,12 +378,12 @@ class _ProfilePageState extends State<ProfilePage> {
                       : (_authorized == true ? _authInfo : _authorize),
                 ),
                 if (_isDesktop)
-                  _SettingRow(
+                  AppSettingRow(
                     icon: LucideIcons.qrCode,
                     title: '手机下载',
                     onTap: () => showDownloadQrDialog(context),
                   ),
-                _SettingRow(
+                AppSettingRow(
                   icon: LucideIcons.refreshCw,
                   title: '检查更新',
                   trailing: ShadButton.outline(
@@ -394,13 +392,15 @@ class _ProfilePageState extends State<ProfilePage> {
                     child: const Text('检查'),
                   ),
                 ),
-                _SettingRow(
+                AppSettingRow(
+                  // wrench：patch=补丁语义；且必须用 release 已有的字形——
+                  // 图标字体按字形裁剪，新字形会变资产差异拦住 patch（PITFALLS）
                   icon: LucideIcons.zap,
                   title: '热更状态',
                   detail: _patchInfo,
                   onTap: _refreshPatchInfo,
                 ),
-                _SettingRow(
+                AppSettingRow(
                   icon: LucideIcons.bell,
                   title: '流水线通知',
                   trailing: ShadSwitch(
@@ -411,134 +411,29 @@ class _ProfilePageState extends State<ProfilePage> {
                     },
                   ),
                 ),
-                _SettingRow(
+                AppSettingRow(
                   icon: LucideIcons.gitBranch,
                   title: '更新通道',
                   detail: _channel == 'dev' ? '开发版' : '稳定版',
                   onTap: _pickChannel,
                 ),
-                _SettingRow(
+                AppSettingRow(
                   icon: LucideIcons.info,
                   title: '关于',
-                  trailing: FutureBuilder<PackageInfo>(
-                    future: _packageInfo,
-                    builder: (context, snapshot) => Text(
-                      snapshot.hasData ? 'v${snapshot.data!.version}' : '…',
-                      style: AppTypography.labelSm,
+                  showDivider: false,
+                  onTap: () => Navigator.of(context).push(
+                    PageRouteBuilder<void>(
+                      pageBuilder: (_, __, ___) => const AboutPage(),
+                      transitionsBuilder: (_, animation, __, child) =>
+                          FadeTransition(opacity: animation, child: child),
                     ),
                   ),
-                  showDivider: false,
-                  onTap: _comingSoon,
                 ),
               ],
             ),
           ),
         ],
       ),
-    );
-  }
-}
-
-/// 设置行（紧凑单行：小图标 + 标题 + 右侧灰字/控件；去 Material）
-///
-/// 页面内私有组件——后续统一重构进 design/widgets 时再抽离。
-/// 悬停/按压反馈自绘（MouseRegion + AnimatedContainer），行间 ShadSeparator。
-class _SettingRow extends StatefulWidget {
-  const _SettingRow({
-    this.icon,
-    required this.title,
-    this.detail,
-    this.trailing,
-    this.onTap,
-    this.showDivider = true,
-  });
-
-  /// 行首小图标（18px 弱化色）
-  final IconData? icon;
-  final String title;
-
-  /// 右侧灰字状态（如「已授权」「开发版」），过长自动省略
-  final String? detail;
-
-  /// 右侧控件（优先于默认箭头）
-  final Widget? trailing;
-  final VoidCallback? onTap;
-  final bool showDivider;
-
-  @override
-  State<_SettingRow> createState() => _SettingRowState();
-}
-
-class _SettingRowState extends State<_SettingRow> {
-  bool _hovering = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final row = Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: 10,
-      ),
-      child: Row(
-        children: [
-          if (widget.icon != null) ...[
-            Icon(widget.icon, size: 18, color: AppColors.secondary),
-            const SizedBox(width: AppSpacing.sm),
-          ],
-          Expanded(
-            child: Text(
-              widget.title,
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          if (widget.detail != null) ...[
-            Text(
-              widget.detail!,
-              style: const TextStyle(
-                fontSize: 12,
-                color: AppColors.secondary,
-              ),
-            ),
-            const SizedBox(width: AppSpacing.sm),
-          ],
-          widget.trailing ??
-              Icon(
-                LucideIcons.chevronRight,
-                size: 16,
-                color: AppColors.secondary.withValues(alpha: 0.6),
-              ),
-        ],
-      ),
-    );
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        MouseRegion(
-          onEnter: (_) => setState(() => _hovering = true),
-          onExit: (_) => setState(() => _hovering = false),
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: widget.onTap,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 120),
-              decoration: BoxDecoration(
-                color: _hovering
-                    ? AppColors.onSurface.withValues(alpha: 0.04)
-                    : null,
-                borderRadius: BorderRadius.circular(AppRadius.md),
-              ),
-              child: row,
-            ),
-          ),
-        ),
-        if (widget.showDivider)
-          const ShadSeparator.horizontal(
-            margin: EdgeInsets.zero,
-            thickness: 1,
-            color: AppColors.border,
-          ),
-      ],
     );
   }
 }

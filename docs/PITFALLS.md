@@ -267,3 +267,15 @@
 - **参考**：上游同款问题 [guansss/pixi-live2d-display#177](https://github.com/guansss/pixi-live2d-display/issues/177)、
   [untitled-pixi-live2d-engine#11](https://github.com/Untitled-Story/untitled-pixi-live2d-engine/issues/11)
   （后者给出的结论是「换回 Core 5.1」——即放弃 v6 模型；我们选择补字段以兼容两者）。
+
+### 27. patch 会被「图标字体资产差异」拦住：lucide.ttf 按字形裁剪
+
+- **现象**：`shorebird patch` 构建通过后报
+  "Your app contains asset changes ... lucide.ttf"，直接 "Not publishing"。
+- **根因**：Flutter 把 lucide.ttf **按用到的字形裁剪**进资产——增删任何
+  `LucideIcons.*` 引用都会改变字体资产哈希；而 patch 只带 Dart 代码、不带资产。
+- **解法**（按优先级）：
+  - patch 里只用 release 基线**已有**的字形（`grep -rho "LucideIcons\.\w*" lib/`
+    对照当次 release 时的集合），字形集合一致 → 资产逐字节相同 → 干净通过；
+  - `--allow-asset-diffs` 强发——但新字形在旧字体里不存在，**新图标会渲染成方框**；
+  - 涉及图标增删的改动直接 bump 版本走 `tool/release.sh`（与用户的约定）。
