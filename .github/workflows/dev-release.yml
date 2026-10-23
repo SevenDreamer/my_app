@@ -105,20 +105,17 @@ jobs:
         with:
           cache: true
 
-      - name: 构建 apk（Shorebird 热更基线，分架构）
+      - name: 构建 apk（Shorebird 热更基线，arm64 单包）
         env:
           SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
-        run: shorebird release android --split-per-abi
+        run: shorebird release android --artifact=apk --target-platform=android-arm64
         # 版本号自动读 pubspec（version: x.y.z+build）——单一版本来源
         # 产物 = build/app/outputs/flutter-apk/app-<abi>-release.apk（热更基线）
 
       - name: 重命名产物（带版本号）
         run: |
           cd build/app/outputs/flutter-apk
-          for f in app-*-release.apk; do
-            abi=$(echo "$f" | sed -E 's/app-(.+)-release\.apk/\1/')
-            mv "$f" "my_app-v${{ needs.prepare.outputs.name }}-android-${abi}.apk"
-          done
+          mv app-release.apk "***-vv${{ needs.prepare.outputs.bare }}-android-arm64-v8a.apk"
 
       - name: 上传构建产物
         uses: actions/upload-artifact@v7
