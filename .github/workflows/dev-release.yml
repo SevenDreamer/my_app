@@ -195,8 +195,9 @@ jobs:
           shopt -s nullglob
           # 资产已在各构建节点内完成重命名（带版本号+NDK 标签）
           # name 输出已带 v 前缀，直接用（勿再拼 v——曾拼出 vv1.3.0 双 v bug）
-          # 同号重发：已存在的 tag 先删后建（版本号唯一来源是 pubspec，可覆盖）
-          gh release delete "${{ needs.prepare.outputs.name }}" --yes 2>/dev/null || true
+          # 同号重发：先删旧 release+tag 再建（--cleanup-tag 连 tag 一起清，
+          # 否则 create 撞 "release with the same tag already exists"）
+          gh release delete "${{ needs.prepare.outputs.name }}" --yes --cleanup-tag || true
           gh release create "${{ needs.prepare.outputs.name }}" \
             artifacts/*.apk artifacts/*.zip \
             --repo ${{ github.repository }} \
