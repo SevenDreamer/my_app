@@ -55,6 +55,7 @@ jobs:
           path: |
             ${{ env.ANDROID_HOME }}/build-tools
             ${{ env.ANDROID_HOME }}/platforms
+            ${{ env.ANDROID_HOME }}/ndk
             ~/.gradle/caches
             ~/.gradle/wrapper
           # 固定 key（手工 bump）：SDK 内容极少变；hash 配置文件会造成
@@ -100,17 +101,20 @@ jobs:
             /usr/local/share/boost /usr/share/swift /usr/local/.ghcup || true
           df -h /
 
-      - name: 🐦 Setup Shorebird
-        uses: shorebirdtech/setup-shorebird@v1
-        with:
-          cache: true
-
-      - name: 构建 apk（Shorebird 热更基线，arm64 单包）
+      # 官方 shorebird-release Action（管安装+构建+上传 release）
+      # build 号 = run_number（唯一递增）——失败尝试也占号，必须自动化
+      # Flutter 版本锁 3.47.7（对齐 .fvmrc，防 Shorebird 默认升级）
+      - name: 🐦 Shorebird Release
+        uses: shorebirdtech/shorebird-release@v1
         env:
           SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
-        run: shorebird release android --artifact=apk --target-platform=android-arm64
-        # 版本号自动读 pubspec（version: x.y.z+build）——单一版本来源
-        # 产物 = build/app/outputs/flutter-apk/app-<abi>-release.apk（热更基线）
+        with:
+          flutter-version: 3.47.7
+          platform: android
+          args: >-
+            --artifact=apk --target-platform=android-arm64
+            --build-name=${{ needs.prepare.outputs.bare }}
+            --build-number=${{ github.run_number }}
 
       - name: 重命名产物（带版本号）
         run: |
