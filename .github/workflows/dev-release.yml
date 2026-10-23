@@ -88,6 +88,15 @@ jobs:
         run: |
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "cmake;3.10.2.4988404" > /dev/null
 
+      # Shorebird 自带一份 Flutter（~/.shorebird）+ 本仓库 Flutter/NDK/SDK 缓存，
+      # ubuntu runner 14GB 会满——构建前清理 runner 自带的无用工具链（~20GB）
+      - name: 清理磁盘（runner 无用工具链）
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc \
+            /opt/hostedtoolcache/CodeQL /usr/local/share/powershell \
+            /usr/local/share/boost /usr/share/swift /usr/local/.ghcup || true
+          df -h /
+
       - name: 🐦 Setup Shorebird
         uses: shorebirdtech/setup-shorebird@v1
         with:
