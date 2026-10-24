@@ -27,11 +27,18 @@ class AppScaffold extends StatelessWidget {
   Widget build(BuildContext context) {
     return ColoredBox(
       color: backgroundColor ?? AppColors.surface,
-      child: Column(
-        children: [
-          if (header != null) header!,
-          Expanded(child: body),
-        ],
+      // 文字基线：脱离 Material 的纯 widgets 树里，最近的 DefaultTextStyle
+      // 是 MaterialApp 的 _errorTextStyle（红字 + 黄色双下划线 + monospace），
+      // 会经样式合并漏进所有文字（未设颜色的 Text 直接变红）。
+      // 页面壳用字阶 bodyMd 建基线挡住，子级样式在其上合并。
+      child: DefaultTextStyle(
+        style: AppTypography.bodyMd,
+        child: Column(
+          children: [
+            if (header != null) header!,
+            Expanded(child: body),
+          ],
+        ),
       ),
     );
   }
