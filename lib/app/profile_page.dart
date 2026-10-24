@@ -275,16 +275,13 @@ class _ProfilePageState extends State<ProfilePage> {
       final current = await updater.readCurrentPatch();
       final next = await updater.readNextPatch();
       sb.writeln('热更：Patch ${current?.number ?? 0}（当前生效）');
-      sb.writeln(next != null
-          ? '热更新已下载，重启应用后生效（Patch ${next.number}）'
-          : '热更：无待生效补丁');
+      sb.writeln(
+          next != null ? '热更新已下载，重启应用后生效（Patch ${next.number}）' : '热更：无待生效补丁');
     } catch (e) {
       sb.writeln('热更：$e');
     }
     final info = await UpdateService().check();
-    sb.writeln(info != null
-        ? '大版本：${info.version} 可更新'
-        : '大版本：已是最新');
+    sb.writeln(info != null ? '大版本：${info.version} 可更新' : '大版本：已是最新');
     if (!mounted) return;
     await showShadDialog(
       context: context,

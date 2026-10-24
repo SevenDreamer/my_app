@@ -21,8 +21,6 @@ class Live2dPage extends StatefulWidget {
   State<Live2dPage> createState() => _Live2dPageState();
 }
 
-
-
 class _Live2dPageState extends State<Live2dPage> {
   final _ctrl = createLive2dController();
   int _idx = 0;
@@ -59,8 +57,8 @@ class _Live2dPageState extends State<Live2dPage> {
 
   Future<void> _load(int idx) async {
     setState(() => _idx = idx);
-    AppLogger.instance
-        .log('live2d', '开始加载 ${live2dModels[idx].label}（${live2dModels[idx].assetPath}）');
+    AppLogger.instance.log('live2d',
+        '开始加载 ${live2dModels[idx].label}（${live2dModels[idx].assetPath}）');
     try {
       await _ctrl.loadModel(live2dModels[idx].assetPath);
       AppLogger.instance.log('live2d', 'loadModel 调用完成');
@@ -138,7 +136,9 @@ class _Live2dPageState extends State<Live2dPage> {
                   top: AppSpacing.sm,
                   right: AppSpacing.sm,
                   child: Text(
-                    _lastError != null ? '加载失败：$_lastError' : '舞台运行中（${live2dModels[_idx].label}）',
+                    _lastError != null
+                        ? '加载失败：$_lastError'
+                        : '舞台运行中（${live2dModels[_idx].label}）',
                     style: const TextStyle(fontSize: 10),
                   ),
                 ),

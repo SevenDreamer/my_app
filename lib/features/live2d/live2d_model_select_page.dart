@@ -90,9 +90,7 @@ Future<void> _showImportSheet(BuildContext context) async {
   if (choice == null || !context.mounted) return;
   AppToast.show(
     context,
-    choice == 'local'
-        ? '本地导入开发中——支持自定义 .zip 模型包'
-        : '在线模型库开发中——敬请期待',
+    choice == 'local' ? '本地导入开发中——支持自定义 .zip 模型包' : '在线模型库开发中——敬请期待',
   );
 }
 

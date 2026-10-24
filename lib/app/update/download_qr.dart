@@ -55,8 +55,7 @@ Future<void> showDownloadQrDialog(BuildContext context) async {
     context: context,
     builder: (context) => ShadDialog(
       title: const Text('扫码下载 Android 版'),
-      description:
-          const Text('用手机相机或微信扫码，浏览器打开后下载安装。\n链接长期有效，可随时扫码。'),
+      description: const Text('用手机相机或微信扫码，浏览器打开后下载安装。\n链接长期有效，可随时扫码。'),
       actions: [
         ShadButton(
           child: const Text('关闭'),

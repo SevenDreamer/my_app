@@ -28,24 +28,24 @@ class MyApp extends StatelessWidget {
     return FTheme(
       data: FTheme.neutral.light.touch,
       child: ShadApp.custom(
-      // 调试角标由内部的 MaterialApp 关闭（ShadApp.custom 无此参数）
-      themeMode: ThemeMode.light,
-      theme: AppTheme.shadLight,
-      appBuilder: (context) {
-        return MaterialApp(
-          title: 'my_app',
-          debugShowCheckedModeBanner: false,
-          // ShadApp 自动生成的 Material 主题（色系与 shadcn 联动），
-          // 再叠加我们自己的公共组件覆盖
-          theme: AppTheme.materialize(Theme.of(context)),
-          localizationsDelegates: const [
-            GlobalShadLocalizations.delegate,
-            GlobalMaterialLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-          ],
-          home: const HomePage(),
-          builder: (context, child) => ShadAppBuilder(child: child!),
+        // 调试角标由内部的 MaterialApp 关闭（ShadApp.custom 无此参数）
+        themeMode: ThemeMode.light,
+        theme: AppTheme.shadLight,
+        appBuilder: (context) {
+          return MaterialApp(
+            title: 'my_app',
+            debugShowCheckedModeBanner: false,
+            // ShadApp 自动生成的 Material 主题（色系与 shadcn 联动），
+            // 再叠加我们自己的公共组件覆盖
+            theme: AppTheme.materialize(Theme.of(context)),
+            localizationsDelegates: const [
+              GlobalShadLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+            ],
+            home: const HomePage(),
+            builder: (context, child) => ShadAppBuilder(child: child!),
           );
         },
       ),

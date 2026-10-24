@@ -100,7 +100,8 @@ class DesktopStageController extends Live2dStageController {
   void Function(String error)? onError;
 
   /// 由 [_DesktopLive2dView] 在就绪后绑定（stage 内部使用）
-  void attach({required WebviewController wc, required Live2dPlayerServer server}) {
+  void attach(
+      {required WebviewController wc, required Live2dPlayerServer server}) {
     _wc = wc;
     _server = server;
     // player 页加载完成前发出的 JS 命令会丢（首开不显示的根因）——排队等就绪
@@ -126,7 +127,8 @@ class DesktopStageController extends Live2dStageController {
             'window.live2d && window.live2d.warmup ? window.live2d.warmup() : false;');
         if (ok == true || ok?.toString() == 'true') {
           _pageReady = true;
-          AppLogger.instance.log('live2d', 'player 就绪+WebGL 预热完成（探测 ${i + 1} 轮）');
+          AppLogger.instance
+              .log('live2d', 'player 就绪+WebGL 预热完成（探测 ${i + 1} 轮）');
           for (final (buildJs, done) in _pendingJs) {
             _wc?.executeScript(buildJs()).whenComplete(done.complete);
           }
@@ -137,8 +139,8 @@ class DesktopStageController extends Live2dStageController {
     }
     // 超时：拉取 JS 侧诊断时间线（看卡在哪一步）再放行
     try {
-      final diag = await _wc
-          ?.executeScript('JSON.stringify(window._live2dDiag || []);');
+      final diag =
+          await _wc?.executeScript('JSON.stringify(window._live2dDiag || []);');
       AppLogger.instance.log('live2d', 'player 就绪探测超时——JS 诊断：$diag');
     } catch (_) {}
     _pageReady = true;
@@ -170,8 +172,8 @@ class DesktopStageController extends Live2dStageController {
       // 轮询渲染完成钩子（vendor 模板的 getRenderedAt）——画面真的上屏才回调
       final elapsed = await _waitRendered();
       onModelLoaded?.call(Live2dModelInfo(modelUrl: assetPath));
-      AppLogger.instance.log(
-          'live2d', '画面已渲染：$assetPath（${elapsed}ms 后首帧上屏${elapsed < 0 ? '，5s 超时未确认' : ''}）');
+      AppLogger.instance.log('live2d',
+          '画面已渲染：$assetPath（${elapsed}ms 后首帧上屏${elapsed < 0 ? '，5s 超时未确认' : ''}）');
     } catch (e) {
       onError?.call(e.toString());
     }
@@ -191,8 +193,8 @@ class DesktopStageController extends Live2dStageController {
     }
     // 超时：拉 JS 诊断时间线（看 loadModel 卡在哪一步）
     try {
-      final diag = await _wc
-          ?.executeScript('JSON.stringify(window._live2dDiag || []);');
+      final diag =
+          await _wc?.executeScript('JSON.stringify(window._live2dDiag || []);');
       AppLogger.instance.log('live2d', '渲染钩子 12s 未触发——JS 诊断：$diag');
     } catch (_) {}
     return -1;
