@@ -279,3 +279,15 @@
     对照当次 release 时的集合），字形集合一致 → 资产逐字节相同 → 干净通过；
   - `--allow-asset-diffs` 强发——但新字形在旧字体里不存在，**新图标会渲染成方框**；
   - 涉及图标增删的改动直接 bump 版本走 `tool/release.sh`（与用户的约定）。
+
+### 28. 纯 widgets 页面「黄下划线/红字」：MaterialApp _errorTextStyle 泄漏
+
+- **现象**：脱离 Material 的页面（如「关于」页）文字下有黄色双下划线，
+  字体像等宽（monospace），未设颜色的 Text 还会发红——像是"缺默认字体"。
+- **根因**：`MaterialApp` 故意把 `WidgetsApp.textStyle` 设成丑陋的
+  `_errorTextStyle`（红字 + 黄色双下划线 + monospace，见 material/app.dart），
+  用来提示"文字没被 Material 覆盖"。纯 widgets 页面壳（AppScaffold 等）
+  若不提供 `DefaultTextStyle`，子级样式 merge 时这些属性就漏进来。
+- **解法**：页面壳用 `DefaultTextStyle(style: AppTypography.bodyMd, ...)`
+  建文字基线（见 `lib/design/widgets/app_scaffold.dart`）——任何去 Material
+  的自建页面壳都要带这一层。
