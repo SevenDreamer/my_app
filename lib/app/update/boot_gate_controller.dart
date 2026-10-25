@@ -140,7 +140,7 @@ class BootGateController extends ChangeNotifier {
     }
   }
 
-  /// 大版本查询：复用既有 UpdateService.check()（含忽略本版/通道过滤）
+  /// 大版本查询：复用既有 UpdateService.check()（含忽略本版过滤）
   Future<UpdateInfo?> _checkVersion() async {
     try {
       return await _updateService

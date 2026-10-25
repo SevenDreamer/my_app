@@ -2,7 +2,8 @@
 //!
 //! 安装包与 manifest 托管在 Cloudflare R2 公开桶，匿名 GET 即可——
 //! 不再依赖 GitHub token（Device Flow 现在只剩流水线通知在用）。
-//! manifest 每通道一份：stable → manifest.json，dev → manifest-dev.json。
+//! manifest 固定 `manifest.json`（更新通道已移除；过渡期 release.sh 兼容
+//! 双写 manifest-dev.json 供旧版本读取，见 tool/release.sh）。
 //! 一切异常都静默返回 null——更新检查绝不打断使用
 //!（无新版 / 网络失败 / iOS 平台 / 已忽略版本）。
 import 'dart:convert';
@@ -45,12 +46,12 @@ class UpdateInfo {
   }
 }
 
-/// 更新源：返回该通道的最新版本元数据；网络/解析异常向上抛，调用方静默落盘
+/// 更新源：返回最新版本元数据；网络/解析异常向上抛，调用方静默落盘
 abstract class UpdateSource {
-  Future<UpdateInfo?> fetchLatest(String channel);
+  Future<UpdateInfo?> fetchLatest();
 }
 
-/// R2 静态 manifest 源：GET {baseUrl}/{manifest 文件} 解析 UpdateInfo
+/// R2 静态 manifest 源：GET {baseUrl}/manifest.json 解析 UpdateInfo
 class ManifestUpdateSource implements UpdateSource {
   ManifestUpdateSource({http.Client? client})
       : _client = client ?? http.Client();
@@ -61,14 +62,12 @@ class ManifestUpdateSource implements UpdateSource {
   static const String baseUrl =
       'https://pub-887a8744be9247ceba718deacb4e03eb.r2.dev/my_app_dist';
 
-  /// 通道 → manifest 文件名
-  String manifestFile(String channel) =>
-      channel == 'dev' ? 'manifest-dev.json' : 'manifest.json';
+  /// manifest 文件名（通道概念已移除，固定一份）
+  static const String manifestName = 'manifest.json';
 
   @override
-  Future<UpdateInfo?> fetchLatest(String channel) async {
-    final resp =
-        await _client.get(Uri.parse('$baseUrl/${manifestFile(channel)}'));
+  Future<UpdateInfo?> fetchLatest() async {
+    final resp = await _client.get(Uri.parse('$baseUrl/$manifestName'));
     if (resp.statusCode != 200) return null;
     final j = jsonDecode(utf8.decode(resp.bodyBytes)) as Map<String, dynamic>;
     final version = (j['version'] as String?) ?? '';
@@ -94,23 +93,13 @@ class UpdateService {
       : _source = source ?? ManifestUpdateSource();
 
   static const String _kIgnoredVersionKey = 'update_ignored_version';
-  static const String _kChannelKey = 'update_channel';
-
-  /// 更新通道：'stable'（默认，只看正式版）/ 'dev'（含预发布版）
-  Future<String> channel() async {
-    return await const FlutterSecureStorage().read(key: _kChannelKey) ??
-        'stable';
-  }
-
-  Future<void> setChannel(String value) =>
-      const FlutterSecureStorage().write(key: _kChannelKey, value: value);
 
   final UpdateSource _source;
 
   /// 最新版本元数据（不做新旧/忽略过滤；扫码下载等场景用）
   Future<UpdateInfo?> latest() async {
     try {
-      return await _source.fetchLatest(await channel());
+      return await _source.fetchLatest();
     } catch (e) {
       // 静默不打扰，但落盘备查（「我」页错误日志可回看）
       await ErrorLog.record(AppError.from(e, context: '更新检查'));
