@@ -85,13 +85,16 @@ class _GateBody extends StatelessWidget {
               ),
             ],
             const Spacer(),
-            // 底部操作：下载/检查中可跳过；重启降级态给「退出应用」
-            if (phase == BootGatePhase.restartPending)
+            // 底部操作：「跳过」全程可见（绝不把用户堵在门外）；
+            // 重启降级态额外给「退出应用」（重开即应用热更）
+            if (phase == BootGatePhase.restartPending) ...[
               ShadButton.outline(
                 onPressed: controller.exitApp,
                 child: const Text('退出应用'),
-              )
-            else if (phase != BootGatePhase.restarting)
+              ),
+              const SizedBox(height: AppSpacing.sm),
+            ],
+            if (phase != BootGatePhase.restarting)
               ShadButton.ghost(
                 onPressed: controller.skip,
                 child: const Text('跳过'),

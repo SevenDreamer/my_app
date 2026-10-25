@@ -1,15 +1,26 @@
 //! 启动更新门 ViewModel：进主界面前的自动更新编排（热更 patch + 大版本）
 //!
 //! MVVM：View 只读状态快照 + 调命令方法；更新检查/下载走注入的既有服务，
-//! 不改动既有更新代码，只补三件事：启动时机（进门前）、过程可见（状态画面）、
-//! 热更下载完自动重启生效。流程：并行查热更/大版本 → 有热更先下完并重启
-//! 生效 → 有大版本自动下载并调起安装器 → 都没有秒过（不打扰）。
+//! 不改动既有更新代码。流程：并行查热更/大版本 → 热更只下载（生效交给
+//! 下次启动；仅「patch 早已下载完」的状态尝试自动重启且有护栏）→ 有大
+//! 版本自动下载并调起安装器（同版本只拦一次）→ 都没有秒过（不打扰）。
+//!
+//! 防回环三底线（dev.10 实测踩过"下载→杀进程重启→patch 未生效→再下载"
+//! 的死循环，根因：update() 完立即 Runtime.exit(0) 会截断 patch 落盘/
+//! 生效确认，patch 永远不生效、每轮重下重杀）：
+//! 1. 下载完**不立即杀进程**——下次启动自然生效；
+//! 2. 重启尝试持久护栏（普通文件 flush 落盘，扛 exit(0) 硬杀；
+//!    FlutterSecureStorage 异步落盘会被截断导致护栏失效），
+//!    同一 patch 最多 2 次；
+//! 3. 任何分支最终都 _finish() 放行，「跳过」按钮全程可见。
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:shorebird_code_push/shorebird_code_push.dart';
 
 import '../../core/errors/app_error.dart';
@@ -61,8 +72,8 @@ class BootGateController extends ChangeNotifier {
 
   static const _storage = FlutterSecureStorage();
 
-  /// 上次为热更重启的时刻（重启回环保护用）
-  static const _kRestartAtKey = 'boot_gate_restart_at';
+  /// 同一 patch 的最大自动重启次数（超过就放行，热更等下次自然生效）
+  static const _maxRestartsPerPatch = 2;
 
   /// 上次自动拦截的大版本号（同版本只拦一次——装/不装都不该反复
   /// 下载整包、反复调起安装器把用户堵在启动门外）
@@ -99,20 +110,16 @@ class BootGateController extends ChangeNotifier {
       final patchStatus = await patchFuture;
       final info = await versionFuture;
 
-      // 1) 热更优先：补丁小下载快，先生效再谈大版本
-      //    回环保护前移：90 秒内为热更重启过就直接放行——不重复下载、
-      //    不反复闪启动门（patch 反复判定 outdated 时曾把用户堵在门外）
-      if (patchStatus == UpdateStatus.restartRequired) {
-        await _restartForPatch();
-        return;
-      }
+      // 1) 热更优先：补丁小下载快。下载完**不杀进程**（底线 1）——
+      //    下次启动自然生效；只有「patch 早已下载完」才尝试自动重启
       if (patchStatus == UpdateStatus.outdated) {
-        if (await _restartedRecently()) {
-          _finish();
-          return;
-        }
         _set(phase: BootGatePhase.patchDownloading, status: '正在下载热更新…');
         await _updater.update().timeout(const Duration(seconds: 120));
+        _message = '热更新已下载，重启应用后生效';
+        _finish();
+        return;
+      }
+      if (patchStatus == UpdateStatus.restartRequired) {
         await _restartForPatch();
         return;
       }
@@ -169,16 +176,25 @@ class BootGateController extends ChangeNotifier {
     }
   }
 
-  /// 为热更重启：带 90 秒回环保护（防 patch 反复判定 outdated 卡启动）
+  /// 为热更重启（仅「patch 早已下载完」的状态走这里）：带持久护栏——
+  /// 同一 patch 最多 [_maxRestartsPerPatch] 次，防"重启后仍判定待重启"
+  /// 的回环把用户堵在门外。
   Future<void> _restartForPatch() async {
-    if (await _restartedRecently()) {
+    final next = await _readNextPatchNumber();
+    if (next == null) {
       _finish();
       return;
     }
-    // 时间戳只在真正重启前写（查询函数必须无副作用，否则正常流程
-    // 会被自己的写入判定成"刚重启过"而永远不重启）
-    final now = DateTime.now().millisecondsSinceEpoch;
-    await _storage.write(key: _kRestartAtKey, value: '$now');
+    final guard = await _readGuard();
+    if (guard.patch == next && guard.restarts >= _maxRestartsPerPatch) {
+      _message = '热更新稍后生效，先进应用';
+      _finish();
+      return;
+    }
+    await _writeGuard(
+      next,
+      guard.patch == next ? guard.restarts + 1 : 1,
+    );
     _set(phase: BootGatePhase.restarting, status: '正在重启以应用热更新…');
     try {
       await _restarter().timeout(const Duration(seconds: 3));
@@ -191,11 +207,13 @@ class BootGateController extends ChangeNotifier {
     }
   }
 
-  /// 90 秒内是否刚为热更重启过（回环保护判定；纯查询无副作用）
-  Future<bool> _restartedRecently() async {
-    final last =
-        int.tryParse(await _storage.read(key: _kRestartAtKey) ?? '') ?? 0;
-    return DateTime.now().millisecondsSinceEpoch - last < 90 * 1000;
+  /// 待生效 patch 号（读不到按无 patch 处理：放行，绝不猜）
+  Future<int?> _readNextPatchNumber() async {
+    try {
+      return (await _updater.readNextPatch())?.number;
+    } catch (_) {
+      return null;
+    }
   }
 
   /// 大版本自动下载并调起安装器（D1 游戏式更新：全程可见）
@@ -228,6 +246,40 @@ class BootGateController extends ChangeNotifier {
 
   bool get _isAndroid =>
       !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
+
+  // ---- 重启护栏（普通文件，flush 立即落盘，扛 exit(0) 硬杀）----
+
+  Future<File> _guardFile() async {
+    final dir = await getApplicationDocumentsDirectory();
+    return File('${dir.path}/boot_gate_guard.json');
+  }
+
+  /// 读护栏；任何失败按"无记录"处理（宁可多试一次也不拦启动）
+  Future<({int patch, int restarts})> _readGuard() async {
+    try {
+      final f = await _guardFile();
+      if (!await f.exists()) return (patch: -1, restarts: 0);
+      final j = jsonDecode(await f.readAsString()) as Map<String, dynamic>;
+      return (
+        patch: (j['patch'] as num?)?.toInt() ?? -1,
+        restarts: (j['restarts'] as num?)?.toInt() ?? 0,
+      );
+    } catch (_) {
+      return (patch: -1, restarts: 0);
+    }
+  }
+
+  Future<void> _writeGuard(int patch, int restarts) async {
+    try {
+      final f = await _guardFile();
+      await f.writeAsString(
+        jsonEncode({'patch': patch, 'restarts': restarts}),
+        flush: true,
+      );
+    } catch (_) {
+      // 护栏写失败不拦启动
+    }
+  }
 
   void _set({
     BootGatePhase? phase,
