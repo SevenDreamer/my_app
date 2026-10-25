@@ -1,0 +1,12 @@
+# 001b：验证 adb_client crate 走 ADBServer 模式与 adb CLI 等价
+# 用法: cargo run -- <serial> <shell命令...>
+# 例:   cargo run -- 192.168.31.169:5555 shell input tap 500 1000
+# 依赖本地 adb server（127.0.0.1:5037），先跑 adb start-server
+
+[package]
+name = "rust_probe"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+adb_client = { version = "=2.1.15", default-features = false }

@@ -1,107 +1,118 @@
-//! 设备互联方案页：控制端/被控端互联的方案文档（功能开发中）
+//! 设备互联页：两台手机互联的真实界面（里程碑① 连接最小闭环）
 //!
-//! 本页当前只承载方案文本（v0.1 讨论稿），后续功能实现后
-//! 会替换为真实的配对/控制界面。方案变更时同步更新本页内容。
+//! MVVM：View 只读 ViewModel 快照 + 调命令方法，不触碰传输层。
+//! 双角色同一入口：本机建组（Host）或扫描加入（Client），文本双向互通。
 import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
+import '../../data/models/link_message.dart';
+import '../../data/models/link_peer.dart';
+import '../../data/services/link_transport.dart';
 import '../../design/tokens.dart';
 import '../../design/widgets/app_header.dart';
 import '../../design/widgets/app_section.dart';
+import 'device_link_view_model.dart';
 
-class DeviceLinkPage extends StatelessWidget {
+class DeviceLinkPage extends StatefulWidget {
   const DeviceLinkPage({super.key});
+
+  @override
+  State<DeviceLinkPage> createState() => _DeviceLinkPageState();
+}
+
+class _DeviceLinkPageState extends State<DeviceLinkPage> {
+  late final DeviceLinkViewModel _vm;
+  final _input = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _vm = DeviceLinkViewModel();
+  }
+
+  @override
+  void dispose() {
+    _input.dispose();
+    _vm.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: const AppHeader(title: '设备互联'),
-      body: ListView(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        children: const [
-          _StatusBanner(),
-          SizedBox(height: AppSpacing.md),
-          AppSection(
-            title: '目标',
+      body: ListenableBuilder(
+        listenable: _vm,
+        builder: (context, _) {
+          return Column(
             children: [
-              AppParagraph('两台手机通过本应用互联：一台作为控制端，一台作为被控端。'
-                  '同一份 App 兼任两种角色，配对后自动认领角色，不做两个应用。'),
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  children: [
+                    _StatusBanner(status: _vm.status, error: _vm.error),
+                    const SizedBox(height: AppSpacing.md),
+                    AppSection(
+                      title: '本机角色',
+                      children: [
+                        _RoleActions(vm: _vm),
+                        if (_vm.groupInfo != null) ...[
+                          const SizedBox(height: AppSpacing.sm),
+                          _GroupInfo(info: _vm.groupInfo!),
+                        ],
+                      ],
+                    ),
+                    if (_vm.role == LinkRole.client) ...[
+                      AppSection(
+                        title: '附近设备',
+                        children: [
+                          if (_vm.peers.isEmpty)
+                            const AppParagraph('扫描中暂未发现设备——'
+                                '请确认对端已点「建组」，两台设备靠近一些。')
+                          else
+                            for (final p in _vm.peers)
+                              _PeerTile(peer: p, vm: _vm),
+                        ],
+                      ),
+                    ],
+                    AppSection(
+                      title: '消息互通',
+                      children: [
+                        if (_vm.messages.isEmpty)
+                          const AppParagraph('连接后在这里收发消息。')
+                        else
+                          for (final m in _vm.messages.reversed)
+                            _MessageLine(message: m),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              _InputBar(controller: _input, vm: _vm),
             ],
-          ),
-          AppSection(
-            title: '总体架构',
-            children: [
-              _Mono('控制端 Controller            被控端 Device\n'
-                  '┌────────────┐  蓝牙/WiFi/星闪  ┌────────────┐\n'
-                  '│ 指令面板   │ ⇄    链路层    ⇄ │ 指令执行器 │\n'
-                  '│ 状态回显   │                  │ 能力上报   │\n'
-                  '└────────────┘                  └────────────┘'),
-              SizedBox(height: AppSpacing.sm),
-              AppParagraph('三个关键设计：'),
-              AppBullet('链路抽象层（Transport 接口）：BLE / WiFi / 星闪各实现一个'
-                  '传输接口，业务层只认"消息通道"。新增链路不影响业务代码。'),
-              AppBullet('指令模型 = 能力声明：被控端上报"我能做什么"，控制端按能力'
-                  '清单动态渲染控制面板。这也是后续 MCP 工具描述的雏形。'),
-              AppBullet('配对即信任：NFC 碰一碰 / 扫码交换公钥，会话加密 + 设备白名单，'
-                  '安全从第一版就有。'),
-            ],
-          ),
-          AppSection(
-            title: '链路选型',
-            children: [
-              AppBullet('BLE：控制指令与小数据的首选——低功耗、发现快、普及率高。'),
-              AppBullet('WiFi（局域网 mDNS / 直连）：屏幕流、文件等大数据通道。'),
-              AppBullet('星闪 NearLink：低时延理想链路，目前机型与 SDK 有限，'
-                  '以 Transport 接口预留，待生态成熟接入。'),
-              AppBullet('NFC：只做碰一碰配对（交换公钥/地址），不承载业务数据。'),
-            ],
-          ),
-          AppSection(
-            title: '协议分层',
-            children: [
-              AppBullet('发现层：BLE 广播 / mDNS 服务发现 / NFC 触碰交换。'),
-              AppBullet('会话层：配对握手、密钥协商、心跳保活、断线重连。'),
-              AppBullet('消息层：统一帧（类型/序号/负载/确认），'
-                  '覆盖指令、事件上报与数据流三种形态。'),
-            ],
-          ),
-          AppSection(
-            title: '安全设计',
-            children: [
-              AppBullet('配对：扫码或 NFC 碰一碰交换设备公钥，配对码二次确认。'),
-              AppBullet('传输：会话密钥加密（密钥协商 + 对称加密），防窃听防篡改。'),
-              AppBullet('信任管理：设备白名单，可撤销、可忘记设备。'),
-            ],
-          ),
-          AppSection(
-            title: '里程碑（对应 ROADMAP Phase 1→3）',
-            children: [
-              AppBullet('① 配对 + BLE 文本指令互通（打通最小闭环）'),
-              AppBullet('② WiFi 大数据通道（文件/屏幕流）'),
-              AppBullet('③ 指令模型与动态控制面板'),
-              AppBullet('④ 星闪 Transport 接入（视生态与 SDK）'),
-            ],
-          ),
-          AppSection(
-            title: '开放讨论点',
-            children: [
-              AppBullet('控制端桌面版的形态：桌面作为控制端遥控手机（ROADMAP Phase 3）。'),
-              AppBullet('被控端可执行的指令边界：先做信息查询类还是开放输入转发？'),
-              AppBullet('星闪的预期：与蓝牙双链路并存，还是作为蓝牙的替代？'),
-            ],
-          ),
-        ],
+          );
+        },
       ),
     );
   }
 }
 
-/// 顶部状态横幅：提示功能阶段
+/// 顶部状态横幅：连接状态 + 错误提示
 class _StatusBanner extends StatelessWidget {
-  const _StatusBanner();
+  const _StatusBanner({required this.status, this.error});
+
+  final LinkStatus status;
+  final String? error;
 
   @override
   Widget build(BuildContext context) {
+    final text = error ??
+        switch (status) {
+          LinkStatus.idle => '未连接 · 选一个角色开始互联',
+          LinkStatus.working => '进行中…',
+          LinkStatus.connected => '已连接',
+          LinkStatus.error => '出错了',
+        };
     return ShadCard(
       padding: const EdgeInsets.all(AppSpacing.md),
       child: Row(
@@ -110,7 +121,7 @@ class _StatusBanner extends StatelessWidget {
           const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Text(
-              '方案讨论阶段 · 功能开发中（v0.1 草案）',
+              text,
               style: Theme.of(context)
                   .textTheme
                   .labelSmall
@@ -123,11 +134,61 @@ class _StatusBanner extends StatelessWidget {
   }
 }
 
-/// 等宽文本块（架构图）
-class _Mono extends StatelessWidget {
-  const _Mono(this.text);
+/// 角色操作：建组 / 扫描（互斥两按钮）+ 撤销
+class _RoleActions extends StatelessWidget {
+  const _RoleActions({required this.vm});
 
-  final String text;
+  final DeviceLinkViewModel vm;
+
+  @override
+  Widget build(BuildContext context) {
+    final isHost = vm.role == LinkRole.host;
+    final isClient = vm.role == LinkRole.client;
+    return Wrap(
+      spacing: AppSpacing.sm,
+      runSpacing: AppSpacing.sm,
+      children: [
+        ShadButton(
+          enabled: !vm.busy && !isClient,
+          leading: const Icon(LucideIcons.network, size: 16),
+          onPressed: () async {
+            if (!await vm.ensurePermissions()) return;
+            await vm.createGroup();
+          },
+          child: Text(isHost ? '已建组' : '建组（Host）'),
+        ),
+        ShadButton(
+          enabled: !vm.busy && !isHost,
+          leading: const Icon(LucideIcons.search, size: 16),
+          onPressed: () async {
+            if (!await vm.ensurePermissions()) return;
+            await vm.startScan();
+          },
+          child: const Text('扫描设备'),
+        ),
+        if (isHost || isClient)
+          ShadButton.outline(
+            enabled: !vm.busy,
+            leading: const Icon(LucideIcons.trash2, size: 16),
+            onPressed: () async {
+              if (isHost) {
+                await vm.removeGroup();
+              } else {
+                await vm.disconnect();
+              }
+            },
+            child: Text(isHost ? '解散' : '断开'),
+          ),
+      ],
+    );
+  }
+}
+
+/// 建组信息：SSID / PSK / IP（对端凭此加入）
+class _GroupInfo extends StatelessWidget {
+  const _GroupInfo({required this.info});
+
+  final ({String ssid, String psk, String ip}) info;
 
   @override
   Widget build(BuildContext context) {
@@ -139,13 +200,97 @@ class _Mono extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppRadius.md),
       ),
       child: Text(
-        text,
-        style: const TextStyle(
-          fontFamily: 'monospace',
-          fontSize: 12,
-          height: 1.4,
+        'SSID: ${info.ssid}\nPSK: ${info.psk}\nIP: ${info.ip}',
+        style:
+            const TextStyle(fontFamily: 'monospace', fontSize: 12, height: 1.5),
+      ),
+    );
+  }
+}
+
+/// 单个发现设备行：点击连接
+class _PeerTile extends StatelessWidget {
+  const _PeerTile({required this.peer, required this.vm});
+
+  final LinkPeer peer;
+  final DeviceLinkViewModel vm;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      dense: true,
+      contentPadding: EdgeInsets.zero,
+      leading: const Icon(LucideIcons.users, size: 18),
+      title: Text(peer.name),
+      subtitle: Text(
+        peer.address,
+        style: Theme.of(context).textTheme.labelSmall,
+      ),
+      trailing: ShadButton.outline(
+        enabled: !vm.busy,
+        onPressed: () => vm.connect(peer),
+        child: const Text('连接'),
+      ),
+    );
+  }
+}
+
+/// 单条消息（倒序展示：最新在上）
+class _MessageLine extends StatelessWidget {
+  const _MessageLine({required this.message});
+
+  final LinkMessage message;
+
+  @override
+  Widget build(BuildContext context) {
+    final label = message.fromSelf ? '我' : '对端';
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+      child: Text(
+        '$label: ${message.text}',
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: message.fromSelf ? AppColors.primary : null,
+            ),
+      ),
+    );
+  }
+}
+
+/// 底部输入栏：文本框 + 发送
+class _InputBar extends StatelessWidget {
+  const _InputBar({required this.controller, required this.vm});
+
+  final TextEditingController controller;
+  final DeviceLinkViewModel vm;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.sm),
+        child: Row(
+          children: [
+            Expanded(
+              child: ShadInput(
+                controller: controller,
+                placeholder: const Text('输入消息'),
+                onSubmitted: (_) => _send(),
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            ShadIconButton(
+              enabled: !vm.busy,
+              icon: const Icon(LucideIcons.zap, size: 18),
+              onPressed: _send,
+            ),
+          ],
         ),
       ),
     );
+  }
+
+  Future<void> _send() async {
+    await vm.sendText(controller.text);
+    controller.clear();
   }
 }

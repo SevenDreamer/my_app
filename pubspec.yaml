@@ -67,12 +67,18 @@ dependencies:
   webview_windows: ^0.4.0
   # vendor 的 Live2D 资产服务需要（mime 类型表）
   mime: ^1.0.6
+  flutter_p2p_connection: ^3.0.3
+  permission_handler: ^11.4.0
 
 # 根治 :jni/NDK 依赖（PITFALLS #20）：path_provider_android 2.3.0 起引入
 # jni（C 桥接模块，需 NDK+CMake）；钉住 2.2.23（最后一个纯 Kotlin 版），
 # :jni 模块消失，CI 免装 NDK/CMake。上游解决后移除本覆盖。
 dependency_overrides:
   path_provider_android: 2.2.23
+  # flutter_p2p_connection 用 vendor 补丁副本（Android 12 权限检查 bug，
+  # 差异见 packages/flutter_p2p_connection/PATCHES.md）；上游修复后移除
+  flutter_p2p_connection:
+    path: packages/flutter_p2p_connection
 
 dev_dependencies:
   flutter_test:
