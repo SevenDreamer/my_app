@@ -291,3 +291,20 @@
 - **解法**：页面壳用 `DefaultTextStyle(style: AppTypography.bodyMd, ...)`
   建文字基线（见 `lib/design/widgets/app_scaffold.dart`）——任何去 Material
   的自建页面壳都要带这一层。
+
+### 29. 启动门死循环：patch 下载完紧跟 `Runtime.exit(0)` 会让 patch 永不生效
+
+- **现象**：dev.10 上「热更加载页」无限重启循环，patch 每轮都重新下载、永不生效。
+- **根因**（两个叠加）：
+  1. `update()` 下载完 patch 立即原生 `Runtime.exit(0)` 重启——硬杀进程会截断
+     patch 的落盘/生效确认，引擎判定启动失败回滚，下一轮又见 outdated 又下载；
+  2. 回环护栏的时间戳存 FlutterSecureStorage（异步落盘），写完紧跟 `exit(0)`
+     同样被截断——护栏永远读到旧值，形同虚设。
+- **旁证**：dev.9（基线包无启动门，patch 全靠自然重启生效）一切正常。
+- **解法**（三底线）：
+  1. 下载完**不杀进程**，提示"重启后生效"直接放行，下次自然启动生效；
+  2. 重启尝试护栏改**普通文件 + `flush: true`**（立即落盘，扛硬杀），
+     同一 patch 最多重启 2 次；
+  3. 任何分支最终 `_finish()` 放行，「跳过」按钮全程可见。
+- **通用教训**：`Runtime.exit(0)` 硬杀进程前，所有异步落盘的写入都可能丢失；
+  需要跨重启存活的状态必须同步 flush 到普通文件，不能用异步 KV 存储。
