@@ -34,9 +34,6 @@ enum BootGatePhase {
   /// 大版本下载中（带进度）
   versionDownloading,
 
-  /// 已调起系统安装器，等用户完成安装
-  installing,
-
   /// 无更新/跳过/异常——放行进主界面
   done,
 }
@@ -66,6 +63,10 @@ class BootGateController extends ChangeNotifier {
 
   /// 上次为热更重启的时刻（重启回环保护用）
   static const _kRestartAtKey = 'boot_gate_restart_at';
+
+  /// 上次自动拦截的大版本号（同版本只拦一次——装/不装都不该反复
+  /// 下载整包、反复调起安装器把用户堵在启动门外）
+  static const _kOfferedVersionKey = 'boot_gate_offered_version';
 
   /// 网络检查超时：超时一律放行——更新检查绝不拦启动
   static const _checkTimeout = Duration(seconds: 8);
@@ -99,11 +100,17 @@ class BootGateController extends ChangeNotifier {
       final info = await versionFuture;
 
       // 1) 热更优先：补丁小下载快，先生效再谈大版本
+      //    回环保护前移：90 秒内为热更重启过就直接放行——不重复下载、
+      //    不反复闪启动门（patch 反复判定 outdated 时曾把用户堵在门外）
       if (patchStatus == UpdateStatus.restartRequired) {
         await _restartForPatch();
         return;
       }
       if (patchStatus == UpdateStatus.outdated) {
+        if (await _restartedRecently()) {
+          _finish();
+          return;
+        }
         _set(phase: BootGatePhase.patchDownloading, status: '正在下载热更新…');
         await _updater.update().timeout(const Duration(seconds: 120));
         await _restartForPatch();
@@ -111,7 +118,18 @@ class BootGateController extends ChangeNotifier {
       }
 
       // 2) 大版本：仅 Android 自动下载安装（其他平台交既有提示路径）
+      //    同版本只自动拦一次：上次已提示过（装/没装都算）就不再重复
+      //    下载整包、重复调起安装器——更新提示交主页弹窗，不堵门
       if (info != null && _isAndroid) {
+        final offered = await _storage.read(key: _kOfferedVersionKey) ?? '';
+        if (offered == info.version) {
+          _finish();
+          return;
+        }
+        await _storage.write(
+          key: _kOfferedVersionKey,
+          value: info.version,
+        );
         await _downloadVersion(info);
         return;
       }
@@ -153,13 +171,13 @@ class BootGateController extends ChangeNotifier {
 
   /// 为热更重启：带 90 秒回环保护（防 patch 反复判定 outdated 卡启动）
   Future<void> _restartForPatch() async {
-    final last =
-        int.tryParse(await _storage.read(key: _kRestartAtKey) ?? '') ?? 0;
-    final now = DateTime.now().millisecondsSinceEpoch;
-    if (now - last < 90 * 1000) {
+    if (await _restartedRecently()) {
       _finish();
       return;
     }
+    // 时间戳只在真正重启前写（查询函数必须无副作用，否则正常流程
+    // 会被自己的写入判定成"刚重启过"而永远不重启）
+    final now = DateTime.now().millisecondsSinceEpoch;
     await _storage.write(key: _kRestartAtKey, value: '$now');
     _set(phase: BootGatePhase.restarting, status: '正在重启以应用热更新…');
     try {
@@ -171,6 +189,13 @@ class BootGateController extends ChangeNotifier {
         status: '热更新已就绪，重启应用后生效',
       );
     }
+  }
+
+  /// 90 秒内是否刚为热更重启过（回环保护判定；纯查询无副作用）
+  Future<bool> _restartedRecently() async {
+    final last =
+        int.tryParse(await _storage.read(key: _kRestartAtKey) ?? '') ?? 0;
+    return DateTime.now().millisecondsSinceEpoch - last < 90 * 1000;
   }
 
   /// 大版本自动下载并调起安装器（D1 游戏式更新：全程可见）
@@ -196,10 +221,9 @@ class BootGateController extends ChangeNotifier {
       _finish();
       return;
     }
-    _set(
-      phase: BootGatePhase.installing,
-      status: '已调起安装器，安装完成后自动覆盖升级',
-    );
+    // 调起安装器即放行进主页：装完重开自然是新版；用户取消安装也不该
+    // 被堵在门外（更新提示交主页弹窗）。安装器本身盖在 app 上层。
+    _finish();
   }
 
   bool get _isAndroid =>
