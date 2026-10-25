@@ -36,6 +36,8 @@ fi
 : "${R2_BASE_URL:?需要 R2_BASE_URL（公开访问地址，如 https://pub-887a8744be9247ceba718deacb4e03eb.r2.dev/my_app_dist）}"
 R2_BUCKET="${R2_BUCKET:-my-app-apks}"
 R2_PREFIX="${R2_PREFIX:-my_app_dist}"
+# R2 的 S3 API 端点（账号级，固定值）
+R2_ENDPOINT="${R2_ENDPOINT:-0a5e8b01a70285a19456d23671233de8.r2.cloudflarestorage.com}"
 export S3_ACCESS_KEY_ID S3_SECRET_ACCESS_KEY
 
 VER=$(grep '^version:' pubspec.yaml | awk '{print $2}')
@@ -54,14 +56,25 @@ tool/shorebird.sh release android --artifact=apk --target-platform=android-arm64
 APK=build/app/outputs/flutter-apk/app-release.apk
 ASSET="my_app-v$NAME-android-arm64-v8a.apk"
 
-# 2) 上传安装包（S3 直传；wrangler 的 r2 object 默认本地模式，勿用）
-python tool/r2_upload.py "$R2_BUCKET" "$R2_PREFIX/$ASSET" "$APK" \
-  application/vnd.android.package-archive
+# 2) 上传安装包（curl aws-sigv4 直传；wrangler 的 r2 object 默认本地模式，勿用。
+#    python urllib 传 56MB 大文件会被掐断（代理 Broken pipe / 直连 SSLEOFError），
+#    curl 实测稳定——见 PITFALLS）
+r2_put() { # r2_put <bucket-key> <本地文件> <content-type>
+  local key="$1" file="$2" ctype="$3"
+  curl -sS --aws-sigv4 "aws:amz:auto:s3" \
+    --user "$S3_ACCESS_KEY_ID:$S3_SECRET_ACCESS_KEY" \
+    -H "Content-Type: $ctype" \
+    --upload-file "$file" \
+    "https://$R2_ENDPOINT/$R2_BUCKET/$key" \
+    -w "已上传：$key（%{size_upload} 字节，HTTP %{http_code}）\n"
+}
+
+r2_put "$R2_PREFIX/$ASSET" "$APK" application/vnd.android.package-archive
 
 # 3) 生成并上传 manifest（stable/dev 各一份，App 按通道取）
 MANIFEST=manifest.json
 [ "$CHANNEL" = "dev" ] && MANIFEST=manifest-dev.json
-python - "$NAME" "$NOTES" "$R2_BASE_URL/$ASSET" "build/$MANIFEST" <<'PY'
+python3 - "$NAME" "$NOTES" "$R2_BASE_URL/$ASSET" "build/$MANIFEST" <<'PY'
 import json, sys
 version, notes, url, out = sys.argv[1:5]
 manifest = {
@@ -74,8 +87,7 @@ with open(out, "w", encoding="utf-8") as f:
     json.dump(manifest, f, ensure_ascii=False, indent=2)
 print(f"manifest 已生成：{out}")
 PY
-python tool/r2_upload.py "$R2_BUCKET" "$R2_PREFIX/$MANIFEST" "build/$MANIFEST" \
-  application/json
+r2_put "$R2_PREFIX/$MANIFEST" "build/$MANIFEST" application/json
 
 echo "发布完成（通道 $CHANNEL）："
 echo "  安装包：$R2_BASE_URL/$ASSET"
