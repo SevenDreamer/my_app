@@ -10,6 +10,7 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 
 import 'design/theme.dart';
 import 'app/home_page.dart';
+import 'app/update/boot_gate.dart';
 import 'app/update/ci_notifier.dart';
 
 Future<void> main() async {
@@ -44,7 +45,7 @@ class MyApp extends StatelessWidget {
               GlobalCupertinoLocalizations.delegate,
               GlobalWidgetsLocalizations.delegate,
             ],
-            home: const HomePage(),
+            home: const BootGate(child: HomePage()),
             builder: (context, child) => ShadAppBuilder(child: child!),
           );
         },
