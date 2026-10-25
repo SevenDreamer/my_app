@@ -11,6 +11,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 import '../../core/errors/app_error.dart';
 import '../../core/errors/error_log.dart';
@@ -151,52 +152,24 @@ class UpdateService {
   }
 
   /// 语义化版本比较（含预发布）：remote 是否比 current 更新。
-  /// 规则：1.2.0 < 1.3.0-dev.1 < 1.3.0（同三段下，正式版大于预发布版）
+  /// 规则：1.2.0 < 1.3.0-dev.1 < 1.3.0（同三段下，正式版大于预发布版）。
+  /// 比较委托 pub_semver（pub 官方解析器）——手写比较踩过坑：
+  /// 'dev.10' 整段字符串比 < 'dev.9'，跨位数就漏报更新。
   bool _isNewer(String remote, String current) {
-    final r = _split(remote);
-    final c = _split(current);
-    for (var i = 0; i < 3; i++) {
-      if (r.$1[i] != c.$1[i]) return r.$1[i] > c.$1[i];
-    }
-    // 三段相同：正式版 > 预发布版；都有预发布则按 semver 逐段比较
-    final rPre = r.$2;
-    final cPre = c.$2;
-    if (rPre == null && cPre == null) return false;
-    if (rPre == null) return true; // remote 是正式、current 是预发布
-    if (cPre == null) return false; // remote 是预发布、current 是正式
-    return _comparePre(rPre, cPre) > 0;
+    final r = _tryParse(remote);
+    final c = _tryParse(current);
+    if (r == null || c == null) return false;
+    return r > c;
   }
 
-  /// 预发布段比较（semver §11.4）：按 '.' 分段逐个比——两段都是纯数字比数值，
-  /// 否则比字符串；前缀相同则段多者大（dev.1 < dev.1.1）。
-  /// 不能整段字符串比：'dev.10' < 'dev.9'，跨位数就漏报更新（实测踩过）。
-  static int _comparePre(String a, String b) {
-    final as = a.split('.');
-    final bs = b.split('.');
-    final common = as.length < bs.length ? as.length : bs.length;
-    for (var i = 0; i < common; i++) {
-      final ai = int.tryParse(as[i]);
-      final bi = int.tryParse(bs[i]);
-      final cmp = (ai != null && bi != null)
-          ? ai.compareTo(bi)
-          : as[i].compareTo(bs[i]);
-      if (cmp != 0) return cmp;
-    }
-    return as.length.compareTo(bs.length);
-  }
-
-  /// 拆为（三段数值, 预发布段或 null）；忽略 +build 号
-  (List<int>, String?) _split(String version) {
+  /// 解析版本号：先剥 +build 号（更新判断只看纯版本号），
+  /// 格式非法返回 null（调用侧按"无更新"处理）
+  Version? _tryParse(String version) {
     final main = version.split('+').first;
-    final dash = main.indexOf('-');
-    final core = dash >= 0 ? main.substring(0, dash) : main;
-    final pre = dash >= 0 ? main.substring(dash + 1) : null;
-    final nums = <int>[
-      for (final p in core.split('.')) int.tryParse(p) ?? 0,
-    ];
-    while (nums.length < 3) {
-      nums.add(0);
+    try {
+      return Version.parse(main);
+    } on FormatException {
+      return null;
     }
-    return (nums.sublist(0, 3), pre);
   }
 }

@@ -46,6 +46,8 @@ dependencies:
     sdk: flutter
   # 自动更新（v1 提示型）：HTTP 请求 / Device Flow 凭证存储 / 打开浏览器
   http: ^1.6.0
+  # 版本号比较（semver 解析，pub 官方实现）——更新检查用，勿手写
+  pub_semver: ^2.2.1
   flutter_secure_storage: ^11.2.0
   url_launcher: ^6.3.3
   # 扫码下载二维码（桌面端「手机下载」弹窗）
