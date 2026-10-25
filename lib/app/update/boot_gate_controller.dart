@@ -1,17 +1,21 @@
 //! 启动更新门 ViewModel：进主界面前的自动更新编排（热更 patch + 大版本）
 //!
 //! MVVM：View 只读状态快照 + 调命令方法；更新检查/下载走注入的既有服务，
-//! 不改动既有更新代码。流程：并行查热更/大版本 → 热更只下载（生效交给
-//! 下次启动；仅「patch 早已下载完」的状态尝试自动重启且有护栏）→ 有大
-//! 版本自动下载并调起安装器（同版本只拦一次）→ 都没有秒过（不打扰）。
+//! 不改动既有更新代码。流程：并行查热更/大版本 → 有热更一次性下载并
+//! 自动重启生效（落盘确认 + 重启护栏）→ 有大版本自动下载并调起安装器
+//! （同版本只拦一次）→ 都没有秒过（不打扰）。
 //!
-//! 防回环三底线（dev.10 实测踩过"下载→杀进程重启→patch 未生效→再下载"
-//! 的死循环，根因：update() 完立即 Runtime.exit(0) 会截断 patch 落盘/
-//! 生效确认，patch 永远不生效、每轮重下重杀）：
-//! 1. 下载完**不立即杀进程**——下次启动自然生效；
+//! 一次性生效（用户诉求：启动检测到 patch → 下载 → 自动重启 → 直接进）：
+//! 重启时机就选在启动门阶段——用户尚未进主界面，打扰最小，且重启前后
+//! 是同一个启动门画面，观感接近游戏的更新加载页（Dart patch 只能在进程
+//! 启动时换代码，"完全无感"做不到；连续画面 + 自动重启是最接近的形态）。
+//! 防回环三保险（dev.10 实测踩过"下载→杀进程重启→patch 未生效→再下载"
+//! 的死循环，根因：update() 返回后立即 Runtime.exit(0) 会截断 patch 落盘）：
+//! 1. 重启前先**确认 patch 已落盘**（readNextPatch 领先 readCurrentPatch），
+//!    没确认就绝不杀进程，放行等下次启动自然生效；
 //! 2. 重启尝试持久护栏（普通文件 flush 落盘，扛 exit(0) 硬杀；
 //!    FlutterSecureStorage 异步落盘会被截断导致护栏失效），
-//!    同一 patch 最多 2 次；
+//!    同一 patch 最多 2 次，超了就放行；
 //! 3. 任何分支最终都 _finish() 放行，「跳过」按钮全程可见。
 import 'dart:async';
 import 'dart:convert';
@@ -110,12 +114,17 @@ class BootGateController extends ChangeNotifier {
       final patchStatus = await patchFuture;
       final info = await versionFuture;
 
-      // 1) 热更优先：补丁小下载快。下载完**不杀进程**（底线 1）——
-      //    下次启动自然生效；只有「patch 早已下载完」才尝试自动重启
+      // 1) 热更优先：补丁小下载快，一次性生效——下载完确认落盘后自动重启
+      //    （重启发生在启动门阶段，用户尚未进应用，是打扰最小的时机）
       if (patchStatus == UpdateStatus.outdated) {
         _set(phase: BootGatePhase.patchDownloading, status: '正在下载热更新…');
         await _updater.update().timeout(const Duration(seconds: 120));
-        _message = '热更新已下载，重启应用后生效';
+        if (await _confirmPatchRegistered()) {
+          await _restartForPatch();
+          return;
+        }
+        // 没确认落盘就不重启（此时杀进程只会截断它）：放行，下次启动生效
+        _message = '热更新稍后生效，先进应用';
         _finish();
         return;
       }
@@ -214,6 +223,23 @@ class BootGateController extends ChangeNotifier {
     } catch (_) {
       return null;
     }
+  }
+
+  /// 落盘确认：新 patch 号须领先当前生效 patch 才算真的写进去了。
+  /// update() 返回 ≠ 已落盘——此时杀进程会截断写入（dev.10 死循环根因），
+  /// 所以轮询确认（最多 2 秒），确认不了就不重启。
+  Future<bool> _confirmPatchRegistered() async {
+    for (var i = 0; i < 4; i++) {
+      try {
+        final next = (await _updater.readNextPatch())?.number;
+        final current = (await _updater.readCurrentPatch())?.number ?? 0;
+        if (next != null && next > current) return true;
+      } catch (_) {
+        return false;
+      }
+      await Future<void>.delayed(const Duration(milliseconds: 500));
+    }
+    return false;
   }
 
   /// 大版本自动下载并调起安装器（D1 游戏式更新：全程可见）
