@@ -61,7 +61,8 @@ ASSET="my_app-v$NAME-android-arm64-v8a.apk"
 #    curl 实测稳定——见 PITFALLS）
 r2_put() { # r2_put <bucket-key> <本地文件> <content-type>
   local key="$1" file="$2" ctype="$3"
-  curl -sS --aws-sigv4 "aws:amz:auto:s3" \
+  # --noproxy：R2 直连可达；代理传大文件易断（Broken pipe），上传固定走直连
+  curl -sS --noproxy '*' --aws-sigv4 "aws:amz:auto:s3" \
     --user "$S3_ACCESS_KEY_ID:$S3_SECRET_ACCESS_KEY" \
     -H "Content-Type: $ctype" \
     --upload-file "$file" \
