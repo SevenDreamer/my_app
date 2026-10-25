@@ -6,6 +6,7 @@
 
 import 'dart:async';
 
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -50,17 +51,23 @@ class DeviceLinkViewModel extends ChangeNotifier {
   String? get error => _error;
   bool get busy => _busy;
 
-  /// 申请互联所需权限（位置/蓝牙/附近设备）
+  /// 申请互联所需权限（按 Android 版本分层）
   ///
-  /// 插件自带 check/ask 会挂死 platform channel（HyperOS 实测），
-  /// 这里用 permission_handler 自己申请。
+  /// 分层与 vendor 补丁同逻辑（PATCHES.md）：
+  /// - 定位：全版本必需（WiFi Direct 发现）
+  /// - 蓝牙运行时三件套：Android 12+（API 31+）才有
+  /// - NEARBY_WIFI_DEVICES：Android 13+（API 33+）才有——低版本请求必然
+  ///   denied（系统不认识该权限），就是 vendor 补丁修的同款雷，勿回退
   Future<bool> ensurePermissions() async {
-    final requests = await [
+    final sdk = (await DeviceInfoPlugin().androidInfo).version.sdkInt;
+    final requests = await <Permission>[
       Permission.locationWhenInUse,
-      Permission.bluetoothScan,
-      Permission.bluetoothConnect,
-      Permission.bluetoothAdvertise,
-      Permission.nearbyWifiDevices,
+      if (sdk >= 31) ...[
+        Permission.bluetoothScan,
+        Permission.bluetoothConnect,
+        Permission.bluetoothAdvertise,
+      ],
+      if (sdk >= 33) Permission.nearbyWifiDevices,
     ].request();
     final denied =
         requests.entries.where((e) => !e.value.isGranted).map((e) => e.key);
