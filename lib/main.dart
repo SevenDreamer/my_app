@@ -11,12 +11,8 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import 'design/theme.dart';
 import 'app/home_page.dart';
 import 'app/update/boot_gate.dart';
-import 'app/update/ci_notifier.dart';
 
 Future<void> main() async {
-  // 流水线通知服务（开关默认开——「我」页可关）
-  // ignore: unawaited_futures
-  CiNotifier.instance.init();
   runApp(const MyApp());
 }
 

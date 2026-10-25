@@ -1,28 +1,21 @@
 //! "我"页面：个人信息与设置（占位阶段）
 //!
-//! 设置/关于/更新授权入口；后续接账号、偏好设置、设备管理等。
+//! 设置/关于/更新入口；后续接账号、偏好设置、设备管理等。
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import '../design/widgets/app_toast.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../design/tokens.dart';
 import '../design/widgets/app_header.dart';
 import '../design/widgets/app_scaffold.dart';
 import '../design/widgets/app_setting_row.dart';
-import '../core/errors/app_error.dart';
-import '../core/errors/error_dialog.dart';
 import 'about_page.dart';
 import 'error_log_page.dart';
-import 'update/auth_webview_page.dart';
 import 'package:shorebird_code_push/shorebird_code_push.dart';
 
-import 'update/ci_notifier.dart';
 import 'update/download_qr.dart';
 import 'update/update_service.dart';
-import 'update/github_auth_service.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -32,193 +25,13 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  /// GitHub 授权状态：null=查询中 / true=已授权 / false=未授权
-  bool? _authorized;
-  bool _authorizing = false;
-  bool _ciNotify = true;
   String _patchInfo = '检测中…';
 
   @override
   void initState() {
     super.initState();
     // ignore: unawaited_futures
-    CiNotifier.instance.enabled.then((v) {
-      if (mounted) setState(() => _ciNotify = v);
-    });
-    // ignore: unawaited_futures
     _refreshPatchInfo();
-    _refreshAuth();
-  }
-
-  Future<void> _refreshAuth() async {
-    try {
-      final ok = await GithubAuthService().isAuthorized;
-      if (mounted) setState(() => _authorized = ok);
-    } catch (_) {
-      // 读取失败按未授权处理：保证入口始终可点（可重新走授权流程）
-      if (mounted) setState(() => _authorized = false);
-    }
-  }
-
-  /// 用系统浏览器打开授权链接（备用路径；主路径是 app 内置 webview）
-  Future<bool> _openAuthUri(String uriString) async {
-    final uri = Uri.tryParse(uriString);
-    if (uri == null) return false;
-    return launchUrl(uri, mode: LaunchMode.externalApplication);
-  }
-
-  /// Device Flow：申请设备码 → 弹配对码框（可复制/手动打开）→ 轮询授权结果
-  Future<void> _authorize() async {
-    if (_authorizing) return;
-    setState(() => _authorizing = true);
-    var dialogOpen = false;
-    BuildContext? dialogCtx; // 配对码弹窗的 context（精准关闭用，try/catch 共用）
-    try {
-      final auth = GithubAuthService();
-      final code = await auth.requestDeviceCode();
-      if (!mounted) return;
-
-      // 先弹配对码框：码可见、可复制；浏览器跳不跳都能手动完成
-      dialogOpen = true;
-      // ignore: unawaited_futures
-      showShadDialog<void>(
-        context: context,
-        builder: (ctx) {
-          dialogCtx = ctx;
-          return ShadDialog(
-            title: const Text('授权 GitHub'),
-            actions: [
-              ShadButton.outline(
-                child: const Text('复制配对码'),
-                onPressed: () {
-                  Clipboard.setData(ClipboardData(text: code.userCode));
-                  ShadSonner.of(ctx).show(
-                    ShadToast(
-                      id: DateTime.now().microsecondsSinceEpoch,
-                      title: Text('配对码已复制：${code.userCode}'),
-                    ),
-                  );
-                },
-              ),
-              ShadButton(
-                child: const Text('浏览器打开'),
-                onPressed: () => _openAuthUri(code.verificationUriComplete),
-              ),
-              ShadButton(
-                child: const Text('取消'),
-                onPressed: () {
-                  dialogOpen = false;
-                  Navigator.of(ctx).pop();
-                },
-              ),
-            ],
-            child: Container(
-              width: 320,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // 大字配对码：核心诉求——先看得到
-                  Text(
-                    code.userCode,
-                    style: const TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 3,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  const Text(
-                    '授权页面已打开（Android 为 app 内置页）。\n完成授权后回到本页——弹窗会自动关闭。\n\n若页面没打开，请点「浏览器打开」，\n或访问 github.com/login/device 手动输入配对码。',
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      );
-
-      // 自动打开授权页：Android 走内置 webview（受控，不被外部浏览器打断），
-      // 桌面走系统浏览器
-      if (defaultTargetPlatform == TargetPlatform.android) {
-        // ignore: unawaited_futures
-        Navigator.of(context).push(
-          PageRouteBuilder<void>(
-            pageBuilder: (_, __, ___) => AuthWebviewPage(
-              url: code.verificationUriComplete,
-              userCode: code.userCode,
-            ),
-            transitionsBuilder: (_, animation, __, child) =>
-                FadeTransition(opacity: animation, child: child),
-          ),
-        );
-      } else {
-        await _openAuthUri(code.verificationUriComplete);
-      }
-      _toast('已打开授权页，等待授权（配对码 ${code.userCode}）');
-
-      // 后台轮询直到授权完成/超时
-      await auth.pollForToken(code);
-      if (mounted && dialogOpen && dialogCtx?.mounted == true) {
-        dialogOpen = false;
-        Navigator.of(dialogCtx!).pop(); // 精准关配对码弹窗（不影响 webview 页）
-      }
-      _toast('GitHub 授权成功');
-    } catch (e) {
-      if (mounted && dialogOpen && dialogCtx?.mounted == true) {
-        dialogOpen = false;
-        Navigator.of(dialogCtx!).pop();
-      }
-      if (mounted) {
-        // 错误弹窗完整展示（异常自动归码：如 DNS 解析失败=E1001）
-        await showErrorDialog(
-          context,
-          AppError.from(e, context: '授权', message: '授权未完成'),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _authorizing = false);
-        await _refreshAuth();
-      }
-    }
-  }
-
-  /// 已授权时点击：查看状态并可撤销
-  void _authInfo() {
-    showShadDialog<void>(
-      context: context,
-      builder: (ctx) => ShadDialog.alert(
-        title: const Text('GitHub 已授权'),
-        description: const Text(
-          '本设备已获授权访问私有仓库（token 仅存于本机安全存储）。'
-          '流水线通知使用；大版本更新检查已不需要授权。',
-        ),
-        actions: [
-          ShadButton.outline(
-            child: const Text('重新授权'),
-            onPressed: () {
-              Navigator.of(ctx).pop();
-              _authorize();
-            },
-          ),
-          ShadButton.outline(
-            child: const Text('撤销授权'),
-            onPressed: () {
-              GithubAuthService().revoke();
-              Navigator.of(ctx).pop();
-              _refreshAuth();
-              _toast('已撤销本机授权');
-            },
-          ),
-          ShadButton(
-            child: const Text('关闭'),
-            onPressed: () => Navigator.of(ctx).pop(),
-          ),
-        ],
-      ),
-    );
   }
 
   /// 更新中心：热更（Shorebird patch）+ 大版本（R2 manifest）两层检查
@@ -266,16 +79,6 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  void _toast(String message) {
-    if (!mounted) return;
-    ShadSonner.of(context).show(
-      ShadToast(
-        id: DateTime.now().microsecondsSinceEpoch,
-        title: Text(message),
-      ),
-    );
-  }
-
   /// 占位动作：敬请期待
   void _comingSoon() {
     AppToast.show(context, '敬请期待');
@@ -315,19 +118,6 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                   ),
                 ),
-                AppSettingRow(
-                  icon: LucideIcons.refreshCw,
-                  title: 'GitHub 授权',
-                  detail: _authorizing
-                      ? '授权中…'
-                      : (_authorized == true
-                          ? '已授权'
-                          : (_authorized == null ? '查询中…' : '未授权')),
-                  // 未授权/查询中 → 授权流程；已授权 → 状态框；授权中禁点
-                  onTap: _authorizing
-                      ? null
-                      : (_authorized == true ? _authInfo : _authorize),
-                ),
                 if (_isDesktop)
                   AppSettingRow(
                     icon: LucideIcons.qrCode,
@@ -350,17 +140,6 @@ class _ProfilePageState extends State<ProfilePage> {
                   title: '热更状态',
                   detail: _patchInfo,
                   onTap: _refreshPatchInfo,
-                ),
-                AppSettingRow(
-                  icon: LucideIcons.bell,
-                  title: '流水线通知',
-                  trailing: ShadSwitch(
-                    value: _ciNotify,
-                    onChanged: (v) async {
-                      await CiNotifier.instance.setEnabled(v);
-                      if (mounted) setState(() => _ciNotify = v);
-                    },
-                  ),
                 ),
                 AppSettingRow(
                   icon: LucideIcons.info,

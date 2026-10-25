@@ -1,7 +1,7 @@
 //! 更新检查（v2 分发）：匿名拉 R2 manifest → semver 对比 → 提示下载安装
 //!
 //! 安装包与 manifest 托管在 Cloudflare R2 公开桶，匿名 GET 即可——
-//! 不再依赖 GitHub token（Device Flow 现在只剩流水线通知在用）。
+//! 不再依赖 GitHub token（历史遗留的 Device Flow 授权/流水线通知已移除）。
 //! manifest 固定 `manifest.json`（更新通道已移除；过渡期 release.sh 兼容
 //! 双写 manifest-dev.json 供旧版本读取，见 tool/release.sh）。
 //! 一切异常都静默返回 null——更新检查绝不打断使用

@@ -64,13 +64,14 @@ npx -y -p @google/design.md designmd lint DESIGN.md   # DESIGN.md 变更时：0 
   正式版；app 内「更新通道」（稳定/开发）决定收哪个通道的推送。
   预发布排序规则：`1.2.0 < 1.3.0-dev.1 < 1.3.0`。
 - 更新与分发（v2）：**大版本走 Cloudflare R2 manifest 免授权分发**——
-  `manifest.json`（stable）/ `manifest-dev.json`（dev）与安装包托管在 R2 公开桶，
+  `manifest.json` 与安装包托管在 R2 公开桶（过渡期同内容双写
+  `manifest-dev.json` 兼容老版本按通道读取，老版本退场后删），
   app 匿名 GET 检查更新 + 下载安装（`lib/app/update/`，源抽象 `UpdateSource`）；
-  iOS 明确不支持自动更新。发版本地一键：`tool/release.sh [stable|dev] ["更新说明"]`
-  （Shorebird release → S3 直传 R2 → 刷 manifest，上传走 `tool/r2_upload.py`；
+  iOS 明确不支持自动更新。发版本地一键：`tool/release.sh ["更新说明"]`
+  （Shorebird release → S3 直传 R2 → 刷 manifest，上传 curl aws-sigv4 直连；
   需 S3_ACCESS_KEY_ID / S3_SECRET_ACCESS_KEY / R2_BASE_URL）。
-- **GitHub Device Flow 仅用于流水线通知**（CiNotifier 查私仓 Actions API）；
-  用户设备授权自己的账号，二进制内禁止内置任何 token。
+- GitHub 流水线件（CiNotifier 通知 / Device Flow 授权 / dev-release.yml）
+  已于 2026-10-25 整体移除——更新分发完全走 R2，二进制内无任何 token。
 
 ### 热更（Shorebird patch）
 

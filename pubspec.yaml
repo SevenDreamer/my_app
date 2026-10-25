@@ -52,17 +52,13 @@ dependencies:
   url_launcher: ^6.3.3
   # 扫码下载二维码（桌面端「手机下载」弹窗）
   qr_flutter: ^4.1.0
-  # 错误日志落盘（错误码/日志系统，见 lib/core/errors）
+  # 错误日志落盘（错误码/日志系统，见 lib/core/errors）+ 启动门护栏文件
   path_provider: ^2.1.6
-  # Android 内置授权页（受控 webview，不被外部浏览器打断）
-  webview_flutter: ^4.14.1
   # app 内下载安装更新（D1）+ 设备 ABI 识别（D2 分架构包）
   open_file: ^4.0.0
   device_info_plus: ^13.3.0
   # Live2D Cubism 模型渲染（WebView + WebGL + PixiJS 方案，跨平台）
   live2d: ^1.0.1
-  # 手机端流水线通知（系统通知栏，成功/失败都推）
-  flutter_local_notifications: ^22.3.2
   # Lucide 图标（全库统一用 LucideIcons——此前是传递依赖，升为直接声明）
   lucide_icons_flutter: ^3.1.25
   # Shorebird 热更状态（当前 Patch 号/检查更新——让热更可见）
