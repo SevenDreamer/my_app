@@ -1,9 +1,10 @@
 //! LinkTransport 的 flutter_p2p_connection 实现（WiFi Direct + BLE）
 //!
-//! 两个已知坑的规避（spike 002 实测，见技能 my-app-device-link）：
-//! 1. 插件的 check/ask 权限方法会挂死 platform channel——**绝不调用**，
-//!    权限由页面层用 permission_handler 自己申请；
-//! 2. stream 会反复推同内容——一律去重后再转发，防日志/UI 刷屏。
+//! 三个已知坑的规避（spike 002 + 真机实测，见技能 my-app-device-link）：
+//! 1. 插件的 check/ask 权限方法会挂死 platform channel——**绝不调用**；
+//! 2. stream 会反复推同内容——一律去重后再转发；
+//! 3. **Host/Client 必须按角色惰性实例化**——两实例同跑会互抢 WebSocket
+//!    server/事件分发（建组端收不到消息的根因），spike 的单实例拓扑才稳。
 
 import 'dart:async';
 
@@ -14,20 +15,18 @@ import '../models/link_peer.dart';
 import 'link_transport.dart';
 
 class P2pLinkTransport implements LinkTransport {
-  P2pLinkTransport()
-      : _host = FlutterP2pHost(),
-        _client = FlutterP2pClient() {
-    _init();
-  }
+  P2pLinkTransport();
 
-  final FlutterP2pHost _host;
-  final FlutterP2pClient _client;
+  /// 按角色惰性创建（坑 3）：选了哪个角色才实例化哪个
+  FlutterP2pHost? _host;
+  FlutterP2pClient? _client;
 
   final _statusCtrl = StreamController<LinkStatus>.broadcast();
   final _discoveredCtrl = StreamController<LinkDiscovery>.broadcast();
   final _messagesCtrl = StreamController<LinkMessage>.broadcast();
 
   final List<StreamSubscription<dynamic>> _subs = [];
+  final Map<String, BleDiscoveredDevice> _lastDevices = {};
 
   LinkRole _role = LinkRole.idle;
   ({String ssid, String psk, String ip})? _groupInfo;
@@ -35,7 +34,8 @@ class P2pLinkTransport implements LinkTransport {
   // 去重记忆（坑 2）
   String _lastStatus = '';
   String _lastPeers = '';
-  int _msgSeq = 0;
+  String _lastMsgKey = '';
+  int _seq = 0;
 
   @override
   LinkRole get role => _role;
@@ -51,28 +51,6 @@ class P2pLinkTransport implements LinkTransport {
 
   @override
   Stream<LinkMessage> get messages => _messagesCtrl.stream;
-
-  Future<void> _init() async {
-    await _host.initialize();
-    await _client.initialize();
-
-    _subs.add(_host.streamHotspotState().listen((s) {
-      if (s.isActive && s.ssid != null) {
-        _groupInfo = (
-          ssid: s.ssid!,
-          psk: s.preSharedKey ?? '',
-          ip: s.hostIpAddress ?? '',
-        );
-      }
-      _emitStatus(
-        s.isActive ? LinkStatus.working : LinkStatus.idle,
-        key: '${s.isActive}/${s.ssid}/${s.failureReason}',
-      );
-    }));
-
-    _subs.add(_client.streamReceivedTexts().listen(_emitMessage));
-    _subs.add(_host.streamReceivedTexts().listen(_emitMessage));
-  }
 
   void _emitStatus(LinkStatus s, {String key = ''}) {
     if (key.isNotEmpty && key == _lastStatus) return;
@@ -90,15 +68,29 @@ class P2pLinkTransport implements LinkTransport {
       fromSelf: false,
       at: DateTime.now(),
     ));
-    _msgSeq++;
   }
-
-  String _lastMsgKey = '';
 
   @override
   Future<({String ssid, String psk, String ip})> createGroup() async {
     _role = LinkRole.host;
-    final s = await _host.createGroup(advertise: true);
+    final host = _host ??= FlutterP2pHost();
+    await host.initialize();
+    _subs.add(host.streamHotspotState().listen((s) {
+      if (s.isActive && s.ssid != null) {
+        _groupInfo = (
+          ssid: s.ssid!,
+          psk: s.preSharedKey ?? '',
+          ip: s.hostIpAddress ?? '',
+        );
+      }
+      _emitStatus(
+        s.isActive ? LinkStatus.working : LinkStatus.idle,
+        key: '${s.isActive}/${s.ssid}/${s.failureReason}',
+      );
+    }));
+    _subs.add(host.streamReceivedTexts().listen(_emitMessage));
+
+    final s = await host.createGroup(advertise: true);
     if (!s.isActive || s.ssid == null) {
       throw LinkException('建组失败（failure=${s.failureReason}）');
     }
@@ -113,16 +105,20 @@ class P2pLinkTransport implements LinkTransport {
 
   @override
   Future<void> removeGroup() async {
-    await _host.removeGroup();
+    await _host?.removeGroup();
     _groupInfo = null;
     _role = LinkRole.idle;
-    _emitStatus(LinkStatus.idle, key: 'removed/${_msgSeq++}');
+    _emitStatus(LinkStatus.idle, key: 'removed/${_seq++}');
   }
 
   @override
   Future<void> startScan() async {
     _role = LinkRole.client;
-    await _client.startScan((devices) {
+    final client = _client ??= FlutterP2pClient();
+    await client.initialize();
+    _subs.add(client.streamReceivedTexts().listen(_emitMessage));
+
+    await client.startScan((devices) {
       final sig = devices.map((d) => d.deviceAddress).join(',');
       if (sig == _lastPeers) return;
       _lastPeers = sig;
@@ -139,38 +135,38 @@ class P2pLinkTransport implements LinkTransport {
   }
 
   @override
-  Future<void> stopScan() => _client.stopScan();
+  Future<void> stopScan() async => _client?.stopScan();
 
   @override
   Future<void> connect(LinkPeer peer) async {
-    // connectWithDevice 需要扫描结果对象；用凭据连接等价路径：
-    // 扫描回调的 deviceAddress 即可定位（插件 3.x 的 connectWithDevice
-    // 接受 BleDiscoveredDevice，这里用扫描缓存重放）
+    final client = _client;
+    if (client == null) throw const LinkException('请先扫描设备');
+    // connectWithDevice 需要扫描结果对象（spike 验证过的路径）：
+    // 用扫描快照按地址重放
     final cached = _lastDevices[peer.address];
     if (cached == null) {
       throw LinkException('设备 ${peer.name} 不在扫描结果里，请重新扫描');
     }
-    _emitStatus(LinkStatus.working, key: 'connecting/${_msgSeq++}');
-    await _client.connectWithDevice(cached);
-    _emitStatus(LinkStatus.connected, key: 'connected/${_msgSeq++}');
+    _emitStatus(LinkStatus.working, key: 'connecting/${_seq++}');
+    await client.connectWithDevice(cached);
+    _emitStatus(LinkStatus.connected, key: 'connected/${_seq++}');
   }
-
-  final Map<String, BleDiscoveredDevice> _lastDevices = {};
 
   @override
   Future<void> disconnect() async {
-    await _client.disconnect();
-    _emitStatus(LinkStatus.idle, key: 'disc/${_msgSeq++}');
+    await _client?.disconnect();
+    _emitStatus(LinkStatus.idle, key: 'disc/${_seq++}');
   }
 
   @override
   Future<void> sendText(String text) async {
-    if (_role == LinkRole.host) {
-      await _host.broadcastText(text);
-    } else if (_role == LinkRole.client) {
-      await _client.broadcastText(text);
-    } else {
-      throw const LinkException('未连接，先建组或加入对端');
+    switch (_role) {
+      case LinkRole.host:
+        await _host?.broadcastText(text);
+      case LinkRole.client:
+        await _client?.broadcastText(text);
+      case LinkRole.idle:
+        throw const LinkException('未连接，先建组或加入对端');
     }
     _messagesCtrl.add(LinkMessage(
       text: text,
@@ -184,8 +180,8 @@ class P2pLinkTransport implements LinkTransport {
     for (final s in _subs) {
       await s.cancel();
     }
-    await _host.dispose();
-    await _client.dispose();
+    await _host?.dispose();
+    await _client?.dispose();
     await _statusCtrl.close();
     await _discoveredCtrl.close();
     await _messagesCtrl.close();
