@@ -68,6 +68,11 @@ android {
             } else {
                 signingConfigs.getByName("debug")
             }
+            // R8 混淆规则（flutter_p2p_connection keep 等，见 proguard-rules.pro）
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
+            )
         }
     }
 }

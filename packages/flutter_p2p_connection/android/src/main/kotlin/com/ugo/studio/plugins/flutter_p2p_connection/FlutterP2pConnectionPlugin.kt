@@ -108,7 +108,10 @@ class FlutterP2pConnectionPlugin : FlutterPlugin, MethodCallHandler, ActivityAwa
     // which it currently doesn't. It gets context and managers via constructor.
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
         activity = binding.activity
-        activityLifecycle = binding.lifecycle as Lifecycle?
+        // 修复上游 bug：binding.lifecycle 运行时是 HiddenLifecycleReference
+        // （普通 wrapper 类），直接 as Lifecycle 必抛 ClassCastException
+        // ——应 cast 到 wrapper 再取 .lifecycle（androidx Lifecycle）
+        activityLifecycle = (binding.lifecycle as? io.flutter.embedding.engine.plugins.lifecycle.HiddenLifecycleReference)?.lifecycle
         activityLifecycle?.addObserver(this)
         if (isInitialized || this::permissionsManager.isInitialized) { // Update if already initialized or minimally initialized
             permissionsManager.updateActivity(activity)
