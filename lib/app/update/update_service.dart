@@ -158,13 +158,31 @@ class UpdateService {
     for (var i = 0; i < 3; i++) {
       if (r.$1[i] != c.$1[i]) return r.$1[i] > c.$1[i];
     }
-    // 三段相同：正式版 > 预发布版；都有预发布则按字符串比较（dev.1 < dev.2）
+    // 三段相同：正式版 > 预发布版；都有预发布则按 semver 逐段比较
     final rPre = r.$2;
     final cPre = c.$2;
     if (rPre == null && cPre == null) return false;
     if (rPre == null) return true; // remote 是正式、current 是预发布
     if (cPre == null) return false; // remote 是预发布、current 是正式
-    return rPre.compareTo(cPre) > 0;
+    return _comparePre(rPre, cPre) > 0;
+  }
+
+  /// 预发布段比较（semver §11.4）：按 '.' 分段逐个比——两段都是纯数字比数值，
+  /// 否则比字符串；前缀相同则段多者大（dev.1 < dev.1.1）。
+  /// 不能整段字符串比：'dev.10' < 'dev.9'，跨位数就漏报更新（实测踩过）。
+  static int _comparePre(String a, String b) {
+    final as = a.split('.');
+    final bs = b.split('.');
+    final common = as.length < bs.length ? as.length : bs.length;
+    for (var i = 0; i < common; i++) {
+      final ai = int.tryParse(as[i]);
+      final bi = int.tryParse(bs[i]);
+      final cmp = (ai != null && bi != null)
+          ? ai.compareTo(bi)
+          : as[i].compareTo(bs[i]);
+      if (cmp != 0) return cmp;
+    }
+    return as.length.compareTo(bs.length);
   }
 
   /// 拆为（三段数值, 预发布段或 null）；忽略 +build 号
