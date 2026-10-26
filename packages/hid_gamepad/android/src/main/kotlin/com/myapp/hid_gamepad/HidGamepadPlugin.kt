@@ -5,17 +5,21 @@ package com.myapp.hid_gamepad
 
 import android.app.Activity
 import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothClass
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothHidDevice
 import android.bluetooth.BluetoothHidDeviceAppQosSettings
 import android.bluetooth.BluetoothHidDeviceAppSdpSettings
 import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothProfile
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.provider.Settings
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
@@ -36,6 +40,9 @@ class HidGamepadPlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
     private var host: BluetoothDevice? = null
     private var callback: BluetoothHidDevice.Callback? = null
     private var appName: String = "my_app Gamepad"
+    private var scanChannel: EventChannel? = null
+    private var scanEvents: EventChannel.EventSink? = null
+    private var scanReceiver: BroadcastReceiver? = null
 
     override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         context = binding.applicationContext
@@ -43,14 +50,29 @@ class HidGamepadPlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
             .also { it.setMethodCallHandler(this) }
         eventChannel = EventChannel(binding.binaryMessenger, "my_app/hid_gamepad/events")
             .also { it.setStreamHandler(this) }
+        scanChannel = EventChannel(binding.binaryMessenger, "my_app/hid_gamepad/scan")
+            .also {
+                it.setStreamHandler(object : EventChannel.StreamHandler {
+                    override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
+                        scanEvents = events
+                    }
+
+                    override fun onCancel(arguments: Any?) {
+                        scanEvents = null
+                    }
+                })
+            }
     }
 
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         unregister()
+        stopScanInternal()
         methodChannel?.setMethodCallHandler(null)
         eventChannel?.setStreamHandler(null)
+        scanChannel?.setStreamHandler(null)
         methodChannel = null
         eventChannel = null
+        scanChannel = null
     }
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
@@ -88,6 +110,24 @@ class HidGamepadPlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
                 unregister()
                 emit("idle")
                 result.success(null)
+            }
+            "pairedDevices" -> pairedDevices(result)
+            "startScan" -> startScan(result)
+            "stopScan" -> {
+                stopScanInternal()
+                result.success(null)
+            }
+            "pair" -> pair(call, result)
+            "openBluetoothSettings" -> {
+                try {
+                    context.startActivity(
+                        Intent(Settings.ACTION_BLUETOOTH_SETTINGS)
+                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                    )
+                    result.success(null)
+                } catch (e: Exception) {
+                    result.error("settings_failed", e.message, null)
+                }
             }
             else -> result.notImplemented()
         }
@@ -219,6 +259,123 @@ class HidGamepadPlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
         result.success(ok)
     }
 
+    private fun pairedDevices(result: MethodChannel.Result) {
+        val adapter = btAdapter()
+        if (adapter == null) {
+            result.error("bluetooth_unavailable", "无蓝牙适配器", null)
+            return
+        }
+        val list = try {
+            adapter.bondedDevices.map { deviceMap(it) }
+        } catch (e: SecurityException) {
+            result.error("no_permission", e.message, null)
+            return
+        }
+        result.success(list)
+    }
+
+    private fun startScan(result: MethodChannel.Result) {
+        val adapter = btAdapter()
+        if (adapter == null || !adapter.isEnabled) {
+            result.error("bluetooth_off", "蓝牙未开启或设备无蓝牙", null)
+            return
+        }
+        stopScanInternal()
+        val receiver = object : BroadcastReceiver() {
+            override fun onReceive(ctx: Context?, intent: Intent?) {
+                val intent = intent ?: return
+                val action = intent.action ?: return
+                if (action != BluetoothDevice.ACTION_FOUND &&
+                    action != BluetoothDevice.ACTION_BOND_STATE_CHANGED
+                ) return
+                val device: BluetoothDevice? = if (Build.VERSION.SDK_INT >= 33)
+                    intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE, BluetoothDevice::class.java)
+                else @Suppress("DEPRECATION") intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
+                if (device == null) return
+                emitScan(if (action == BluetoothDevice.ACTION_FOUND) "found" else "bond", device)
+            }
+        }
+        scanReceiver = receiver
+        val filter = IntentFilter().apply {
+            addAction(BluetoothDevice.ACTION_FOUND)
+            addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED)
+        }
+        if (Build.VERSION.SDK_INT >= 33) {
+            context.registerReceiver(receiver, filter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            @Suppress("DEPRECATION") context.registerReceiver(receiver, filter)
+        }
+        val ok = try {
+            adapter.startDiscovery()
+        } catch (_: SecurityException) {
+            false
+        }
+        result.success(ok)
+    }
+
+    private fun stopScanInternal() {
+        try {
+            btAdapter()?.cancelDiscovery()
+        } catch (_: Exception) {
+        }
+        scanReceiver?.let {
+            try {
+                context.unregisterReceiver(it)
+            } catch (_: Exception) {
+            }
+        }
+        scanReceiver = null
+    }
+
+    private fun pair(call: MethodCall, result: MethodChannel.Result) {
+        val address = call.argument<String>("address")
+        val adapter = btAdapter()
+        if (address == null || adapter == null) {
+            result.error("bad_args", "缺少 address 或无蓝牙", null)
+            return
+        }
+        try {
+            adapter.cancelDiscovery()
+            val device = adapter.getRemoteDevice(address)
+            if (device.bondState == BluetoothDevice.BOND_BONDED) {
+                result.success(true)
+                return
+            }
+            result.success(device.createBond())
+        } catch (e: Exception) {
+            result.error("pair_failed", e.message, null)
+        }
+    }
+
+    private fun btAdapter() =
+        (context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager)?.adapter
+
+    private fun emitScan(type: String, device: BluetoothDevice) {
+        val payload = mapOf("type" to type, "device" to deviceMap(device))
+        Handler(Looper.getMainLooper()).post { scanEvents?.success(payload) }
+    }
+
+    private fun deviceMap(device: BluetoothDevice): Map<String, Any?> {
+        val dc = try {
+            device.bluetoothClass?.deviceClass ?: 0
+        } catch (_: Exception) {
+            0
+        }
+        val name = try {
+            device.name ?: ""
+        } catch (_: SecurityException) {
+            ""
+        }
+        return mapOf(
+            "name" to name,
+            "address" to device.address,
+            "paired" to (device.bondState == BluetoothDevice.BOND_BONDED),
+            "bonding" to (device.bondState == BluetoothDevice.BOND_BONDING),
+            "isGamepad" to (dc == COD_JOYSTICK || dc == COD_GAMEPAD ||
+                    name.contains("gamepad", ignoreCase = true)),
+        )
+    }
+
     private fun unregister() {
         try {
             hid?.unregisterApp()
@@ -230,6 +387,11 @@ class HidGamepadPlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
 
     companion object {
         private const val REPORT_LENGTH = 10
+
+        // CoD（Class of Device）0x05(Peripheral) 小类：Joystick=0x04 / Gamepad=0x08
+        // ——BluetoothClass.Device 无此常量，取 CoD 规范位值
+        private const val COD_JOYSTICK = 0x504
+        private const val COD_GAMEPAD = 0x508
 
         private fun neutralReport(): ByteArray = byteArrayOf(
             0x00, 0x00, // 按钮 16 位全松

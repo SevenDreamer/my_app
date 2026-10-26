@@ -74,6 +74,9 @@ class GamepadViewModel extends ChangeNotifier {
   /// 启动失败的错误信息（无则为 null）
   String? error;
 
+  /// 停止广播（可再次 [connect] 重启）
+  Future<void> stop() => _link.stop();
+
   /// 按下/松开一个功能按钮（[GamepadButton] 位）
   void setButton(int mask, bool pressed) {
     if (pressed ? _buttons.add(mask) : _buttons.remove(mask)) _emit();

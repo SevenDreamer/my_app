@@ -1,6 +1,6 @@
-//! 假手柄链路：M0 调试用——不走真实蓝牙，把报告字节打进调试日志
+//! 假手柄链路：调试用——不走真实蓝牙，把报告字节打进调试日志
 //!
-//! M1 接入 packages/hid_gamepad 后，由 HidGamepadLink 取代。
+//! 桌面/无蓝牙环境的手柄调试兜底；Android 真机走 HidGamepadLink。
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
@@ -34,7 +34,8 @@ class FakeGamepadLink implements GamepadLink {
 
   @override
   Future<void> stop() async {
+    _sent = 0;
     _controller.add(GamepadLinkState.idle);
-    await _controller.close();
+    // 不关流：stop 后允许再次 start（流随页面回收）
   }
 }

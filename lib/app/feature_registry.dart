@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 import '../features/device_link/device_link_page.dart';
+import '../features/gamepad/gamepad_home_page.dart';
 import '../features/live2d/live2d_page.dart';
 import '../features/notes/notes_list_page.dart';
 import '../features/robot_eyes/robot_eye_page.dart';
@@ -83,6 +84,17 @@ final List<FeatureEntry> kFeatures = [
     // 通信组网以移动端为主战场（VISION · 平台能力矩阵）
     desktop: PlatformSupport.limited,
     limitedNote: '通信功能以移动端为主',
+    mobile: PlatformSupport.full,
+  ),
+  FeatureEntry(
+    id: 'gamepad',
+    icon: LucideIcons.gamepad2,
+    title: '手柄控制',
+    subtitle: '控制端 · 被控端 · 蓝牙 HID',
+    builder: (_) => const GamepadHomePage(),
+    // 控制端（HID 模拟）仅 Android 有真实现；桌面端为假链路调试
+    desktop: PlatformSupport.limited,
+    limitedNote: '桌面端仅假链路调试，无真蓝牙',
     mobile: PlatformSupport.full,
   ),
   FeatureEntry(

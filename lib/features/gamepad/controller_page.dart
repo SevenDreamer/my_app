@@ -1,27 +1,27 @@
-//! 手柄调试页：虚拟手柄（M0 假链路）——验证报告编解码与交互手感
+//! 控制端页：手机模拟手柄（虚拟摇杆/ABXY/十字键）+ 报告回显
 //!
 //! MVVM：只读 GamepadViewModel 快照 + 调命令方法，不触碰链路层。
-//! M1 接入 HID 后，本页原样复用为真机调试台。
+//! 不自动连接——用户点「启动」才注册 HID 广播。
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
-import '../../../design/tokens.dart';
-import '../../../design/widgets/app_header.dart';
-import '../../../design/widgets/app_scaffold.dart';
+import '../../design/tokens.dart';
+import '../../design/widgets/app_header.dart';
+import '../../design/widgets/app_scaffold.dart';
 import 'fake_gamepad_link.dart';
 import 'gamepad_link.dart';
 import 'gamepad_report.dart';
 import 'gamepad_view_model.dart';
 import 'hid_gamepad_link.dart';
 
-class GamepadPage extends StatefulWidget {
-  const GamepadPage({super.key});
+class ControllerPage extends StatefulWidget {
+  const ControllerPage({super.key});
 
   @override
-  State<GamepadPage> createState() => _GamepadPageState();
+  State<ControllerPage> createState() => _ControllerPageState();
 }
 
-class _GamepadPageState extends State<GamepadPage> {
+class _ControllerPageState extends State<ControllerPage> {
   late final GamepadLink _link;
   late final GamepadViewModel _vm;
 
@@ -32,7 +32,7 @@ class _GamepadPageState extends State<GamepadPage> {
     _link = defaultTargetPlatform == TargetPlatform.android
         ? HidGamepadLink()
         : FakeGamepadLink();
-    _vm = GamepadViewModel(_link)..connect();
+    _vm = GamepadViewModel(_link);
   }
 
   @override
@@ -44,18 +44,14 @@ class _GamepadPageState extends State<GamepadPage> {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      header: const AppHeader(title: '手柄调试'),
+      header: const AppHeader(title: '控制端'),
       body: ListenableBuilder(
         listenable: _vm,
         builder: (context, _) {
           final r = _vm.report;
           return Column(
             children: [
-              GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () => _vm.connect(),
-                child: _StatusBar(vm: _vm),
-              ),
+              _StatusBar(vm: _vm),
               Expanded(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(AppSpacing.md),
@@ -141,7 +137,7 @@ class _GamepadPageState extends State<GamepadPage> {
   }
 }
 
-/// 顶栏：链路状态 + 已发帧数
+/// 顶栏：启动/停止按钮 + 链路状态 + 已发帧数
 class _StatusBar extends StatelessWidget {
   const _StatusBar({required this.vm});
 
@@ -155,35 +151,65 @@ class _StatusBar extends StatelessWidget {
       GamepadLinkState.connected: '已连接',
       GamepadLinkState.disconnected: '已断开',
     };
+    final running = vm.state == GamepadLinkState.advertising ||
+        vm.state == GamepadLinkState.connected;
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.md,
         vertical: AppSpacing.sm,
       ),
-      child: Column(
+      child: Row(
         children: [
-          Row(
-            children: [
-              Text(
-                '链路：${label[vm.state]}（点此重试）',
-                style:
-                    const TextStyle(fontSize: 12, color: AppColors.secondary),
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: running ? () => vm.stop() : () => vm.connect(),
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.md,
+                vertical: AppSpacing.xs,
               ),
-              const Spacer(),
-              Text(
-                '已发 ${vm.frames} 帧',
-                style:
-                    const TextStyle(fontSize: 12, color: AppColors.secondary),
+              decoration: BoxDecoration(
+                color: running
+                    ? AppColors.border
+                    : AppColors.primary.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
+                border: Border.all(color: AppColors.border),
               ),
-            ],
-          ),
-          if (vm.error != null) ...[
-            const SizedBox(height: 2),
-            Text(
-              '启动失败：${vm.error}',
-              style: const TextStyle(fontSize: 12, color: AppColors.error),
+              child: Text(
+                running ? '停止' : '启动广播',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: running ? AppColors.secondary : AppColors.primary,
+                ),
+              ),
             ),
-          ],
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '链路：${label[vm.state]}',
+                  style: const TextStyle(
+                      fontSize: 12, color: AppColors.secondary),
+                ),
+                if (vm.error != null)
+                  Text(
+                    '启动失败：${vm.error}',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                        fontSize: 12, color: AppColors.error),
+                  ),
+              ],
+            ),
+          ),
+          Text(
+            '已发 ${vm.frames} 帧',
+            style: const TextStyle(fontSize: 12, color: AppColors.secondary),
+          ),
         ],
       ),
     );
