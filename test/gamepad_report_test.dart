@@ -2,7 +2,7 @@
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:my_app/features/device_link/gamepad/gamepad_report.dart';
+import 'package:my_app/features/gamepad/gamepad_report.dart';
 
 void main() {
   group('GamepadReport.encode', () {

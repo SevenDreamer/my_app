@@ -8,9 +8,11 @@ import 'package:permission_handler/permission_handler.dart';
 
 import 'gamepad_link.dart';
 import 'gamepad_report.dart';
+import 'latency_probe.dart';
 
 class GamepadViewModel extends ChangeNotifier {
-  GamepadViewModel(this._link) {
+  GamepadViewModel(this._link, {LatencyProbe? probe})
+      : _probe = probe ?? LatencyProbe() {
     _sub = _link.state.listen((s) {
       _state = s;
       notifyListeners();
@@ -18,6 +20,7 @@ class GamepadViewModel extends ChangeNotifier {
   }
 
   final GamepadLink _link;
+  final LatencyProbe _probe;
   StreamSubscription<GamepadLinkState>? _sub;
 
   GamepadLinkState _state = GamepadLinkState.idle;
@@ -26,6 +29,11 @@ class GamepadViewModel extends ChangeNotifier {
   int _lx = 128, _ly = 128, _rx = 128, _ry = 128;
   GamepadReport _report = const GamepadReport();
   int _frames = 0;
+  Timer? _heartTimer;
+  int _heartSeq = 0;
+
+  /// 延迟测试（心跳模式）是否运行中
+  bool latencyTestOn = false;
 
   /// 十字键方向内部位（组合出 hat 值用）
   static const int _up = 1, _right = 2, _down = 4, _left = 8;
@@ -77,6 +85,28 @@ class GamepadViewModel extends ChangeNotifier {
   /// 停止广播（可再次 [connect] 重启）
   Future<void> stop() => _link.stop();
 
+  /// 开关延迟测试（心跳模式）：每 [kBeatInterval] 翻转 A 键——
+  /// 偶拍按下 / 奇拍抬起，节拍时间戳走 UDP 广播供被控端配对测延迟。
+  Future<void> setLatencyTest(bool on) async {
+    if (on == latencyTestOn) return;
+    if (on) {
+      await _probe.start();
+      _heartSeq = 0;
+      _heartTimer = Timer.periodic(kBeatInterval, (_) {
+        setButton(GamepadButton.a, _heartSeq.isEven);
+        _probe.beat();
+        _heartSeq++;
+      });
+    } else {
+      _heartTimer?.cancel();
+      _heartTimer = null;
+      setButton(GamepadButton.a, false);
+      _probe.stop();
+    }
+    latencyTestOn = on;
+    notifyListeners();
+  }
+
   /// 按下/松开一个功能按钮（[GamepadButton] 位）
   void setButton(int mask, bool pressed) {
     if (pressed ? _buttons.add(mask) : _buttons.remove(mask)) _emit();
@@ -122,6 +152,8 @@ class GamepadViewModel extends ChangeNotifier {
 
   @override
   void dispose() {
+    _heartTimer?.cancel();
+    _probe.stop();
     unawaited(_sub?.cancel());
     unawaited(_link.stop());
     super.dispose();

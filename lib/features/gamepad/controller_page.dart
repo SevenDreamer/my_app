@@ -153,6 +153,7 @@ class _ControllerPageState extends State<ControllerPage> {
           return Column(
             children: [
               _StatusBar(vm: _vm),
+              _LatencyBar(vm: _vm),
               Expanded(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(AppSpacing.md),
@@ -310,6 +311,60 @@ class _StatusBar extends StatelessWidget {
           Text(
             '已发 ${vm.frames} 帧',
             style: const TextStyle(fontSize: 12, color: AppColors.secondary),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 延迟测试开关行：心跳模式（需与被控端连同一 Wi-Fi）
+class _LatencyBar extends StatelessWidget {
+  const _LatencyBar({required this.vm});
+
+  final GamepadViewModel vm;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+      child: Row(
+        children: [
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => vm.setLatencyTest(!vm.latencyTestOn),
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.md,
+                vertical: AppSpacing.xs,
+              ),
+              decoration: BoxDecoration(
+                color: vm.latencyTestOn
+                    ? AppColors.border
+                    : AppColors.primary.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: Text(
+                vm.latencyTestOn ? '停止测量' : '延迟测试',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: vm.latencyTestOn
+                      ? AppColors.secondary
+                      : AppColors.primary,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Text(
+              vm.latencyTestOn
+                  ? '心跳测试中（100ms）——请勿触碰屏幕'
+                  : '与被控端连同一 Wi-Fi 后开始',
+              style: const TextStyle(fontSize: 11, color: AppColors.secondary),
+            ),
           ),
         ],
       ),
