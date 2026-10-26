@@ -2,6 +2,7 @@
 //!
 //! MVVM：只读 GamepadViewModel 快照 + 调命令方法，不触碰链路层。
 //! M1 接入 HID 后，本页原样复用为真机调试台。
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 import '../../../design/tokens.dart';
@@ -11,6 +12,7 @@ import 'fake_gamepad_link.dart';
 import 'gamepad_link.dart';
 import 'gamepad_report.dart';
 import 'gamepad_view_model.dart';
+import 'hid_gamepad_link.dart';
 
 class GamepadPage extends StatefulWidget {
   const GamepadPage({super.key});
@@ -20,20 +22,22 @@ class GamepadPage extends StatefulWidget {
 }
 
 class _GamepadPageState extends State<GamepadPage> {
-  late final FakeGamepadLink _link;
+  late final GamepadLink _link;
   late final GamepadViewModel _vm;
 
   @override
   void initState() {
     super.initState();
-    _link = FakeGamepadLink();
+    // Android 走真 HID；其它平台（桌面调试）退回假链路
+    _link = defaultTargetPlatform == TargetPlatform.android
+        ? HidGamepadLink()
+        : FakeGamepadLink();
     _vm = GamepadViewModel(_link)..connect();
   }
 
   @override
   void dispose() {
-    _vm.dispose();
-    _link.dispose();
+    _vm.dispose(); // 内部会 stop() 链路并释放
     super.dispose();
   }
 
@@ -47,7 +51,11 @@ class _GamepadPageState extends State<GamepadPage> {
           final r = _vm.report;
           return Column(
             children: [
-              _StatusBar(vm: _vm),
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => _vm.connect(),
+                child: _StatusBar(vm: _vm),
+              ),
               Expanded(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(AppSpacing.md),
@@ -152,17 +160,30 @@ class _StatusBar extends StatelessWidget {
         horizontal: AppSpacing.md,
         vertical: AppSpacing.sm,
       ),
-      child: Row(
+      child: Column(
         children: [
-          Text(
-            '链路：${label[vm.state]}',
-            style: const TextStyle(fontSize: 12, color: AppColors.secondary),
+          Row(
+            children: [
+              Text(
+                '链路：${label[vm.state]}（点此重试）',
+                style:
+                    const TextStyle(fontSize: 12, color: AppColors.secondary),
+              ),
+              const Spacer(),
+              Text(
+                '已发 ${vm.frames} 帧',
+                style:
+                    const TextStyle(fontSize: 12, color: AppColors.secondary),
+              ),
+            ],
           ),
-          const Spacer(),
-          Text(
-            '已发 ${vm.frames} 帧',
-            style: const TextStyle(fontSize: 12, color: AppColors.secondary),
-          ),
+          if (vm.error != null) ...[
+            const SizedBox(height: 2),
+            Text(
+              '启动失败：${vm.error}',
+              style: const TextStyle(fontSize: 12, color: AppColors.error),
+            ),
+          ],
         ],
       ),
     );

@@ -1,0 +1,19 @@
+name: hid_gamepad
+description: 手机模拟蓝牙 HID 手柄（Android BluetoothHidDevice 平台通道）
+version: 0.1.0
+publish_to: 'none'
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+  flutter: '>=3.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: com.myapp.hid_gamepad
+        pluginClass: HidGamepadPlugin

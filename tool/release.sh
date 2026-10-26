@@ -76,7 +76,17 @@ r2_put "$R2_PREFIX/$ASSET" "$APK" application/vnd.android.package-archive
 # 3) 生成并上传 manifest（双写两份同内容：新版本固定读 manifest.json；
 #    manifest-dev.json 供老版本（按旧「更新通道」读取）继续收到更新）
 MANIFEST=manifest.json
-python3 - "$NAME" "$NOTES" "$R2_BASE_URL/$ASSET" "build/$MANIFEST" <<'PY'
+# 解释器探测：不能只看 command -v——WindowsApps 的 python3 是商店占位
+# stub（运行即静默退出 49），必须试跑 --version 验证真的可用
+PY=""
+for c in python3 python; do
+  if command -v "$c" >/dev/null 2>&1 && "$c" --version >/dev/null 2>&1; then
+    PY="$c"
+    break
+  fi
+done
+[ -n "$PY" ] || { echo "需要可用的 python3 或 python" >&2; exit 1; }
+"$PY" - "$NAME" "$NOTES" "$R2_BASE_URL/$ASSET" "build/$MANIFEST" <<'PY'
 import json, sys
 version, notes, url, out = sys.argv[1:5]
 manifest = {

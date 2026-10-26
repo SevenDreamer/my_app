@@ -313,3 +313,14 @@
   3. 任何分支最终 `_finish()` 放行，「跳过」按钮全程可见。
 - **通用教训**：`Runtime.exit(0)` 硬杀进程前，所有异步落盘的写入都可能丢失；
   需要跨重启存活的状态必须同步 flush 到普通文件，不能用异步 KV 存储。
+
+### 30. WindowsApps 的 python3 是商店 stub：静默退出 49 杀脚本
+
+- **现象**：bash 脚本（`set -e`）跑到调 `python3` 的那行**无声死亡**，退出码 49，
+  没有任何报错输出（发版脚本连续两次死在这）。
+- **根因**：`C:\...\Microsoft\WindowsApps\python3.exe` 是微软商店的占位 stub
+  （`command -v` 找得到它），一运行就静默退出 49；真正的解释器是 `python`。
+  "取第一个存在的"探测（`command -v python3 || command -v python`）会被 stub 骗过。
+- **解法**：解释器探测必须**试跑验证**——`"$c" --version >/dev/null 2>&1` 通过才
+  采纳（见 `tool/release.sh` 的 PY 探测）；Windows 上任何"找可执行文件"的
+  选择逻辑都该加这层验活。

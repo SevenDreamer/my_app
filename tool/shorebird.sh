@@ -43,7 +43,10 @@ if [ -z "${ANDROID_HOME:-}" ]; then
       done
       ;;
     windows)
-      for d in "/c/AndroidSdk" "/d/AndroidSdk" "/c/Users/${USERNAME:-}/AppData/Local/Android/Sdk"; do
+      # 注意：必须原生盘符形式（D:/...）——这些值以环境变量传给原生
+      # flutter/gradle，MSYS 形式（/d/...）在不做路径转换的终端里会报
+      # "No Android SDK found"（bash 的 [ -d ] 同样认 D:/ 形式）
+      for d in "C:/AndroidSdk" "D:/AndroidSdk" "C:/Users/${USERNAME:-}/AppData/Local/Android/Sdk"; do
         [ -d "$d" ] && export ANDROID_HOME="$d" && break
       done
       ;;
@@ -59,7 +62,7 @@ if [ -z "${JAVA_HOME:-}" ]; then
       done
       ;;
     windows)
-      for d in "/c/Users/${USERNAME:-}/scoop/apps/temurin17-jdk/current"; do
+      for d in "C:/Users/${USERNAME:-}/scoop/apps/temurin17-jdk/current"; do
         [ -d "$d" ] && export JAVA_HOME="$d" && break
       done
       ;;

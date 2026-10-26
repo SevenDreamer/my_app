@@ -284,6 +284,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.27.0"
+  hid_gamepad:
+    dependency: "direct main"
+    description:
+      path: "packages/hid_gamepad"
+      relative: true
+    source: path
+    version: "0.1.0"
   hooks:
     dependency: transitive
     description:

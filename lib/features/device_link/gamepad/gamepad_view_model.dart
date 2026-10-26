@@ -4,6 +4,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import 'gamepad_link.dart';
 import 'gamepad_report.dart';
@@ -56,8 +57,22 @@ class GamepadViewModel extends ChangeNotifier {
       .join(' ');
 
   /// 启动链路（假链路立即连上；真实现为 HID 广播）
-  Future<void> connect({String name = 'my_app Gamepad'}) =>
-      _link.startAsGamepad(name: name);
+  Future<void> connect({String name = 'my_app Gamepad'}) async {
+    try {
+      // HID 需要蓝牙运行时权限（31+ 为 BLUETOOTH_CONNECT/SCAN，以下自动映旧权限）
+      if (defaultTargetPlatform == TargetPlatform.android) {
+        await [Permission.bluetoothConnect, Permission.bluetoothScan].request();
+      }
+      await _link.startAsGamepad(name: name);
+      error = null;
+    } catch (e) {
+      error = '$e';
+    }
+    notifyListeners();
+  }
+
+  /// 启动失败的错误信息（无则为 null）
+  String? error;
 
   /// 按下/松开一个功能按钮（[GamepadButton] 位）
   void setButton(int mask, bool pressed) {

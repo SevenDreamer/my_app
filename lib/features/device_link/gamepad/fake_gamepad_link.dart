@@ -35,9 +35,6 @@ class FakeGamepadLink implements GamepadLink {
   @override
   Future<void> stop() async {
     _controller.add(GamepadLinkState.idle);
-  }
-
-  void dispose() {
-    unawaited(_controller.close());
+    await _controller.close();
   }
 }
