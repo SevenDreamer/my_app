@@ -3,7 +3,7 @@
 //! R2 公开桶的安装包 URL 匿名长期有效——不再走 Device Flow token
 //! 换 GitHub 签名 URL（旧方案链接 1 小时过期）。二维码里放 manifest
 //! 解析出的下载地址，手机扫码浏览器打开直接下载。
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 

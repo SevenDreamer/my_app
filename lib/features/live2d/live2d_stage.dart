@@ -10,7 +10,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
 import '../../core/logging/app_logger.dart';
 import 'package:live2d/live2d.dart';

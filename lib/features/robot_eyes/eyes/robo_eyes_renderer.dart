@@ -8,7 +8,7 @@
 //! 设计参考：github.com/FluxGarage/RoboEyes（Arduino/OLED 库，MIT）
 import 'dart:math' as math;
 
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
 import '../expressions.dart';
 import 'eye_renderer.dart';

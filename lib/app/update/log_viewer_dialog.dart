@@ -1,5 +1,5 @@
 //! 日志查看弹窗（调试用）：AppLogger 的 ring buffer 全量展示
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 import '../../core/logging/app_logger.dart';

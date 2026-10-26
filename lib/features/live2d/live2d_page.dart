@@ -3,11 +3,12 @@
 //! 三模型切换、透明背景（看板娘浮在 UI 上）、内置触摸跟踪（眼/头跟手指）。
 //! JS 引擎默认走 CDN（可经 Live2DViewer 的 cubismCoreJsUrl 等参数换本地资产）。
 //! 模型资产经包内置的本地 HttpServer 喂给 WebView，Flutter assets 直接可用。
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import '../../design/widgets/app_spinner.dart';
 import 'live2d_settings_page.dart';
 import 'live2d_stage.dart';
-import 'package:shadcn_ui/shadcn_ui.dart'; // LucideIcons 由它 re-export
+import 'package:shadcn_ui/shadcn_ui.dart';
+import '../../design/widgets/app_scaffold.dart'; // LucideIcons 由它 re-export
 
 import '../../core/logging/app_logger.dart';
 import '../../data/live2d_models.dart';
@@ -83,19 +84,19 @@ class _Live2dPageState extends State<Live2dPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppHeader(
+    return AppScaffold(
+      header: AppHeader(
         title: 'Live2D 看板娘',
         actions: [
           // 方案 B：汉堡按钮直达 Live2D 设置页（模型选择/导入管理）
           Padding(
             padding: const EdgeInsets.only(right: AppSpacing.sm),
-            child: IconButton(
+            child: ShadIconButton(
               icon: const Icon(LucideIcons.menu, size: 20),
               onPressed: () {
                 Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) => Live2dSettingsPage(
+                  PageRouteBuilder<void>(
+                    pageBuilder: (_, __, ___) => Live2dSettingsPage(
                       currentIndex: _idx,
                       onSelect: (i) => _load(i),
                     ),

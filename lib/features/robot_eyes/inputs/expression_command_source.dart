@@ -2,7 +2,7 @@
 //!
 //! 与视线输入（look_source.dart）对称：键盘、未来的手势/语音/表情识别
 //! 都实现 ExpressionCommandSource，向页面层投递语义命令。
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
 import '../expressions.dart';
 

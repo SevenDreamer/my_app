@@ -1,7 +1,7 @@
 //! 加载转圈（纯 CustomPaint 自绘——去 Material 化的 CircularProgressIndicator）
 import 'dart:math' as math;
 
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
 import '../tokens.dart';
 

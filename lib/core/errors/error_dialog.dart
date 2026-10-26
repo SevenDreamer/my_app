@@ -1,5 +1,5 @@
 //! 错误详情弹窗：码 + 人话 + 建议 + 完整原文（可滚动可复制）——替代 toast 糊脸
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter/services.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
@@ -55,8 +55,7 @@ Future<void> showErrorDialog(
             mainAxisSize: MainAxisSize.min,
             children: [
               if (error.hint != null) ...[
-                Text('建议：${error.hint}',
-                    style: Theme.of(ctx).textTheme.labelSmall),
+                Text('建议：${error.hint}', style: AppTypography.labelSm),
                 const SizedBox(height: AppSpacing.sm),
               ],
               if (error.detail != null)
@@ -68,10 +67,7 @@ Future<void> showErrorDialog(
                     borderRadius: BorderRadius.circular(AppRadius.sm),
                     border: Border.all(color: AppColors.border),
                   ),
-                  child: SelectableText(
-                    error.detail!,
-                    style: Theme.of(ctx).textTheme.labelSmall,
-                  ),
+                  child: Text(error.detail!, style: AppTypography.labelSm),
                 ),
             ],
           ),

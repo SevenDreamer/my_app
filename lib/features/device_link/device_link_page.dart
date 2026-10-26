@@ -2,13 +2,15 @@
 //!
 //! MVVM：View 只读 ViewModel 快照 + 调命令方法，不触碰传输层。
 //! 双角色同一入口：本机建组（Host）或扫描加入（Client），文本双向互通。
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
+import '../../design/widgets/app_scaffold.dart';
 
 import '../../data/models/link_message.dart';
 import '../../data/models/link_peer.dart';
 import '../../data/services/link_transport.dart';
 import '../../design/tokens.dart';
+import '../../design/widgets/app_list_tile.dart';
 import '../../design/widgets/app_header.dart';
 import '../../design/widgets/app_section.dart';
 import 'device_link_view_model.dart';
@@ -39,8 +41,8 @@ class _DeviceLinkPageState extends State<DeviceLinkPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: const AppHeader(title: '设备互联'),
+    return AppScaffold(
+      header: const AppHeader(title: '设备互联'),
       body: ListenableBuilder(
         listenable: _vm,
         builder: (context, _) {
@@ -122,10 +124,7 @@ class _StatusBanner extends StatelessWidget {
           Expanded(
             child: Text(
               text,
-              style: Theme.of(context)
-                  .textTheme
-                  .labelSmall
-                  ?.copyWith(color: AppColors.primary),
+              style: AppTypography.labelSm.copyWith(color: AppColors.primary),
             ),
           ),
         ],
@@ -217,15 +216,10 @@ class _PeerTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      dense: true,
-      contentPadding: EdgeInsets.zero,
-      leading: const Icon(LucideIcons.users, size: 18),
-      title: Text(peer.name),
-      subtitle: Text(
-        peer.address,
-        style: Theme.of(context).textTheme.labelSmall,
-      ),
+    return AppListTile(
+      icon: LucideIcons.users,
+      title: peer.name,
+      subtitle: peer.address,
       trailing: ShadButton.outline(
         enabled: !vm.busy,
         onPressed: () => vm.connect(peer),
@@ -248,9 +242,9 @@ class _MessageLine extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: AppSpacing.xs),
       child: Text(
         '$label: ${message.text}',
-        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: message.fromSelf ? AppColors.primary : null,
-            ),
+        style: AppTypography.labelSm.copyWith(
+          color: message.fromSelf ? AppColors.primary : null,
+        ),
       ),
     );
   }

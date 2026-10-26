@@ -2,8 +2,9 @@
 //!
 //! 两级导航：设置（功能入口）→ 模型选择子页 / 导入模型。
 //! 样式为本页私有实现（_SettingRow）——不动公共组件，避免波及「我」页。
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
+import '../../design/widgets/app_scaffold.dart';
 
 import '../../design/tokens.dart';
 import '../../design/widgets/app_header.dart';
@@ -21,8 +22,8 @@ class Live2dSettingsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: const AppHeader(title: 'Live2D 设置'),
+    return AppScaffold(
+      header: const AppHeader(title: 'Live2D 设置'),
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.md),
         children: [
@@ -35,8 +36,8 @@ class Live2dSettingsPage extends StatelessWidget {
                 subtitle: '切换当前使用的 Live2D 模型',
                 onTap: () {
                   Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => Live2dModelSelectPage(
+                    PageRouteBuilder<void>(
+                      pageBuilder: (_, __, ___) => Live2dModelSelectPage(
                         currentIndex: currentIndex,
                         onSelect: onSelect,
                       ),
@@ -124,7 +125,7 @@ class _SettingRowState extends State<_SettingRow> {
         onTap: widget.onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 120),
-          color: _hovering ? const Color(0xFFF4F4F5) : Colors.transparent,
+          color: _hovering ? const Color(0xFFF4F4F5) : const Color(0x00000000),
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.md,
             vertical: AppSpacing.sm + 2,

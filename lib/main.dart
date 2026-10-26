@@ -1,9 +1,8 @@
-//! 应用入口：shadcn 主题外壳（ShadApp）+ Material 共存模式
+//! 应用入口：ShadApp 主题壳（业务层零 Material）
 //!
-//! 采用 shadcn_ui 官方 interop 模式：ShadApp.custom 提供 shadcn 主题，
-//! appBuilder 内的 MaterialApp 继承它生成的 Material 主题再叠加
-//! 公共层覆盖——Material 组件（NavigationBar/FAB 等）与 shadcn 组件同源。
-import 'package:flutter/material.dart';
+//! ShadApp 标准构造内置 Material 联动（shadcn_ui 内部持有），业务代码
+//! 只接触 shadcn_ui 与 design 层——Material 库在业务层全仓退场。
+import 'package:flutter/widgets.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:forui/forui.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
@@ -24,27 +23,17 @@ class MyApp extends StatelessWidget {
     // FTheme（Forui 主题）——去 Material 化目标库；shadcn 期间双包共存
     return FTheme(
       data: FTheme.neutral.light.touch,
-      child: ShadApp.custom(
-        // 调试角标由内部的 MaterialApp 关闭（ShadApp.custom 无此参数）
-        themeMode: ThemeMode.light,
+      child: ShadApp(
+        title: 'my_app',
+        debugShowCheckedModeBanner: false,
         theme: AppTheme.shadLight,
-        appBuilder: (context) {
-          return MaterialApp(
-            title: 'my_app',
-            debugShowCheckedModeBanner: false,
-            // ShadApp 自动生成的 Material 主题（色系与 shadcn 联动），
-            // 再叠加我们自己的公共组件覆盖
-            theme: AppTheme.materialize(Theme.of(context)),
-            localizationsDelegates: const [
-              GlobalShadLocalizations.delegate,
-              GlobalMaterialLocalizations.delegate,
-              GlobalCupertinoLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-            ],
-            home: const BootGate(child: HomePage()),
-            builder: (context, child) => ShadAppBuilder(child: child!),
-          );
-        },
+        localizationsDelegates: const [
+          GlobalShadLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
+        home: const BootGate(child: HomePage()),
       ),
     );
   }

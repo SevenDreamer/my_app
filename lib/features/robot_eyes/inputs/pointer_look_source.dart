@@ -2,7 +2,7 @@
 //!
 //! 拖动中把指针位置归一化成 -1..1 投递给中枢；松手释放槽位，
 //! 视线回落给其他源（无其他源时回正中）。
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
 import 'look_source.dart';
 

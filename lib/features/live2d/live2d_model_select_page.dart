@@ -3,9 +3,11 @@
 //! 模型资产按需下载（包内不内置，见 data/services/model_downloader.dart）：
 //! 点未下载的模型 → 自动下载（带进度）→ 完成后自动选中回舞台；
 //! 点已下载的模型 → 直接选中。
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import '../../design/widgets/app_toast.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
+import '../../design/widgets/app_spinner.dart';
+import '../../design/widgets/app_scaffold.dart';
 
 import '../../data/live2d_models.dart';
 import '../../data/services/model_downloader.dart';
@@ -81,12 +83,12 @@ class _Live2dModelSelectPageState extends State<Live2dModelSelectPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppHeader(
+    return AppScaffold(
+      header: AppHeader(
         title: '模型选择',
         actions: [
           // 导入模型入口：底部弹出选择（本地导入/在线搜索）
-          IconButton(
+          ShadIconButton(
             icon: const Icon(LucideIcons.plus, size: 18),
             onPressed: () => _showImportSheet(context),
           ),
@@ -206,13 +208,10 @@ class _ModelRow extends StatelessWidget {
     final Widget? trailing;
     if (progress != null) {
       stateText = '下载中 ${(progress! * 100).toStringAsFixed(0)}%';
-      trailing = SizedBox(
+      trailing = const SizedBox(
         width: 16,
         height: 16,
-        child: CircularProgressIndicator(
-          strokeWidth: 2,
-          value: progress,
-        ),
+        child: AppSpinner(size: 16),
       );
     } else if (downloaded) {
       stateText = '已下载';

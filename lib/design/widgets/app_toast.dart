@@ -1,5 +1,5 @@
 //! 统一提示（ShadSonner 封装）——替代 Material SnackBar（去 Material 化）
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 class AppToast {

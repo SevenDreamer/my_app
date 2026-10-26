@@ -2,7 +2,7 @@
 //!
 //! 悬停/按压反馈由 MouseRegion + AnimatedContainer 自绘（不依赖 Material
 //! 的 InkWell——shadcn 弹层等无 Material 祖先的上下文也能用）。
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 import '../tokens.dart';
@@ -136,7 +136,7 @@ class _HoverRowState extends State<_HoverRow> {
           decoration: BoxDecoration(
             color: _hovering
                 ? AppColors.onSurface.withValues(alpha: 0.04)
-                : Colors.transparent,
+                : const Color(0x00000000),
             borderRadius: BorderRadius.circular(AppRadius.md),
           ),
           child: widget.child,

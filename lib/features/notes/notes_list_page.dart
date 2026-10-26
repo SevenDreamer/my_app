@@ -1,9 +1,10 @@
 //! 记事本列表页：纯 View（MVVM）
 //!
 //! 状态与数据访问全部来自 [NotesViewModel]，本页只做渲染与交互转发。
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import '../../design/widgets/app_spinner.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
+import '../../design/widgets/app_scaffold.dart';
 
 import '../../data/models/note.dart';
 import '../../design/tokens.dart';
@@ -43,19 +44,24 @@ class _NotesListPageState extends State<NotesListPage> {
   Future<void> _openEdit([Note? note]) async {
     // 编辑页共享同一 ViewModel：保存/删除后列表自动刷新，无需手动回读
     await Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => NoteEditPage(viewModel: _viewModel, note: note),
+      PageRouteBuilder<void>(
+        pageBuilder: (_, __, ___) =>
+            NoteEditPage(viewModel: _viewModel, note: note),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: const AppHeader(title: '记事本'),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _openEdit(),
-        child: const Icon(LucideIcons.plus),
+    return AppScaffold(
+      header: AppHeader(
+        title: '记事本',
+        actions: [
+          ShadIconButton(
+            icon: const Icon(LucideIcons.plus),
+            onPressed: () => _openEdit(),
+          ),
+        ],
       ),
       // 监听 ViewModel：任何命令完成后状态快照自动推送重建
       body: ListenableBuilder(
@@ -85,10 +91,10 @@ class _NotesListPageState extends State<NotesListPage> {
                     ),
                   ),
                   const SizedBox(height: AppSpacing.md),
-                  Text(
+                  const Text(
                     '还没有笔记\n点击右下角 + 记录你的想法',
                     textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.labelSmall,
+                    style: AppTypography.labelSm,
                   ),
                 ],
               ),
@@ -123,7 +129,7 @@ class _NotesListPageState extends State<NotesListPage> {
                     subtitle: note.content,
                     trailing: Text(
                       _fmtTime(note.updatedAt),
-                      style: Theme.of(context).textTheme.labelSmall,
+                      style: AppTypography.labelSm,
                     ),
                     onTap: () => _openEdit(note),
                   ),

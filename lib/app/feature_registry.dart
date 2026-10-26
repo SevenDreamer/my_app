@@ -6,7 +6,7 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 import '../features/component_gallery/component_gallery_page.dart';

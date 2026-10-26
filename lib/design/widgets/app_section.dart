@@ -1,7 +1,7 @@
 //! 组件库：分节（方案页/设置页的内容分组）
 //!
 //! 小节标题 + 若干内容块，间距遵循 DESIGN.md · Layout（8pt 网格）。
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
 import '../tokens.dart';
 
@@ -34,10 +34,8 @@ class AppSection extends StatelessWidget {
               Expanded(
                 child: Text(
                   title,
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodyMedium
-                      ?.copyWith(fontWeight: FontWeight.w600),
+                  style: AppTypography.bodyMd
+                      .copyWith(fontWeight: FontWeight.w600),
                 ),
               ),
               if (trailing != null) trailing!,

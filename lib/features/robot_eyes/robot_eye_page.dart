@@ -5,10 +5,11 @@
 //! 拖动/键盘/idle 的具体翻译逻辑都在 inputs/，渲染在 eyes/。
 import 'dart:math' as math;
 
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 import '../../design/widgets/app_header.dart';
+import '../../design/widgets/app_scaffold.dart';
 import 'expressions.dart';
 import 'eyes/eye_renderer.dart';
 import 'eyes/led_dot_renderer.dart';
@@ -104,28 +105,28 @@ class _RobotEyePageState extends State<RobotEyePage> {
     final double eyeWidth = (screenW * 0.86).clamp(240.0, 960.0);
     // 键盘焦点包住整页（含标题栏）：点完按钮后数字键快捷键仍然有效
     return _keyboard.build(
-      Scaffold(
-        backgroundColor: Colors.black,
+      AppScaffold(
+        backgroundColor: const Color(0xFF000000),
         // 顶部标题栏：黑底个性页面（AppHeader 自动带返回按钮）
-        appBar: AppHeader(
+        header: AppHeader(
           title: '机器人眼睛',
-          backgroundColor: Colors.black,
-          foregroundColor: Colors.white,
+          backgroundColor: const Color(0xFF000000),
+          foregroundColor: const Color(0xFFFFFFFF),
           actions: [
-            IconButton(
-              tooltip: '切换风格（当前：${_styles[_styleIndex].name}）',
-              icon: const Icon(LucideIcons.palette),
-              onPressed: _switchStyle,
+            ShadTooltip(
+              builder: (_) => Text('切换风格（当前：${_styles[_styleIndex].name}）'),
+              child: ShadIconButton(
+                icon: const Icon(LucideIcons.palette),
+                onPressed: _switchStyle,
+              ),
             ),
           ],
         ),
         // 输入源的 build 各自负责挂接手势，层层包裹即可
         body: _pointer.build(
-          GestureDetector(
-            // 右键 = 表情菜单（表情/随机/切换风格都走这里）
-            onSecondaryTapDown: (d) => showExpressionMenu(
-              context,
-              d,
+          // 右键/长按 = 表情菜单（表情/随机/切换风格都走这里）
+          ShadContextMenuRegion(
+            items: buildExpressionMenuItems(
               onPick: _applyCommand,
               onSwitchStyle: _switchStyle,
               currentStyleName: _styles[_styleIndex].name,

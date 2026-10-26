@@ -3,7 +3,7 @@
 //! Android：点「下载并安装」→ 进度框（0..1）→ 下载完成自动调起系统安装器；
 //! 桌面：「前往下载」打开下载页。
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:url_launcher/url_launcher.dart';
 

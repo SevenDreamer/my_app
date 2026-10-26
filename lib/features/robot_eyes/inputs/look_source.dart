@@ -5,7 +5,7 @@
 //!   只做一件事——把自己那种输入翻译成视线方向（-1..1）投递给 LookSink；
 //!   LookInputHub 按优先级仲裁出唯一视线，喂给逻辑层。
 //!   多源规则：手动拖动 > 摄像头眼动 > idle 乱瞟（数值大的优先级胜出）。
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
 /// 视线提交句柄：输入源通过它向中枢投递视线
 abstract class LookSink {

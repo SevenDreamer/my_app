@@ -2,7 +2,7 @@
 //!
 //! 通过 build 返回的 Focus 包装组件接管键盘事件（桌面端主用）；
 //! 移动端未来可在此并列添加手势/语音/表情识别等命令源。
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter/services.dart';
 
 import '../expressions.dart';

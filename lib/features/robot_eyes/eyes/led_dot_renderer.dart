@@ -3,7 +3,7 @@
 //! 长相定义（模板位图、瞳孔参数）与画法（方形灯珠、柔光晕、
 //! 灯珠随机翻转过渡）全部内聚在本文件——换样式时整文件替换即可，
 //! 逻辑层与其他文件不需要知道灯珠的存在。
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
 import '../expressions.dart';
 import 'eye_renderer.dart';

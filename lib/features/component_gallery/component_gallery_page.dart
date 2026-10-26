@@ -1,7 +1,7 @@
 //! 组件库页：统一组件与设计规范的实时展示
 //!
 //! 全仓「去 material」的样板间：本页只用 flutter/widgets + shadcn_ui +
-//! design 层，零 package:flutter/material.dart 引用。
+//! design 层，零 Material 引用。
 //! 内容对齐 .agents/skills/shadcn-ui-flutter 的组件文档；
 //! 间距/圆角/颜色一律引 tokens，不硬编码。
 import 'package:flutter/widgets.dart';

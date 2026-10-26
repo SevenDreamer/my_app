@@ -3,10 +3,13 @@
 //! 左=功能列表、中=占位（功能未定）、右=我；功能子页面
 //! （机器人眼睛/记事本）以全屏 push 进入，不受底部栏影响。
 //! 中间位置等想好用途后替换 _ComingSoonTab 即可。
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
 import 'update/patch_notifier.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
+import '../design/widgets/app_bottom_nav.dart';
+import '../design/widgets/app_header.dart';
+import '../design/widgets/app_scaffold.dart';
 
 import '../design/tokens.dart';
 import 'features_page.dart';
@@ -47,38 +50,30 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      // 保活三个 tab 的状态（切回不重建）
-      body: IndexedStack(
-        index: _index,
-        children: const [
-          FeaturesPage(),
-          _ComingSoonTab(),
-          ProfilePage(),
-        ],
-      ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _index,
-        onDestinationSelected: (i) => setState(() => _index = i),
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(LucideIcons.layoutGrid),
-            selectedIcon: Icon(LucideIcons.layoutGrid),
-            label: '功能',
+    // 应用外壳：内容区 + 底部导航（AppScaffold 是内容页壳，首页壳自持结构）
+    return Column(
+      children: [
+        Expanded(
+          child: IndexedStack(
+            index: _index,
+            children: const [
+              FeaturesPage(),
+              _ComingSoonTab(),
+              ProfilePage(),
+            ],
           ),
-          // 中间占位：暂无标签的图标钮，用途待定
-          NavigationDestination(
-            icon: Icon(LucideIcons.circlePlus),
-            selectedIcon: Icon(LucideIcons.circlePlus),
-            label: '',
-          ),
-          NavigationDestination(
-            icon: Icon(LucideIcons.user),
-            selectedIcon: Icon(LucideIcons.user),
-            label: '我',
-          ),
-        ],
-      ),
+        ),
+        AppBottomNav(
+          selectedIndex: _index,
+          onDestinationSelected: (i) => setState(() => _index = i),
+          destinations: const [
+            AppNavDestination(icon: LucideIcons.layoutGrid, label: '功能'),
+            // 中间占位：暂无标签的图标钮，用途待定
+            AppNavDestination(icon: LucideIcons.circlePlus, label: ''),
+            AppNavDestination(icon: LucideIcons.user, label: '我'),
+          ],
+        ),
+      ],
     );
   }
 }
@@ -89,8 +84,8 @@ class _ComingSoonTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('敬请期待')),
+    return AppScaffold(
+      header: const AppHeader(title: '敬请期待'),
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -112,10 +107,7 @@ class _ComingSoonTab extends StatelessWidget {
             const SizedBox(height: AppSpacing.md),
             Text(
               '这个位置的功能还在想',
-              style: Theme.of(context)
-                  .textTheme
-                  .labelSmall
-                  ?.copyWith(color: AppColors.secondary),
+              style: AppTypography.labelSm.copyWith(color: AppColors.secondary),
             ),
           ],
         ),

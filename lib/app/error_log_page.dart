@@ -1,7 +1,9 @@
 //! 错误日志页：历史错误列表（最新在前，点条目回看完整详情）
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import '../design/widgets/app_spinner.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
+import '../design/tokens.dart';
+import '../design/widgets/app_scaffold.dart';
 
 import '../core/errors/error_codes.dart';
 import '../core/errors/error_dialog.dart';
@@ -42,8 +44,8 @@ class _ErrorLogPageState extends State<ErrorLogPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: const AppHeader(title: '错误日志'),
+    return AppScaffold(
+      header: const AppHeader(title: '错误日志'),
       body: _loading
           ? const Center(child: AppSpinner())
           : _entries.isEmpty
@@ -64,7 +66,7 @@ class _ErrorLogPageState extends State<ErrorLogPage> {
                         subtitle: e.error.message,
                         trailing: Text(
                           _fmt(e.time),
-                          style: Theme.of(context).textTheme.labelSmall,
+                          style: AppTypography.labelSm,
                         ),
                         onTap: () => showErrorDialog(
                           context,

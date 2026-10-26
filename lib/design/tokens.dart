@@ -2,7 +2,7 @@
 //!
 //! 页面与组件不允许硬编码颜色/字号/圆角/间距，一律从本文件取。
 //! 修改视觉基调时：先改 DESIGN.md，再同步这里。
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
 /// 色彩（DESIGN.md · Colors，与 shadcn zinc 默认值逐一对齐）
 ///

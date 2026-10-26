@@ -1,8 +1,10 @@
 //! 笔记编辑页（新建 / 编辑）：纯 View（MVVM）
 //!
 //! 保存/删除经 [NotesViewModel] 下发，页面自身不接触数据服务。
-import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
+import '../../design/widgets/app_scaffold.dart';
 
 import '../../data/models/note.dart';
 import '../../design/widgets/app_header.dart';
@@ -81,8 +83,8 @@ class _NoteEditPageState extends State<NoteEditPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppHeader(
+    return AppScaffold(
+      header: AppHeader(
         title: _isEditing ? '编辑笔记' : '新建笔记',
         actions: [
           if (_isEditing)
