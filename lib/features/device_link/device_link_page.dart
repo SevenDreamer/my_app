@@ -12,6 +12,7 @@ import '../../design/tokens.dart';
 import '../../design/widgets/app_header.dart';
 import '../../design/widgets/app_section.dart';
 import 'device_link_view_model.dart';
+import 'gamepad/gamepad_page.dart';
 
 class DeviceLinkPage extends StatefulWidget {
   const DeviceLinkPage({super.key});
@@ -83,6 +84,22 @@ class _DeviceLinkPageState extends State<DeviceLinkPage> {
                         else
                           for (final m in _vm.messages.reversed)
                             _MessageLine(message: m),
+                      ],
+                    ),
+                    AppSection(
+                      title: '外设模拟',
+                      children: [
+                        ShadButton.outline(
+                          onPressed: () => Navigator.of(context).push(
+                            PageRouteBuilder<void>(
+                              pageBuilder: (_, __, ___) => const GamepadPage(),
+                              transitionsBuilder: (_, animation, __, child) =>
+                                  FadeTransition(
+                                      opacity: animation, child: child),
+                            ),
+                          ),
+                          child: const Text('手柄调试台'),
+                        ),
                       ],
                     ),
                   ],
