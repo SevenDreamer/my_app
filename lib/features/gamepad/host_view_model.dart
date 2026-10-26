@@ -16,11 +16,17 @@ class HostViewModel extends ChangeNotifier {
   final HidGamepad _gamepad;
   StreamSubscription<HidScanEvent>? _scanSub;
 
+  /// 当前已连接设备（ACL 跟踪 + 进入页面时查询）
+  List<HidBtDevice> connected = [];
+
   /// 已配对设备
   List<HidBtDevice> paired = [];
 
   /// 扫描发现的设备（按地址去重，手柄类排前）
   List<HidBtDevice> found = [];
+
+  /// 收到的手柄输入日志（最新在前，上限 30 条）
+  List<String> inputLog = [];
 
   /// 是否扫描中
   bool scanning = false;
@@ -28,10 +34,11 @@ class HostViewModel extends ChangeNotifier {
   /// 错误信息（无则为 null）
   String? error;
 
-  /// 进入页面刷新：拉取已配对列表
+  /// 进入页面刷新：拉取已连接/已配对列表
   Future<void> refresh() async {
     try {
       paired = await _gamepad.pairedDevices();
+      connected = await _gamepad.connectedDevices();
       error = null;
     } catch (e) {
       error = '$e';
@@ -77,21 +84,38 @@ class HostViewModel extends ChangeNotifier {
   /// 打开系统蓝牙设置（兜底引导）
   Future<void> openBluetoothSettings() => _gamepad.openBluetoothSettings();
 
+  /// 记录一条收到的输入（页面捕获按键后调用）
+  void logInput(String line) {
+    inputLog.insert(0, line);
+    if (inputLog.length > 30) inputLog.removeRange(30, inputLog.length);
+    notifyListeners();
+  }
+
   void _onScanEvent(HidScanEvent e) {
-    final i = found.indexWhere((d) => d.address == e.device.address);
-    if (i >= 0) {
-      found[i] = e.device;
-    } else {
-      found.add(e.device);
-    }
-    // 手柄类排前，其余按名称
-    found.sort((a, b) {
-      if (a.isGamepad != b.isGamepad) return a.isGamepad ? -1 : 1;
-      return a.name.toLowerCase().compareTo(b.name.toLowerCase());
-    });
-    if (e.device.paired &&
-        !paired.any((d) => d.address == e.device.address)) {
-      paired = [...paired, e.device];
+    switch (e.type) {
+      case 'acl_in':
+        if (!connected.any((d) => d.address == e.device.address)) {
+          connected = [...connected, e.device];
+        }
+      case 'acl_out':
+        connected =
+            connected.where((d) => d.address != e.device.address).toList();
+      case 'bond' || 'found':
+        final i = found.indexWhere((d) => d.address == e.device.address);
+        if (i >= 0) {
+          found[i] = e.device;
+        } else {
+          found.add(e.device);
+        }
+        // 手柄类排前，其余按名称
+        found.sort((a, b) {
+          if (a.isGamepad != b.isGamepad) return a.isGamepad ? -1 : 1;
+          return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+        });
+        if (e.device.paired &&
+            !paired.any((d) => d.address == e.device.address)) {
+          paired = [...paired, e.device];
+        }
     }
     notifyListeners();
   }

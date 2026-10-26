@@ -83,7 +83,8 @@ class HidGamepad {
   /// 停止广播并释放资源
   Future<void> stop() => _method.invokeMethod('stop');
 
-  /// 扫描事件流（found / bond）
+  /// 扫描/连接事件流：found（发现设备）/ bond（配对状态）/
+  /// acl_in · acl_out（ACL 连接/断开——被控端「已连接」列表用）
   Stream<HidScanEvent> get scanEvents =>
       _scan ??= _scanEvents.receiveBroadcastStream().map((e) {
         final m = (e as Map).cast<Object?, Object?>();
@@ -98,6 +99,13 @@ class HidGamepad {
   Future<List<HidBtDevice>> pairedDevices() async {
     final list =
         await _method.invokeListMethod<Map<Object?, Object?>>('pairedDevices');
+    return (list ?? []).map(HidBtDevice.fromMap).toList();
+  }
+
+  /// 当前已连接设备列表（HID 主机角色；不可查时返回空，配合 acl 事件）
+  Future<List<HidBtDevice>> connectedDevices() async {
+    final list =
+        await _method.invokeListMethod<Map<Object?, Object?>>('connectedDevices');
     return (list ?? []).map(HidBtDevice.fromMap).toList();
   }
 

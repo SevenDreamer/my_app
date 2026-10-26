@@ -55,10 +55,13 @@ class HidGamepadPlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
                 it.setStreamHandler(object : EventChannel.StreamHandler {
                     override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
                         scanEvents = events
+                        ensureScanReceiver() // ACL 配对/发现事件共用一个接收器
                     }
 
                     override fun onCancel(arguments: Any?) {
                         scanEvents = null
+                        cancelDiscoveryInternal()
+                        unregisterScanReceiver()
                     }
                 })
             }
@@ -66,7 +69,8 @@ class HidGamepadPlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
 
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         unregister()
-        stopScanInternal()
+        cancelDiscoveryInternal()
+        unregisterScanReceiver()
         methodChannel?.setMethodCallHandler(null)
         eventChannel?.setStreamHandler(null)
         scanChannel?.setStreamHandler(null)
@@ -112,9 +116,10 @@ class HidGamepadPlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
                 result.success(null)
             }
             "pairedDevices" -> pairedDevices(result)
+            "connectedDevices" -> connectedDevices(result)
             "startScan" -> startScan(result)
             "stopScan" -> {
-                stopScanInternal()
+                cancelDiscoveryInternal()
                 result.success(null)
             }
             "pair" -> pair(call, result)
@@ -280,31 +285,8 @@ class HidGamepadPlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
             result.error("bluetooth_off", "蓝牙未开启或设备无蓝牙", null)
             return
         }
-        stopScanInternal()
-        val receiver = object : BroadcastReceiver() {
-            override fun onReceive(ctx: Context?, intent: Intent?) {
-                val intent = intent ?: return
-                val action = intent.action ?: return
-                if (action != BluetoothDevice.ACTION_FOUND &&
-                    action != BluetoothDevice.ACTION_BOND_STATE_CHANGED
-                ) return
-                val device: BluetoothDevice? = if (Build.VERSION.SDK_INT >= 33)
-                    intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE, BluetoothDevice::class.java)
-                else @Suppress("DEPRECATION") intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
-                if (device == null) return
-                emitScan(if (action == BluetoothDevice.ACTION_FOUND) "found" else "bond", device)
-            }
-        }
-        scanReceiver = receiver
-        val filter = IntentFilter().apply {
-            addAction(BluetoothDevice.ACTION_FOUND)
-            addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED)
-        }
-        if (Build.VERSION.SDK_INT >= 33) {
-            context.registerReceiver(receiver, filter, Context.RECEIVER_NOT_EXPORTED)
-        } else {
-            @Suppress("DEPRECATION") context.registerReceiver(receiver, filter)
-        }
+        cancelDiscoveryInternal()
+        ensureScanReceiver()
         val ok = try {
             adapter.startDiscovery()
         } catch (_: SecurityException) {
@@ -313,11 +295,47 @@ class HidGamepadPlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
         result.success(ok)
     }
 
-    private fun stopScanInternal() {
+    // 扫描/ACL 事件共用一个接收器；生命周期跟随扫描事件流（onListen 注册、onCancel 注销）
+    private fun ensureScanReceiver() {
+        if (scanReceiver != null) return
+        val receiver = object : BroadcastReceiver() {
+            override fun onReceive(ctx: Context?, intent: Intent?) {
+                val intent = intent ?: return
+                val action = intent.action ?: return
+                val device: BluetoothDevice? = if (Build.VERSION.SDK_INT >= 33)
+                    intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE, BluetoothDevice::class.java)
+                else @Suppress("DEPRECATION") intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
+                if (device == null) return
+                when (action) {
+                    BluetoothDevice.ACTION_FOUND -> emitScan("found", device)
+                    BluetoothDevice.ACTION_BOND_STATE_CHANGED -> emitScan("bond", device)
+                    BluetoothDevice.ACTION_ACL_CONNECTED -> emitScan("acl_in", device)
+                    BluetoothDevice.ACTION_ACL_DISCONNECTED -> emitScan("acl_out", device)
+                }
+            }
+        }
+        scanReceiver = receiver
+        val filter = IntentFilter().apply {
+            addAction(BluetoothDevice.ACTION_FOUND)
+            addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED)
+            addAction(BluetoothDevice.ACTION_ACL_CONNECTED)
+            addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED)
+        }
+        if (Build.VERSION.SDK_INT >= 33) {
+            context.registerReceiver(receiver, filter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            @Suppress("DEPRECATION") context.registerReceiver(receiver, filter)
+        }
+    }
+
+    private fun cancelDiscoveryInternal() {
         try {
             btAdapter()?.cancelDiscovery()
         } catch (_: Exception) {
         }
+    }
+
+    private fun unregisterScanReceiver() {
         scanReceiver?.let {
             try {
                 context.unregisterReceiver(it)
@@ -325,6 +343,22 @@ class HidGamepadPlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
             }
         }
         scanReceiver = null
+    }
+
+    // 当前已连接设备（HID 主机角色）——HID_HOST 是 SDK 隐藏常量（值 4），
+    // 经公开 getConnectedDevices 传整型查询；失败返回空，配合 ACL 事件兜底
+    private fun connectedDevices(result: MethodChannel.Result) {
+        val manager = context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager
+        val list: List<Map<String, Any?>> = if (manager == null) {
+            emptyList()
+        } else {
+            try {
+                manager.getConnectedDevices(HID_HOST_PROFILE).map { deviceMap(it) }
+            } catch (_: Exception) {
+                emptyList()
+            }
+        }
+        result.success(list)
     }
 
     private fun pair(call: MethodCall, result: MethodChannel.Result) {
@@ -387,6 +421,10 @@ class HidGamepadPlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
 
     companion object {
         private const val REPORT_LENGTH = 10
+
+        // BluetoothProfile.HID_HOST——SDK 隐藏常量（public 只有 HID_DEVICE），
+        // 值为 4：经公开 getConnectedDevices 传整型查询主机侧连接
+        private const val HID_HOST_PROFILE = 4
 
         // CoD（Class of Device）0x05(Peripheral) 小类：Joystick=0x04 / Gamepad=0x08
         // ——BluetoothClass.Device 无此常量，取 CoD 规范位值

@@ -24,6 +24,8 @@ class ControllerPage extends StatefulWidget {
 class _ControllerPageState extends State<ControllerPage> {
   late final GamepadLink _link;
   late final GamepadViewModel _vm;
+  GamepadLinkState? _prev;
+  bool _dialogVisible = false;
 
   @override
   void initState() {
@@ -33,10 +35,109 @@ class _ControllerPageState extends State<ControllerPage> {
         ? HidGamepadLink()
         : FakeGamepadLink();
     _vm = GamepadViewModel(_link);
+    _prev = _vm.state;
+    _vm.addListener(_onVmTick);
+  }
+
+  /// 真实连接断开时弹框提示
+  void _onVmTick() {
+    final s = _vm.state;
+    if (_prev == GamepadLinkState.connected &&
+        s == GamepadLinkState.disconnected &&
+        !_dialogVisible) {
+      _showDisconnectedDialog();
+    }
+    _prev = s;
+  }
+
+  void _showDisconnectedDialog() {
+    _dialogVisible = true;
+    showGeneralDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: '设备已断开',
+      pageBuilder: (dialogContext, _, __) => Center(
+        child: Container(
+          width: 280,
+          margin: const EdgeInsets.all(AppSpacing.lg),
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          decoration: BoxDecoration(
+            color: AppColors.neutral,
+            borderRadius: BorderRadius.circular(AppRadius.md),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                '设备已断开',
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              const Text(
+                '与被控端的连接已断开，可以点「启动广播」重新配对。',
+                style: TextStyle(fontSize: 12, color: AppColors.secondary),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => Navigator.of(dialogContext).pop(),
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: AppSpacing.sm,
+                        vertical: AppSpacing.xs,
+                      ),
+                      child: Text(
+                        '知道了',
+                        style: TextStyle(
+                            fontSize: 13, color: AppColors.secondary),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () {
+                      Navigator.of(dialogContext).pop();
+                      _vm.connect();
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.md,
+                        vertical: AppSpacing.xs,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(AppRadius.sm),
+                        border: Border.all(color: AppColors.border),
+                      ),
+                      child: const Text(
+                        '重新连接',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+      transitionBuilder: (_, animation, __, child) =>
+          FadeTransition(opacity: animation, child: child),
+    ).whenComplete(() => _dialogVisible = false);
   }
 
   @override
   void dispose() {
+    _vm.removeListener(_onVmTick);
     _vm.dispose(); // 内部会 stop() 链路并释放
     super.dispose();
   }
