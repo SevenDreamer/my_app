@@ -80,8 +80,8 @@ class _HostConnectionPageState extends State<HostConnectionPage> {
                     const SizedBox(height: AppSpacing.sm),
                     Text(
                       '出错：${vm.error}',
-                      style: const TextStyle(
-                          fontSize: 12, color: AppColors.error),
+                      style:
+                          const TextStyle(fontSize: 12, color: AppColors.error),
                     ),
                   ],
                   const SizedBox(height: AppSpacing.md),

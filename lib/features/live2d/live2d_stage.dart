@@ -38,8 +38,8 @@ class Live2dModelInfo {
 
 /// 平台无关的控制器接口（页面只依赖它）
 abstract class Live2dStageController {
-  /// 加载模型（[assetPath] 形如 assets/models/mao/mao_pro.model3.json）
-  Future<void> loadModel(String assetPath, {bool autoInteract = true});
+  /// 加载模型（[source]：内置资产路径 assets/models/... 或本地文件绝对路径）
+  Future<void> loadModel(String source, {bool autoInteract = true});
   Future<void> setExpression(String name);
   Future<void> startMotion(String group, int index);
   void dispose();
@@ -161,19 +161,27 @@ class DesktopStageController extends Live2dStageController {
     return _wc?.executeScript(buildJs()) ?? Future<void>.value();
   }
 
-  String _resolve(String assetPath) =>
-      _server?.getAssetUrl(assetPath) ?? assetPath;
+  String _resolve(String source) {
+    final server = _server;
+    if (server == null) return source;
+    // 内置资产：assets/... 或 packages/... 走 asset 路由
+    if (source.startsWith('assets/') || source.startsWith('packages/')) {
+      return server.getAssetUrl(source);
+    }
+    // 其余视为文件系统绝对路径（按需下载到本地的模型入口）
+    return server.getFileUrl(source);
+  }
 
   @override
-  Future<void> loadModel(String assetPath, {bool autoInteract = true}) async {
+  Future<void> loadModel(String source, {bool autoInteract = true}) async {
     try {
       await _eval(() =>
-          'window.live2d.loadModel("${_resolve(assetPath)}", {"fit":"contain","scale":1,"autoInteract":$autoInteract});');
+          'window.live2d.loadModel("${_resolve(source)}", {"fit":"contain","scale":1,"autoInteract":$autoInteract});');
       // 轮询渲染完成钩子（vendor 模板的 getRenderedAt）——画面真的上屏才回调
       final elapsed = await _waitRendered();
-      onModelLoaded?.call(Live2dModelInfo(modelUrl: assetPath));
+      onModelLoaded?.call(Live2dModelInfo(modelUrl: source));
       AppLogger.instance.log('live2d',
-          '画面已渲染：$assetPath（${elapsed}ms 后首帧上屏${elapsed < 0 ? '，5s 超时未确认' : ''}）');
+          '画面已渲染：$source（${elapsed}ms 后首帧上屏${elapsed < 0 ? '，5s 超时未确认' : ''}）');
     } catch (e) {
       onError?.call(e.toString());
     }

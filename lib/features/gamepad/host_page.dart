@@ -74,7 +74,8 @@ class _HostPageState extends State<HostPage> {
                   if (!isAndroid) ...[
                     const Text(
                       '被控端搜索/配对仅 Android 支持（Windows 主机端在后续里程碑落地）。',
-                      style: TextStyle(fontSize: 12, color: AppColors.secondary),
+                      style:
+                          TextStyle(fontSize: 12, color: AppColors.secondary),
                     ),
                   ] else ...[
                     GestureDetector(
@@ -118,8 +119,7 @@ class _HostPageState extends State<HostPage> {
                   HostCard(
                     title: '延迟测试',
                     children: [
-                      const HostHint(
-                          '与控制端连同一 Wi-Fi，然后开始测量（测量时勿触碰控制端屏幕）。'),
+                      const HostHint('与控制端连同一 Wi-Fi，然后开始测量（测量时勿触碰控制端屏幕）。'),
                       const SizedBox(height: AppSpacing.sm),
                       HostActionButton(
                         label: _vm.latencyTesting ? '停止测量' : '开始测量',

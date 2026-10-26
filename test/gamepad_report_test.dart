@@ -9,7 +9,8 @@ void main() {
     test('默认报告（全居中/无按键）的黄金字节', () {
       expect(
         const GamepadReport().encode(),
-        equals(Uint8List.fromList([0x01, 0x00, 0x00, 0x08, 128, 128, 128, 128, 0, 0])),
+        equals(Uint8List.fromList(
+            [0x01, 0x00, 0x00, 0x08, 128, 128, 128, 128, 0, 0])),
       );
     });
 
@@ -24,7 +25,8 @@ void main() {
     test('越界值抛 RangeError', () {
       expect(() => const GamepadReport(dpad: 9).encode(), throwsRangeError);
       expect(() => const GamepadReport(lx: 256).encode(), throwsRangeError);
-      expect(() => const GamepadReport(buttons: 0x10000).encode(), throwsRangeError);
+      expect(() => const GamepadReport(buttons: 0x10000).encode(),
+          throwsRangeError);
     });
   });
 

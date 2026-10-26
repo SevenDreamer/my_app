@@ -104,8 +104,8 @@ class HidGamepad {
 
   /// 当前已连接设备列表（HID 主机角色；不可查时返回空，配合 acl 事件）
   Future<List<HidBtDevice>> connectedDevices() async {
-    final list =
-        await _method.invokeListMethod<Map<Object?, Object?>>('connectedDevices');
+    final list = await _method
+        .invokeListMethod<Map<Object?, Object?>>('connectedDevices');
     return (list ?? []).map(HidBtDevice.fromMap).toList();
   }
 

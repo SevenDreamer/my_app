@@ -89,14 +89,14 @@ class _ControllerPageState extends State<ControllerPage> {
             children: [
               Text(
                 title,
-                style: const TextStyle(
-                    fontSize: 15, fontWeight: FontWeight.w600),
+                style:
+                    const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: AppSpacing.sm),
               Text(
                 body,
-                style: const TextStyle(
-                    fontSize: 12, color: AppColors.secondary),
+                style:
+                    const TextStyle(fontSize: 12, color: AppColors.secondary),
               ),
               const SizedBox(height: AppSpacing.lg),
               Row(
@@ -112,8 +112,8 @@ class _ControllerPageState extends State<ControllerPage> {
                       ),
                       child: Text(
                         '知道了',
-                        style: TextStyle(
-                            fontSize: 13, color: AppColors.secondary),
+                        style:
+                            TextStyle(fontSize: 13, color: AppColors.secondary),
                       ),
                     ),
                   ),
@@ -196,8 +196,10 @@ class _ControllerPageState extends State<ControllerPage> {
                             label: 'Back',
                             wide: true,
                             pressed: r.pressed(GamepadButton.back),
-                            onDown: () => _vm.setButton(GamepadButton.back, true),
-                            onUp: () => _vm.setButton(GamepadButton.back, false),
+                            onDown: () =>
+                                _vm.setButton(GamepadButton.back, true),
+                            onUp: () =>
+                                _vm.setButton(GamepadButton.back, false),
                           ),
                           const SizedBox(width: AppSpacing.sm),
                           _PadButton(
@@ -206,7 +208,8 @@ class _ControllerPageState extends State<ControllerPage> {
                             pressed: r.pressed(GamepadButton.start),
                             onDown: () =>
                                 _vm.setButton(GamepadButton.start, true),
-                            onUp: () => _vm.setButton(GamepadButton.start, false),
+                            onUp: () =>
+                                _vm.setButton(GamepadButton.start, false),
                           ),
                           const SizedBox(width: AppSpacing.lg),
                           _PadButton(
@@ -227,8 +230,8 @@ class _ControllerPageState extends State<ControllerPage> {
                               _Stick(
                                 lx: r.lx.toDouble(),
                                 ly: r.ly.toDouble(),
-                                onMove: (dx, dy) => _vm.moveStick(
-                                    left: true, dx: dx, dy: dy),
+                                onMove: (dx, dy) =>
+                                    _vm.moveStick(left: true, dx: dx, dy: dy),
                               ),
                               const SizedBox(height: AppSpacing.md),
                               _Dpad(hat: r.dpad, vm: _vm),
@@ -241,8 +244,8 @@ class _ControllerPageState extends State<ControllerPage> {
                               _Stick(
                                 lx: r.rx.toDouble(),
                                 ly: r.ry.toDouble(),
-                                onMove: (dx, dy) => _vm.moveStick(
-                                    left: false, dx: dx, dy: dy),
+                                onMove: (dx, dy) =>
+                                    _vm.moveStick(left: false, dx: dx, dy: dy),
                               ),
                             ],
                           ),
@@ -316,16 +319,16 @@ class _StatusBar extends StatelessWidget {
               children: [
                 Text(
                   '链路：${label[vm.state]}',
-                  style: const TextStyle(
-                      fontSize: 12, color: AppColors.secondary),
+                  style:
+                      const TextStyle(fontSize: 12, color: AppColors.secondary),
                 ),
                 if (vm.error != null)
                   Text(
                     '启动失败：${vm.error}',
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                        fontSize: 12, color: AppColors.error),
+                    style:
+                        const TextStyle(fontSize: 12, color: AppColors.error),
                   ),
               ],
             ),
@@ -382,9 +385,7 @@ class _LatencyBar extends StatelessWidget {
           const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Text(
-              vm.latencyTestOn
-                  ? '心跳测试中（200ms）——请勿触碰屏幕'
-                  : '与被控端连同一 Wi-Fi 后开始',
+              vm.latencyTestOn ? '心跳测试中（200ms）——请勿触碰屏幕' : '与被控端连同一 Wi-Fi 后开始',
               style: const TextStyle(fontSize: 11, color: AppColors.secondary),
             ),
           ),
@@ -535,7 +536,9 @@ class _PadButton extends StatelessWidget {
         height: size,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: pressed ? AppColors.primary : AppColors.primary.withValues(alpha: 0.06),
+          color: pressed
+              ? AppColors.primary
+              : AppColors.primary.withValues(alpha: 0.06),
           borderRadius: BorderRadius.circular(wide ? AppRadius.md : size / 2),
           border: Border.all(color: AppColors.border),
         ),

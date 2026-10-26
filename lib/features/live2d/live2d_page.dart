@@ -11,8 +11,10 @@ import 'package:shadcn_ui/shadcn_ui.dart'; // LucideIcons 由它 re-export
 
 import '../../core/logging/app_logger.dart';
 import '../../data/live2d_models.dart';
+import '../../data/services/model_downloader.dart';
 import '../../design/tokens.dart';
 import '../../design/widgets/app_header.dart';
+import '../../design/widgets/app_toast.dart';
 
 class Live2dPage extends StatefulWidget {
   const Live2dPage({super.key});
@@ -23,6 +25,7 @@ class Live2dPage extends StatefulWidget {
 
 class _Live2dPageState extends State<Live2dPage> {
   final _ctrl = createLive2dController();
+  final _downloader = ModelDownloader();
   int _idx = 0;
   String? _lastError;
   bool _loading = true;
@@ -57,10 +60,21 @@ class _Live2dPageState extends State<Live2dPage> {
 
   Future<void> _load(int idx) async {
     setState(() => _idx = idx);
-    AppLogger.instance.log('live2d',
-        '开始加载 ${live2dModels[idx].label}（${live2dModels[idx].assetPath}）');
+    final model = live2dModels[idx];
     try {
-      await _ctrl.loadModel(live2dModels[idx].assetPath);
+      // 模型资产按需下载（包内不再内置）：
+      // 已下载 → 本地文件路径；未下载 → 提示去模型选择页下载
+      final String source;
+      if (await _downloader.isDownloaded(model)) {
+        source = await _downloader.localEntryPath(model);
+      } else {
+        if (mounted) {
+          AppToast.show(context, '「${model.label}」未下载，请在模型选择页下载');
+        }
+        return;
+      }
+      AppLogger.instance.log('live2d', '开始加载 ${model.label}（$source）');
+      await _ctrl.loadModel(source);
       AppLogger.instance.log('live2d', 'loadModel 调用完成');
     } catch (e) {
       AppLogger.instance.log('live2d', '异常：$e');
