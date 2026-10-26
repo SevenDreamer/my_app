@@ -39,9 +39,9 @@ void main() {
       meter.ingestSyncAck(0, 0, 0, 0); // θ = 0
 
       meter.ingestBeat(0, 1000); // 本应对应 Down，但其报告在蓝牙层丢了
-      now = 1200; // 超过 kBeatTtlMs=150
-      meter.ingestBeat(2, 1200); // 新偶拍进来 → 回收 seq0（计丢包）
-      now = 1230;
+      now = 1000 + kBeatTtlMs + 1; // 超过存活窗口
+      meter.ingestBeat(2, now); // 新偶拍进来 → 回收 seq0（计丢包）
+      now += 30;
       meter.onKeyEvent(down: true); // 应配到 seq2 而不是错位的 seq0
 
       expect(meter.stats, contains('平均 30ms'));

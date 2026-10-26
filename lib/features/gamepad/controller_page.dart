@@ -39,23 +39,41 @@ class _ControllerPageState extends State<ControllerPage> {
     _vm.addListener(_onVmTick);
   }
 
-  /// 真实连接断开时弹框提示
+  /// 连接建立 / 真实断开时弹框提示
   void _onVmTick() {
     final s = _vm.state;
-    if (_prev == GamepadLinkState.connected &&
-        s == GamepadLinkState.disconnected &&
-        !_dialogVisible) {
-      _showDisconnectedDialog();
+    if (!_dialogVisible) {
+      if (_prev == GamepadLinkState.connected &&
+          s == GamepadLinkState.disconnected) {
+        _showDialog(
+          title: '设备已断开',
+          body: '与被控端的连接已断开，可以点「启动广播」重新配对。',
+          confirmLabel: '重新连接',
+          onConfirm: () => _vm.connect(),
+        );
+      } else if (_prev != GamepadLinkState.connected &&
+          s == GamepadLinkState.connected) {
+        _showDialog(
+          title: '设备已连接',
+          body: '与被控端（主机）连接成功，可以开始操作了。',
+        );
+      }
     }
     _prev = s;
   }
 
-  void _showDisconnectedDialog() {
+  /// 通用提示弹框（可选确认键）
+  void _showDialog({
+    required String title,
+    required String body,
+    String? confirmLabel,
+    VoidCallback? onConfirm,
+  }) {
     _dialogVisible = true;
     showGeneralDialog<void>(
       context: context,
       barrierDismissible: true,
-      barrierLabel: '设备已断开',
+      barrierLabel: title,
       pageBuilder: (dialogContext, _, __) => Center(
         child: Container(
           width: 280,
@@ -69,14 +87,16 @@ class _ControllerPageState extends State<ControllerPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
-                '设备已断开',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+              Text(
+                title,
+                style: const TextStyle(
+                    fontSize: 15, fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: AppSpacing.sm),
-              const Text(
-                '与被控端的连接已断开，可以点「启动广播」重新配对。',
-                style: TextStyle(fontSize: 12, color: AppColors.secondary),
+              Text(
+                body,
+                style: const TextStyle(
+                    fontSize: 12, color: AppColors.secondary),
               ),
               const SizedBox(height: AppSpacing.lg),
               Row(
@@ -97,33 +117,35 @@ class _ControllerPageState extends State<ControllerPage> {
                       ),
                     ),
                   ),
-                  const SizedBox(width: AppSpacing.sm),
-                  GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () {
-                      Navigator.of(dialogContext).pop();
-                      _vm.connect();
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.md,
-                        vertical: AppSpacing.xs,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(AppRadius.sm),
-                        border: Border.all(color: AppColors.border),
-                      ),
-                      child: const Text(
-                        '重新连接',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.primary,
+                  if (confirmLabel != null) ...[
+                    const SizedBox(width: AppSpacing.sm),
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () {
+                        Navigator.of(dialogContext).pop();
+                        onConfirm?.call();
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.md,
+                          vertical: AppSpacing.xs,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(AppRadius.sm),
+                          border: Border.all(color: AppColors.border),
+                        ),
+                        child: Text(
+                          confirmLabel,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.primary,
+                          ),
                         ),
                       ),
                     ),
-                  ),
+                  ],
                 ],
               ),
             ],
@@ -361,7 +383,7 @@ class _LatencyBar extends StatelessWidget {
           Expanded(
             child: Text(
               vm.latencyTestOn
-                  ? '心跳测试中（100ms）——请勿触碰屏幕'
+                  ? '心跳测试中（200ms）——请勿触碰屏幕'
                   : '与被控端连同一 Wi-Fi 后开始',
               style: const TextStyle(fontSize: 11, color: AppColors.secondary),
             ),

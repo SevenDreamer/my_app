@@ -14,11 +14,14 @@ import 'dart:io';
 /// 被控端监听端口（对时请求也发到这里）
 const int kLatencyPort = 45123;
 
-/// 心跳周期
-const Duration kBeatInterval = Duration(milliseconds: 100);
+/// 心跳周期——不宜过快：采样密了统计抖，且 TTL 不变量（< 两倍周期）
+/// 会把可用的迟到样本窗口压得太小
+const Duration kBeatInterval = Duration(milliseconds: 200);
 
-/// 节拍未配对存活窗口（超过计丢包；须小于心跳周期的两倍）
-const int kBeatTtlMs = 150;
+/// 节拍未配对存活窗口（超过计丢包）。
+/// 防错位不变量：必须小于心跳周期的两倍（400ms）——同一奇偶的相邻
+/// 节拍间隔 400ms，TTL 在此之前回收旧拍，晚到事件才不会错配到旧拍。
+const int kBeatTtlMs = 350;
 
 /// 控制端：心跳节拍广播 + 对时应答
 class LatencyProbe {
