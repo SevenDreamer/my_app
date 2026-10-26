@@ -9,6 +9,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
+import '../features/component_gallery/component_gallery_page.dart';
 import '../features/device_link/device_link_page.dart';
 import '../features/gamepad/gamepad_home_page.dart';
 import '../features/live2d/live2d_page.dart';
@@ -96,6 +97,13 @@ final List<FeatureEntry> kFeatures = [
     desktop: PlatformSupport.limited,
     limitedNote: '桌面端仅假链路调试，无真蓝牙',
     mobile: PlatformSupport.full,
+  ),
+  FeatureEntry(
+    id: 'component_gallery',
+    icon: LucideIcons.layoutGrid,
+    title: '组件库',
+    subtitle: '统一组件 · 设计规范 · 实时示例',
+    builder: (_) => const ComponentGalleryPage(),
   ),
   FeatureEntry(
     id: 'robot_eyes',
