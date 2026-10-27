@@ -2,6 +2,10 @@
 //! 来源 DSHA（MIT）——各派生文件带归因头，汇总见仓库 THIRD_PARTY_NOTICES.md。
 library;
 
+export 'src/bridge/adb_bridge.dart';
+export 'src/bridge/adb_virtual_screen_start.dart';
+export 'src/bridge/bridge_connection_descriptor.dart';
+export 'src/bridge/bridge_handshake.dart';
 export 'src/install/install_pipeline.dart';
 export 'src/install/install_probe.dart';
 export 'src/install/install_process.dart';

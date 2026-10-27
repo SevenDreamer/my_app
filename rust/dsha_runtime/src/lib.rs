@@ -12,10 +12,17 @@ pub mod archive;
 pub mod budget;
 pub mod cold_split;
 pub mod control;
+pub mod device_file_operations;
+pub mod device_shell_policy;
 pub mod fs_identity;
 pub mod legacy_tar;
 pub mod limits;
 pub mod signed_members;
+pub mod vscreen_anchor_proof;
+
+/// fd 钉定设备文件层（POSIX only；Windows 宿主不编译，Android/Linux 目标验证）。
+#[cfg(unix)]
+pub mod android_device_files;
 
 /// 构造携带机器可读代号的 IO 错误（对应原版 `IOException("CODE")`）。
 pub fn code_error(code: impl Into<String>) -> std::io::Error {

@@ -1302,6 +1302,8 @@ name = "dsha_runtime"
 version = "0.1.0"
 dependencies = [
  "flate2",
+ "rustix",
+ "sha2",
  "unicode-normalization",
 ]
 

@@ -6,7 +6,9 @@ publish_to: none
 environment:
   sdk: ">=3.3.0 <4.0.0"
 
-# 纯逻辑层，零第三方依赖；Rust 系统面经 FFI（后续批次）接入。
-dependencies: {}
+# 纯逻辑层；crypto = 官方 Dart 团队包（桥握手 HMAC/SHA-256）。
+# Rust 系统面经 FFI（后续批次）接入。
+dependencies:
+  crypto: ^3.0.0
 
 dev_dependencies: {}

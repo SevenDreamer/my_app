@@ -8,3 +8,7 @@ edition = "2024"
 [dependencies]
 flate2 = "1"
 unicode-normalization = "0.1"
+# fd 钉定设备文件层（AndroidDeviceFiles 移植）：POSIX openat/lstat/linkat 族
+rustix = { version = "1", features = ["fs", "std"] }
+# 语义树证明（VirtualScreenAnchorProof 移植）：SHA-256 摘要
+sha2 = "0.10"
