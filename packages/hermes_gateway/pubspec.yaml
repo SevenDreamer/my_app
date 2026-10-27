@@ -1,0 +1,11 @@
+name: hermes_gateway
+description: Hermes gateway 客户端（/api/ws 换行分隔 JSON-RPC；docs/HERMES_GATEWAY_PROTOCOL.md）
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter

@@ -12,6 +12,7 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import '../features/component_gallery/component_gallery_page.dart';
 import '../features/device_link/device_link_page.dart';
 import '../features/gamepad/gamepad_home_page.dart';
+import '../features/hermes/hermes_home_page.dart';
 import '../features/live2d/live2d_page.dart';
 import '../features/notes/notes_list_page.dart';
 import '../features/robot_eyes/robot_eye_page.dart';
@@ -96,6 +97,16 @@ final List<FeatureEntry> kFeatures = [
     // 控制端（HID 模拟）仅 Android 有真实现；桌面端为假链路调试
     desktop: PlatformSupport.limited,
     limitedNote: '桌面端仅假链路调试，无真蓝牙',
+    mobile: PlatformSupport.full,
+  ),
+  FeatureEntry(
+    id: 'hermes',
+    icon: LucideIcons.bot,
+    title: 'Hermes',
+    subtitle: '连接 gateway · 对话 · 工具流',
+    builder: (_) => const HermesHomePage(),
+    // Remote gateway 模式：连 PC/Mac/远程 gateway（协议见 docs/HERMES_GATEWAY_PROTOCOL.md）
+    desktop: PlatformSupport.full,
     mobile: PlatformSupport.full,
   ),
   FeatureEntry(
