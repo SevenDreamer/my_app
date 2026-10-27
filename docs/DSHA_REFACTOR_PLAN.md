@@ -48,11 +48,16 @@ my_app/
 
 | 批次 | 内容 | 状态 |
 |---|---|---|
-| **A** | Python 盘点定稿 ✅ + **ADB 四件套现代化**（显式包结构/剥 importlib 耦合/类型标注） | 🔨 进行中 |
-| B | `runtime/`（Java 30 文件）→ Dart/Rust：安装流水线、事务解包、运行时选择 | ⬜ |
+| **A** | Python 盘点定稿 ✅ + **ADB 四件套现代化**（显式包结构/剥 importlib 耦合/类型标注） | ✅ 完成（pair/shell/policy/_adb_common/setup.sh + README） |
+| B | `runtime/`（Java 30 文件）→ Dart/Rust：安装流水线、事务解包、运行时选择 | ✅ **Dart 编排层**（install_stage/probe/process/pipeline + sensitive_data/shell_quote）+ **Rust 解包层**（dsha_runtime：limits/fs_identity/signed_members/control/budget/legacy_tar/archive/cold_split） |
 | C | `bridge/` AdbBridge(720) → Rust：设备能力门（配合蓝图 M-A 三态/白名单） | ⬜ |
 | D | `vscreen/`（26 文件 8,379 行）→ Rust：锚点证明/观察控件/无障碍 | ⬜ |
 | E | 插件市场七件套现代化（决策⑥）+ 备份 v5/rc1 **兼容层**（决策⑤）+ tools 构建链迁移 | ⬜ |
+
+> 批次 B 遗留接线项（不阻塞批次推进）：`LocalEnvironment`/`InstallProcess.read`
+> （proot 运行时接线）、`TrustedAssetFs` 的 Android 实现（fd 出生身份快路径）、
+> `collision_key` 已入 limits（NFC）。错误代号契约全量保留（COLD_SPLIT_* / TAR_* /
+> GZIP_* / ARCHIVE_* / INSTALL_*）。
 
 ## 4. 合规（每批必做）
 

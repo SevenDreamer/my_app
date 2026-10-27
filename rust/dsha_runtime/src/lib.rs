@@ -8,6 +8,9 @@
 //! 模块路线：limits / fs_identity / signed_members / control（支撑层）→
 //! archive（归档边界）→ cold_split（双流解包 + 签名树 + 原子组装）。
 
+pub mod archive;
+pub mod budget;
+pub mod cold_split;
 pub mod control;
 pub mod fs_identity;
 pub mod legacy_tar;
@@ -17,4 +20,15 @@ pub mod signed_members;
 /// 构造携带机器可读代号的 IO 错误（对应原版 `IOException("CODE")`）。
 pub fn code_error(code: impl Into<String>) -> std::io::Error {
     std::io::Error::other(code.into())
+}
+
+/// 唯一名（候选目录/暂存文件用；纳秒 + 计数器，等价 UUID.randomUUID 的用途）。
+pub fn unique_name() -> String {
+    use std::sync::atomic::{AtomicU64, Ordering};
+    static UNIQUE: AtomicU64 = AtomicU64::new(0);
+    let nanos = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_nanos())
+        .unwrap_or(0);
+    format!("{nanos:x}-{}", UNIQUE.fetch_add(1, Ordering::Relaxed))
 }

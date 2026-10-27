@@ -106,6 +106,12 @@ pub trait Fs {
     fn sync_directory(&self, directory: &Path) -> io::Result<()>;
     fn mode(&self, file: &Path, mode: u32) -> io::Result<()>;
     fn symlink(&self, target: &str, link: &Path) -> io::Result<()>;
+    fn create(&self, file: &Path) -> io::Result<Box<dyn std::io::Write>>;
+    fn read_file(
+        &self,
+        file: &Path,
+        expected: &Node,
+    ) -> io::Result<Box<dyn std::io::Read>>;
 
     /// 安全拼接相对路径（逐段 lstat：根与父必须是真目录，防链接替换）。
     fn child(&self, root: &Path, relative: &str) -> io::Result<PathBuf> {
