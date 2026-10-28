@@ -30,8 +30,8 @@ const EXTRAS_LIMIT: usize = 64;
 const EXTRA_INT_ARRAY_LIMIT: usize = 4096;
 const EXTRA_STRING_ARRAY_LIMIT: usize = 128;
 const GEOMETRY_MARGIN: i32 = 8;
-/// 契约常量（Android `AccessibilityNodeInfo.ACTION_CLICK`）。
-pub const ACTION_CLICK: i32 = 1;
+/// 契约常量（Android `AccessibilityNodeInfo.ACTION_CLICK` = 0x10）。
+pub const ACTION_CLICK: i32 = 16;
 
 fn unavailable(code: &str) -> io::Error {
     io::Error::other(code.to_string())

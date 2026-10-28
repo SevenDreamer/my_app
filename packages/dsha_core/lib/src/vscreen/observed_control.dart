@@ -587,7 +587,7 @@ class VscreenObservedControl {
   }
 }
 
-/// uuid 校验（原版 `VirtualScreenObservedControl.uuid`）。
+/// uuid 校验（原版 `VirtualScreenObservedControl.uuid`；Java `matches` 全匹配）。
 bool vscreenUuidValid(String? id) =>
     id != null &&
-    RegExp(r'[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}').hasMatch(id);
+    RegExp(r'^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$').hasMatch(id);

@@ -2,6 +2,7 @@
 //! 一个显示代次独占显示、图像流和输入；宿主旋转只更换预览订阅。
 library;
 
+import 'input_policy.dart';
 import 'observed_pixels.dart';
 import 'support.dart';
 import 'pixels.dart';
@@ -49,6 +50,28 @@ abstract class VscreenInputApi {
   bool active();
 
   void cancel();
+
+  /// 输入后端是否可用（原版 `available()`）。
+  bool available();
+
+  /// 后端名（原版 `backend()`：reflection / input-command / unavailable）。
+  String backend();
+
+  /// 不可用原因（原版 `unavailableReason()`：缺失成员清单）。
+  String unavailableReason();
+
+  /// 触摸（action: 0=down 1=up 2=move 3=cancel）。
+  VscreenInputResult touch(String stroke, int action, double x, double y);
+
+  VscreenInputResult key(int code);
+
+  VscreenInputResult text(String value);
+
+  /// 最近一次提交结果（原版 `lastResult()`）。
+  VscreenInputResult lastResult();
+
+  /// 看门狗到期清理（原版 `expire()`）。
+  void expire();
 }
 
 /// 显示会话（原版 `VirtualScreenDisplaySession`）。
@@ -89,6 +112,14 @@ class VscreenDisplaySession {
     if (reader != null) {
       VscreenPixels.start(this);
     }
+  }
+
+  /// 创建失败清理（原版 create 失败段：active=false + frame 回收；不走 input.cancel）。
+  void abortCreate() {
+    active = false;
+    final held = frame;
+    frame = null;
+    held?.recycle();
   }
 
   void close() {

@@ -102,7 +102,7 @@ class VscreenTargetEvidence {
   }
 
   static bool _uuid(String value) {
-    return RegExp(r'[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}').hasMatch(value);
+    return RegExp(r'^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$').hasMatch(value);
   }
 
   String kind() => 'vscreen/${observation.name.toLowerCase()}';

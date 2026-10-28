@@ -188,6 +188,9 @@ abstract class CapabilityRequestApi {
   /// 实为 [VscreenTargetEvidence]（构造/匹配期断言）。
   Object? get target;
 
+  /// 原版 `request.capability`（screen 能力门）。
+  String get capability;
+
   String get runtime;
 
   String get installInstanceId;
@@ -210,6 +213,9 @@ abstract class VscreenContext {
   bool current();
 
   bool claimDispatch();
+
+  /// 原版 `validateRoot(displayId, root)`（root 为 `A11yNode` 句柄）。
+  void validateRoot(int displayId, Object root);
 }
 
 /// 受管点击（原版 `VirtualScreenObservedControl.Click`）。
