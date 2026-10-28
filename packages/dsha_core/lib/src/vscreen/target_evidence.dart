@@ -6,7 +6,7 @@
 const int nativeConsentMaxRevision = 9007199254740991;
 
 /// 观察形态（原版 `Observation`；`kind()` 输出小写名）。
-enum Observation { pixel, observedAnchor, anchoredNode, node, editor, displayName }
+enum Observation { pixel, observedAnchor, anchoredNode, node, editor, display }
 
 /// 目标证据（原版 `VscreenTargetEvidence`，实现 `WindowTargetEvidence` 的数据面）。
 class VscreenTargetEvidence {

@@ -51,7 +51,7 @@ my_app/
 | **A** | Python 盘点定稿 ✅ + **ADB 四件套现代化**（显式包结构/剥 importlib 耦合/类型标注） | ✅ 完成（pair/shell/policy/_adb_common/setup.sh + README） |
 | B | `runtime/`（Java 30 文件）→ Dart/Rust：安装流水线、事务解包、运行时选择 | ✅ **Dart 编排层**（install_stage/probe/process/pipeline + sensitive_data/shell_quote）+ **Rust 解包层**（dsha_runtime：limits/fs_identity/signed_members/control/budget/legacy_tar/archive/cold_split） |
 | C | `bridge/` 设备能力门（配合蓝图 M-A 三态/白名单） | ✅ **Dart 编排**（adb_bridge 323/virtual_screen_start/bridge_connection_descriptor/bridge_handshake）+ **Rust 系统面**（device_shell_policy 780/device_file_operations 373/android_device_files ~520）；`cargo check --target aarch64-linux-android` 双绿 |
-| D | `vscreen/`（26 文件 8,379 行）→ Rust/Dart：锚点证明/观察控件/无障碍 | 🔨 D1 证明栈 ✅（Rust vscreen_anchor_proof + Dart target_evidence/peer_proof）；D2 像素/观察 ✅（observed_control/observed_pixels/pixels/display_session/support）；D3-1 契约工具 ✅（policy/input_policy/failures/core_identity/handshake/request_scope/journal）；D3-2 Core 服务面 ⬜ |
+| D | `vscreen/`（26 文件 8,379 行）→ Rust/Dart：锚点证明/观察控件/无障碍 | 🔨 D1 证明栈 ✅；D2 像素/观察 ✅；D3-1 契约工具 ✅；D3-2 Core 服务面 ✅；D4 输入/无障碍 ✅（stroke/input/accessibility/a11y_support）；D5-1 通道与契约面 ✅（channels/native_controls/semantic_adapter/manager_support，runNative 补移植）；D5-2 Manager 状态机 ⬜；D6 UI 层 ⬜ |
 | E | 插件市场七件套现代化（决策⑥）+ 备份 v5/rc1 **兼容层**（决策⑤）+ tools 构建链迁移 | ⬜ |
 
 > 批次 B 遗留接线项（不阻塞批次推进）：`LocalEnvironment`/`InstallProcess.read`

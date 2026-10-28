@@ -81,12 +81,14 @@ abstract class VirtualRootApi {
   void validateActionRoot(int displayId, A11yNode root);
 }
 
-/// 原生控制租约缝（原版 `NativeScreenControlLease`）。
+/// 原生控制租约缝（原版 `NativeScreenControlLease`；AutoCloseable）。
 abstract class NativeScreenControlLease {
   /// 非 null 才准入（原版 `lease.service()`）。
   Object? service();
 
   NativeActionHandle? begin(int displayId, ScreenTarget? target, bool tree);
+
+  void close();
 }
 
 abstract class NativeActionHandle {
@@ -170,6 +172,68 @@ class VscreenAccessibility {
   void clearObserved() {
     if (_sdkInt >= 30) _observed?.clear();
   }
+
+  /// 原生属主入口（原版 `runNative`）：只有显式原生属主可进；远端 null 上下文保持拒绝。
+  Map<String, Object?> runNative(
+    NativeScreenControlLease lease,
+    int displayId,
+    String operation,
+    Map<String, Object?> args,
+  ) {
+    final replies = _nativeReply;
+    if (operation != 'tree' && operation != 'node') {
+      return _fail('INVALID_NATIVE_NODE_OPERATION');
+    }
+    if (lease.service() == null) {
+      return replies!.unavailable();
+    }
+    final tree = operation == 'tree';
+    if (tree) clear();
+    final action = lease.begin(displayId, tree ? null : treeTarget, tree);
+    if (action == null) return replies!.refused('NATIVE_CONTROL_REVOKED');
+    try {
+      final value = run(displayId, operation, args, null, action);
+      if (!action.current()) {
+        clear();
+        return replies!.failure(!tree, action.mayHaveSubmitted(), 'SCREEN_TARGET_CHANGED');
+      }
+      if (value.optBoolean('ok')) {
+        action.validateCurrentTarget();
+        if (tree) {
+          final rows = value['nodes'];
+          if (rows is List) {
+            for (final row in rows) {
+              final node = nodes[(row as Map<String, Object?>).optString('nodeId')];
+              if (node != null) {
+                row
+                  ..put('enabled', node.isEnabled())
+                  ..put('password', node.isPassword())
+                  ..put(
+                      'textTruncated',
+                      !node.isPassword() &&
+                          (node.rawText()?.length ?? 0) > 1000)
+                  ..put('setTextSupported', _nativeTextSupported(node));
+              }
+            }
+          }
+          value.put('treeTtlMs', 30000);
+          final target = treeTarget;
+          if (target != null) {
+            value
+              ..put('packageName', target.packageName)
+              ..put('windowId', target.windowId);
+          }
+        }
+      }
+      return value;
+    } catch (changed) {
+      clear();
+      return replies!.failure(!tree, action.mayHaveSubmitted(), 'SCREEN_TARGET_CHANGED');
+    }
+  }
+
+  static bool _nativeTextSupported(A11yNode node) =>
+      node.isEnabled() && node.isEditable() && !node.isPassword() && node.supportsSetText();
 
   /// 主入口（原版 `run`）。
   Map<String, Object?> run(
