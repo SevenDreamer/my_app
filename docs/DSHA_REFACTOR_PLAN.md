@@ -59,6 +59,27 @@ my_app/
 > `collision_key` 已入 limits（NFC）。错误代号契约全量保留（COLD_SPLIT_* / TAR_* /
 > GZIP_* / ARCHIVE_* / INSTALL_*）。
 
+## 3.1 F 批：产品融合（2026-01 起，进行中）
+
+> 拍板（2026-10-28）：F1 起手 / Android 系统面先 Dart 抽象+桌面桩再补原生 /
+> 新 feature「DSH 系统」登记 registry（desktop limited / mobile full）。
+> 顺序：F1 运行时系统 → F2 被控端屏幕 → F3 插件市场宿主面 → F4 备份/恢复宿主面。
+
+| 步 | 内容 | 状态 |
+|---|---|---|
+| F1-1 | `InstallProcess.read()/Lines`（有界逐行读取+回收语义，行 16 KiB/4,096 字双阈值脱敏、私钥掩码） | ✅ 冒烟 5/5 |
+| F1-2 | `runtime_bootstrap.dart`（RuntimeBootstrap 接缝 + AndroidGroupMap 逐表 + DesktopBootstrap + BasicToolsInstaller）+ `local_install_environment.dart`（1:1 委托）+ execute() 接 read | ✅ 冒烟 ENV_SMOKE_PASS |
+| F1-3 | 「DSH 系统」feature 壳：registry 登记 + MVVM 页面接 InstallRepository 语义 | ⬜ |
+| F1-4 | hermes-runtime 烘进 rootfs + Android 原生接线（Rust 解包 FFI / proot argv / TrustedAssetFs） | ⬜ |
+| F2 | Manager `requestAt` HTTP + `readBootstrap` + Activity/Preview/Overlay/Foreground Flutter 重写（D6 契约件已备） | ⬜ |
+| F3 | 插件市场宿主面（E2 七件套跑 guest，宿主 UI + bridge 命令封装） | ⬜ |
+| F4 | 备份/恢复宿主面（E1 v3/v4 归档 + rc1 迁移的管理 UI） | ⬜ |
+
+> F1 接线余缝（Android 原生轮补齐）：`prepareRuntimeTools`（随包证书/命令入口，
+> RuntimeTools.java 未移植，当前如实抛 UnimplementedError）、解压换 Rust FFI、
+> runner 换 proot argv、`/proc` 真实源。真 bug 修复：WSL bash argv 吞引号
+> （PITFALLS #31）、poller 缺内部截止期、`bash -s` 参数表 126。
+
 ## 4. 合规（每批必做）
 
 - MIT：保留 DSHA 版权声明 → 汇总进 my_app `THIRD_PARTY_NOTICES.md`（新建）

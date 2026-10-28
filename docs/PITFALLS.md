@@ -324,3 +324,17 @@
 - **解法**：解释器探测必须**试跑验证**——`"$c" --version >/dev/null 2>&1` 通过才
   采纳（见 `tool/release.sh` 的 PY 探测）；Windows 上任何"找可执行文件"的
   选择逻辑都该加这层验活。
+
+### 31. WSL System32 的 bash.exe 吞引号：`"$code"` 被 argv 翻译吃掉
+
+- **现象**：Dart `Process.start('bash', ['-c', script])` 跑探测脚本，命令输出一切
+  正常，但 `DSHA_CHECK_RESULT:<key>:` 的退出码段**恒为空**（收集器兜底 -1）。
+- **根因**：`io.Process.start` 走 Windows PATH 解析，`bash` 落到
+  `C:\Windows\System32\bash.exe`（WSL 入口）；WSL 的 argv 翻译会吃掉参数里的
+  引号——脚本里 `printf '%s' "$code"` 的 `"$code"` 被吞成空参数，printf 以
+  空串补 `%s`。脚本本身生成正确（cat -A 验证过），纯传输层损耗。
+- **解法**：① shell 显式解析（`DSHA_BASH` → `C:/Program Files/Git/bin/bash.exe`
+  → 兜底 `bash`），别让 CreateProcess 掷骰子；② 整段脚本走 **stdin + `bash -s`**
+  ，完全绕开 argv 引号翻译（`runtime_bootstrap.dart` 的
+  `execRootfsForInstall`）。注意 `bash -s` 的参数表：runner 前缀为空时不能把
+  shell 路径再塞进 args（会被当脚本名，退出码 126）。
