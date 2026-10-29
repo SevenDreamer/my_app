@@ -74,7 +74,9 @@ def main() -> None:
     support: list[tuple[tarfile.TarInfo, Any]] = []
     for remote, checksum, package, original, soname in PACKAGES:
         deb = download(cache, Path(remote).name, checksum, [base + remote for base in (
-            "https://ports.ubuntu.com/ubuntu-ports/", "https://mirrors.ustc.edu.cn/ubuntu-ports/")])
+            "https://ports.ubuntu.com/ubuntu-ports/", "https://mirrors.ustc.edu.cn/ubuntu-ports/")] +
+            # pool 会轮转删旧版本（pin-rot）；Launchpad 永久档保原字节（SHA 校验不变）。
+            ["https://launchpad.net/ubuntu/+archive/primary/+files/" + Path(remote).name])
         payload = cache / (package + ".tar.zst")
         payload.write_bytes(subprocess.check_output([args.tar, "-xOf", str(deb), "data.tar.zst"]))
         for source, destination in (

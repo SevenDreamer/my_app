@@ -83,10 +83,27 @@ def destructive_policy_files(assets: Any = None) -> dict[str, Path]:
 
 
 def recipe_inputs() -> dict[str, str]:
+    # 我们仓的 snake_case 移植名 → 原版文件名：inputs.json 的 key
+    # 逐字保留原版 DSHA 相对路径（消费方按 key 校验，不得漂移）。
+    original_names = {
+        'build_dsh_runtime.py': 'build-dsh-runtime.py',
+        'prepare_destructive_policy.py': 'prepare-destructive-policy.py',
+    }
+
+    def tool(original_name: str) -> Path:
+        inverse = {v: k for k, v in original_names.items()}
+        return Path(__file__).with_name(inverse.get(original_name, original_name))
+
+    def key_of(path: Path) -> str:
+        try:
+            return path.relative_to(root).as_posix()
+        except ValueError:
+            return 'tools/' + original_names.get(path.name, path.name)
+
     paths = [Path(__file__), Path(__file__).with_name('source_text.py'), LOCK_ROOT / 'package.json', LOCK_ROOT / 'package-lock.json']
     paths += list(destructive_policy_files().values())
     paths.append(HOOKS.parent / 'managed-runtime-inputs.json')
-    paths += [Path(__file__).with_name('prepare-destructive-policy.py')]
+    paths += [tool('prepare-destructive-policy.py')]
     paths += [HOOKS.parent / 'builtin-plugins/dsh-destructive-guard/lib' / name for name in ('destructive.js', 'workdir.js')]
     paths += [directory / name for directory in (HOOKS, SESSION_HOOKS, COMBO_HOOKS) for name in ('index.js', 'package.json')]
     paths.append(COMBO_PATCH)
@@ -102,7 +119,7 @@ def recipe_inputs() -> dict[str, str]:
     paths += [HOOKS.parent / name for name in stable_inputs]
     paths += [Path(__file__).with_name('runtime_stable_patches.py'), Path(__file__).with_name('runtime_input_contract.py')]
     root = DSHA_ROOT
-    result = {path.relative_to(root).as_posix(): hashlib.sha256(path.read_bytes()).hexdigest() for path in paths}
+    result = {key_of(path): hashlib.sha256(path.read_bytes()).hexdigest() for path in paths}
     # Only installation rows affect this archive. Audit/launcher list edits in
     # the shared source manifest cannot invalidate an otherwise identical DSH.
     manifest = HOOKS.parent / 'managed-runtime-inputs.json'

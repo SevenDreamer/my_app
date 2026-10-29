@@ -18,6 +18,7 @@ from pathlib import Path
 import re
 import shutil
 import tarfile
+import time
 import urllib.request
 from typing import Any
 
@@ -34,7 +35,16 @@ def digest(path: Any) -> str:
 
 
 def inputs() -> dict[str, str]:
-    return {p.relative_to(ROOT).as_posix(): digest(p) for p in (Path(__file__), LOCK)}
+    # 我们仓的 snake_case 移植名按原版文件名入账（key 逐字保留原版相对路径）。
+    original_names = {'prepare_ubuntu_tools.py': 'prepare-ubuntu-tools.py'}
+
+    def key_of(path: Path) -> str:
+        try:
+            return path.relative_to(ROOT).as_posix()
+        except ValueError:
+            return 'tools/' + original_names.get(path.name, path.name)
+
+    return {key_of(p): digest(p) for p in (Path(__file__), LOCK)}
 
 
 def main() -> None:
@@ -105,8 +115,24 @@ def main() -> None:
             if args.offline:
                 raise ValueError('离线缓存缺少：' + target.name)
             temporary = target.with_suffix('.part')
-            with urllib.request.urlopen('https://ports.ubuntu.com/ubuntu-ports/' + relative, timeout=40) as response:
-                temporary.write_bytes(response.read())
+            urls = ['https://ports.ubuntu.com/ubuntu-ports/' + relative,
+                    # pool 轮转会删旧版本（pin-rot）；Launchpad 永久档保原字节（SHA 校验不变）。
+                    'https://launchpad.net/ubuntu/+archive/primary/+files/' + Path(relative).name]
+            last: Exception | None = None
+            for attempt in range(2):
+                for url in urls:
+                    try:
+                        with urllib.request.urlopen(url, timeout=40) as response:
+                            temporary.write_bytes(response.read())
+                        break
+                    except Exception as error:  # noqa: BLE001 - 逐源重试，全部失败才报
+                        last = error
+                        time.sleep(2 * (attempt + 1))
+                else:
+                    continue
+                break
+            else:
+                raise ValueError('Ubuntu 软件包下载失败：' + target.name) from last
             if temporary.stat().st_size != int(row['Size']) or digest(temporary) != row['SHA256']:
                 temporary.unlink()
                 raise ValueError('Ubuntu 软件包摘要不符：' + target.name)
