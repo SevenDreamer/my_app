@@ -78,6 +78,7 @@ dependencies:
   archive: ^4.5.2
   crypto: ^3.0.8
   markdown_widget: ^2.3.2
+  sentry_flutter: ^10.2.0
 
 # 根治 :jni/NDK 依赖（PITFALLS #20）：path_provider_android 2.3.0 起引入
 # jni（C 桥接模块，需 NDK+CMake）；钉住 2.2.23（最后一个纯 Kotlin 版），

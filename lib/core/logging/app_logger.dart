@@ -2,8 +2,11 @@
 //!
 //! 调试期看"发生了什么"用：各模块把关键事件/错误打进这里，
 //! 界面右上角日志图标一键查看。只进内存（不落盘）——错误日志的
-//! 落盘在 core/errors（error.log），两者分工。
+//! 落盘在 core/errors（error.log），两者分工。日志同时回流 Sentry
+//! 面包屑（崩溃报告自带最近上下文）。
 import 'package:flutter/foundation.dart';
+
+import 'sentry_bridge.dart';
 
 class AppLogger {
   AppLogger._();
@@ -18,6 +21,7 @@ class AppLogger {
     final line =
         '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}:${time.second.toString().padLeft(2, '0')} [$tag] $message';
     debugPrint('APPLOG $line');
+    SentryBridge.breadcrumb(tag, message);
     final list = [..._entries.value, line];
     _entries.value =
         list.length > _capacity ? list.sublist(list.length - _capacity) : list;

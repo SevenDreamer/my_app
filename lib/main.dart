@@ -10,9 +10,11 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import 'design/theme.dart';
 import 'app/home_page.dart';
 import 'app/update/boot_gate.dart';
+import 'core/logging/sentry_bridge.dart';
 
 Future<void> main() async {
-  runApp(const MyApp());
+  // Sentry 崩溃聚合（DSN 空 = 禁用直启）；框架异常由 SDK 全局挂钩收集。
+  await SentryBridge.init(appRunner: () async => runApp(const MyApp()));
 }
 
 class MyApp extends StatelessWidget {
