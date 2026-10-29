@@ -66,7 +66,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--lock', type=Path, required=True, help='adb-wheels.lock.json（钉源）')
     parser.add_argument('--cache', type=Path, default=ROOT / 'app/build/adb-wheels-cache')
-    parser.add_argument('--output', type=Path, default=ROOT / 'android/app/src/main/assets/adb-wheels.bin')
+    parser.add_argument('--output', type=Path, default=ROOT / 'assets/dsha/adb-wheels.bin')
     args = parser.parse_args()
     args.output.parent.mkdir(parents=True, exist_ok=True)
 

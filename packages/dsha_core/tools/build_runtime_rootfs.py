@@ -45,7 +45,7 @@ def fetch(entry: tuple[str, str, str], cache: Path) -> bytes:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--cache', type=Path, default=ROOT / 'app/build/runtime-downloads')
-    parser.add_argument('--output', type=Path, default=ROOT / 'android/app/src/main/assets/offline-rootfs.bin')
+    parser.add_argument('--output', type=Path, default=ROOT / 'assets/dsha/offline-rootfs.bin')
     args = parser.parse_args()
     args.output.parent.mkdir(parents=True, exist_ok=True)
 

@@ -150,6 +150,48 @@ abstract interface class OfflineToolSource {
   Map<String, List<int>>? pythonFiles();
 }
 
+/// 归档形态离线工具源：pnpm/python 以 .tar.gz 归档整包提供，
+/// [DesktopBootstrap] 经解包接缝直接铺进 rootfs（原版 RootfsInstaller
+/// 解包投递语义；映射形态见 [OfflineToolSource]）。
+abstract interface class ArchiveToolSource implements OfflineToolSource {
+  /// python 归档路径集（glibc-python.tar.gz + python-support.bin 顺序）。
+  List<String> pythonArchives();
+
+  /// pnpm 归档路径集（pnpm-runtime.bin）。
+  List<String> pnpmArchives();
+}
+
+/// 归档形态实现（映射形态返回 null：本形态不提供文件映射）。
+class ArchiveOfflineToolSource implements ArchiveToolSource {
+  ArchiveOfflineToolSource({required this.python, required this.pnpm});
+
+  final List<String> python;
+  final List<String> pnpm;
+
+  @override
+  Map<String, List<int>>? pnpmFiles() => null;
+
+  @override
+  Map<String, List<int>>? pythonFiles() => null;
+
+  @override
+  List<String> pythonArchives() => python;
+
+  @override
+  List<String> pnpmArchives() => pnpm;
+}
+
+/// 文件系统 guest 脚本源（APK 资产暂存到本地后的同步读取面）。
+class FileGuestScriptSource implements GuestScriptSource {
+  FileGuestScriptSource(this.dir);
+
+  final io.Directory dir;
+
+  @override
+  List<int> read(String assetName) =>
+      io.File('${dir.path}/$assetName').readAsBytesSync();
+}
+
 /// 归档解包接缝（原版 ColdBundleTransaction 的解包投递面）。
 /// 实现：[TarCommandExtractor]（桌面系统 tar）/ rust_unpack.dart 的
 /// RustArchiveExtractor（硬化引擎：限额/身份/NOFOLLOW 边界）。
@@ -317,7 +359,14 @@ class DesktopBootstrap implements RuntimeBootstrap {
 
   @override
   Future<bool> ensureBundledPnpm() async {
-    final files = offlineTools?.pnpmFiles();
+    final source = offlineTools;
+    if (source is ArchiveToolSource) {
+      final archives = source.pnpmArchives();
+      if (archives.isEmpty) return false;
+      await _extractToolArchives(archives);
+      return true;
+    }
+    final files = source?.pnpmFiles();
     if (files == null || files.isEmpty) return false;
     _writeToolFiles(files);
     return true;
@@ -325,10 +374,30 @@ class DesktopBootstrap implements RuntimeBootstrap {
 
   @override
   Future<bool> ensureBundledPython() async {
-    final files = offlineTools?.pythonFiles();
+    final source = offlineTools;
+    if (source is ArchiveToolSource) {
+      final archives = source.pythonArchives();
+      if (archives.isEmpty) return false;
+      await _extractToolArchives(archives);
+      return true;
+    }
+    final files = source?.pythonFiles();
     if (files == null || files.isEmpty) return false;
     _writeToolFiles(files);
     return true;
+  }
+
+  /// 归档形态：逐个解包进 rootfs（glibc-python 先、python-support 后补
+  /// soname——RootfsInstaller.python 的顺序语义由调用方列表次序保证）。
+  Future<void> _extractToolArchives(List<String> archives) async {
+    for (final path in archives) {
+      final archive = io.File(path);
+      if (!archive.existsSync()) {
+        throw io.FileSystemException('离线工具归档不存在', path);
+      }
+      rootfsDir.createSync(recursive: true);
+      await extractor.extract(archive.path, rootfsDir.path);
+    }
   }
 
   void _writeToolFiles(Map<String, List<int>> files) {

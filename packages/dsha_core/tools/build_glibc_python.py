@@ -129,7 +129,7 @@ def deb_data(data: bytes, name: str) -> list[tuple[tarfile.TarInfo, bytes | None
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--cache', type=Path, default=ROOT / 'app/build/glibc-python-cache')
-    parser.add_argument('--output', type=Path, default=ROOT / 'android/app/src/main/assets/glibc-python.tar.gz')
+    parser.add_argument('--output', type=Path, default=ROOT / 'assets/dsha/glibc-python.tar.gz')
     args = parser.parse_args()
     cache = args.cache.resolve()
     cache.mkdir(parents=True, exist_ok=True)

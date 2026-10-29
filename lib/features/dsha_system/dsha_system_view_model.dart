@@ -10,6 +10,8 @@ import 'package:dsha_core/dsha_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 
+import 'dsha_asset_staging.dart';
+
 class DshaSystemViewModel extends ChangeNotifier {
   /// 环境经构造注入（测试给假环境；缺省 = 桌面引导模式）。
   DshaSystemViewModel({InstallEnvironment? environment})
@@ -49,22 +51,46 @@ class DshaSystemViewModel extends ChangeNotifier {
         extractor = const TarCommandExtractor();
       }
       _extractorName = extractor.name;
+      // 资产暂存（rootBundle → 本地文件；幂等）：DesktopBootstrap 吃文件路径。
+      final staged = await DshaAssetStaging.stage(
+          io.Directory('${support.path}/dsha-assets'));
       // 原版 LocalEnvironment：bootstrap 与工具安装器共享同一实例。
       final bootstrap = DesktopBootstrap(
         baseDir: base,
-        offlineBundle: null,
+        offlineBundle: staged.file('offline-rootfs.bin'),
         expectedVersion: '1.0.0',
+        uid: _selfUid(),
         extractor: extractor,
+        guestScripts: FileGuestScriptSource(staged.dir),
+        offlineTools: ArchiveOfflineToolSource(
+          // 顺序语义：glibc-python 先、python-support 后补 soname。
+          python: <String>[
+            staged.path('glibc-python.tar.gz'),
+            staged.path('python-support.bin'),
+          ],
+          pnpm: <String>[staged.path('pnpm-runtime.bin')],
+        ),
       );
       _environment = LocalInstallEnvironment(
         bootstrap,
-        // 资产接缝（guest 脚本/离线工具）F1-4 随 rootfs 烘制接入。
-        BasicToolsInstaller(bootstrap, null),
+        BasicToolsInstaller(bootstrap, FileGuestScriptSource(staged.dir)),
       );
     }
     _ready = await _environment!.ready();
     _preparing = false;
     notifyListeners();
+  }
+
+  /// 宿主 UID（原版 `android.os.Process.myUid()`；从 /proc/self/status
+  /// 取真值——Android 与 Linux 桌面都可读；读不到用 10000 兜底）。
+  static int _selfUid() {
+    try {
+      final text = io.File('/proc/self/status').readAsStringSync();
+      final match =
+          RegExp(r'^Uid:\t(\d+)', multiLine: true).firstMatch(text);
+      if (match != null) return int.parse(match.group(1)!);
+    } catch (_) {}
+    return 10000;
   }
 
   /// 启动一次安装任务（原版 `InstallRepository.start` 语义）：

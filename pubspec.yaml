@@ -118,6 +118,10 @@ flutter:
     # 打过 Cubism Core 6 renderOrders 兼容补丁的 Core 运行时（见 docs/PITFALLS.md #27）
     - assets/live2d/
     - shorebird.yaml
+    # DSHA 离线运行时资产（F1-4c 烘制九件 + guest 脚本；大件不入 git，
+    # 由 packages/dsha_core/tools 确定性重烘——见该目录 README 式工具文档）
+    - assets/dsha/
+    - assets/dsha/licenses/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
