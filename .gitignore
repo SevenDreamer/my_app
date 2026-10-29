@@ -59,6 +59,7 @@ android/build/
 
 # R2 分发本地私密配置（API Token 等，不入库）
 tool/r2.env
+tool/sentry.env
 
 # Android 签名物（keystore 私钥 + 密码，绝不入库——丢了老用户就升不了级）
 android/key.properties

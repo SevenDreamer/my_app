@@ -14,7 +14,10 @@ import 'core/logging/sentry_bridge.dart';
 
 Future<void> main() async {
   // Sentry 崩溃聚合（DSN 空 = 禁用直启）；框架异常由 SDK 全局挂钩收集。
-  await SentryBridge.init(appRunner: () async => runApp(const MyApp()));
+  await SentryBridge.init(appRunner: () async {
+    runApp(const MyApp());
+    SentryBridge.maybeScheduleTestError();
+  });
 }
 
 class MyApp extends StatelessWidget {

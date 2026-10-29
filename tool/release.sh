@@ -31,6 +31,10 @@ NOTES=${1:-}
 if [ -f tool/r2.env ]; then
   . tool/r2.env
 fi
+# Sentry ingest 配置（tool/sentry.env，不入库；DSN 可公开，只发不读）
+if [ -f tool/sentry.env ]; then
+  . tool/sentry.env
+fi
 
 : "${S3_ACCESS_KEY_ID:?需要 S3_ACCESS_KEY_ID（R2 的 S3 凭据），可写入 tool/r2.env}"
 : "${S3_SECRET_ACCESS_KEY:?需要 S3_SECRET_ACCESS_KEY（R2 的 S3 凭据），可写入 tool/r2.env}"
@@ -52,7 +56,11 @@ if tool/shorebird.sh releases list --app-id "$APP_ID" 2>/dev/null | grep -q "$VE
 fi
 
 # 1) Shorebird release：注册 release 并产出 APK（arm64 单包，与 CI 一致）
-tool/shorebird.sh release android --artifact=apk --target-platform=android-arm64
+SENTRY_DEFINES=""
+if [ -n "${SENTRY_DSN:-}" ]; then
+  SENTRY_DEFINES="--dart-define=SENTRY_DSN=$SENTRY_DSN --dart-define=SENTRY_ENV=production --dart-define=SENTRY_RELEASE=my_app@$VER"
+fi
+tool/shorebird.sh release android --artifact=apk --target-platform=android-arm64 $SENTRY_DEFINES
 
 APK=build/app/outputs/flutter-apk/app-release.apk
 ASSET="my_app-v$NAME-android-arm64-v8a.apk"

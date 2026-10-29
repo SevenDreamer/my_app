@@ -28,9 +28,25 @@ class SentryBridge {
         options.dsn = kSentryDsn;
         options.sendDefaultPii = false;
         options.beforeSend = _scrub;
+        // 文档推荐默认：errors + tracing（生产再调采样率）。
+        options.tracesSampleRate = 1.0;
+        options.environment =
+            const String.fromEnvironment('SENTRY_ENV', defaultValue: 'development');
+        options.release =
+            const String.fromEnvironment('SENTRY_RELEASE', defaultValue: 'my_app@dev');
       },
       appRunner: appRunner,
     );
+  }
+
+  /// 临时真实触发（验证链路用；`--dart-define=SENTRY_TEST_ERROR=1` 时生效）：
+  /// 走真实 init 后的异步异常路径，非独立脚本。
+  static void maybeScheduleTestError() {
+    const enabled = bool.fromEnvironment('SENTRY_TEST_ERROR');
+    if (!enabled) return;
+    Future<void>.delayed(const Duration(seconds: 5), () {
+      throw StateError('Sentry 验证测试异常（my_app，可忽略）');
+    });
   }
 
   /// AppLogger → 面包屑（崩溃报告携带最近日志上下文）。
