@@ -339,7 +339,9 @@ impl<'a> StrictGzip<'a> {
     fn new(raw: &'a mut dyn Read) -> io::Result<Self> {
         let mut g = StrictGzip {
             raw,
-            dec: Decompress::new(true),
+            // gzip 内裹 raw deflate（RFC 1951）：zlib_header 必须为 false
+            //（true 期待 RFC 1950 头，会把 deflate 首字节错当包头 → GZIP_DEFLATE）。
+            dec: Decompress::new(false),
             pending: Vec::new(),
             pos: 0,
             size: 0,

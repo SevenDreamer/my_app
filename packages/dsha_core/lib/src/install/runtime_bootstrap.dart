@@ -150,11 +150,73 @@ abstract interface class OfflineToolSource {
   Map<String, List<int>>? pythonFiles();
 }
 
-/// 桌面实现：rootfs 目录 + 系统 tar 解压 + bash 容器映射。
+/// 归档解包接缝（原版 ColdBundleTransaction 的解包投递面）。
+/// 实现：[TarCommandExtractor]（桌面系统 tar）/ rust_unpack.dart 的
+/// RustArchiveExtractor（硬化引擎：限额/身份/NOFOLLOW 边界）。
+abstract interface class ArchiveExtractor {
+  /// 解包 gzip 归档到 dest；onProgress(done, total) 逐字节回报。
+  /// 失败抛 [InstallIoException]（机器代号/文案原样透传）。
+  Future<void> extract(
+    String archivePath,
+    String destPath, {
+    void Function(int done, int total)? onProgress,
+  });
+
+  /// 引擎名（UI 显示用——所用实现必须可见，不许静默降级）。
+  String get name;
+}
+
+/// 系统 tar 解包（桌面引导模式；流式喂 stdin 逐字节报进度）。
+class TarCommandExtractor implements ArchiveExtractor {
+  const TarCommandExtractor();
+
+  @override
+  String get name => '系统 tar';
+
+  @override
+  Future<void> extract(
+    String archivePath,
+    String destPath, {
+    void Function(int done, int total)? onProgress,
+  }) async {
+    final bundle = io.File(archivePath);
+    if (!bundle.existsSync()) {
+      throw const io.FileSystemException('离线包不存在');
+    }
+    final total = await bundle.length();
+    io.Directory(destPath).createSync(recursive: true);
+    // 流式喂给 tar：读多少报多少（原版 ColdBundleTransaction 的逐字节进度）。
+    final process = await io.Process.start(
+      'tar',
+      ['-xzf', '-', '-C', destPath],
+      environment: <String, String>{},
+    );
+    var done = 0;
+    final sink = process.stdin;
+    final source = bundle.openRead();
+    final feeder = source.listen((chunk) {
+      sink.add(chunk);
+      done += chunk.length;
+      onProgress?.call(done, total);
+    }, onError: (Object error) {
+      sink.addError(error);
+    }, onDone: () {
+      sink.close();
+    }, cancelOnError: true);
+    final code = await process.exitCode.timeout(
+        const Duration(minutes: 10), onTimeout: () => -1);
+    await feeder.cancel();
+    if (code != 0) {
+      throw io.FileSystemException('离线包解压失败（tar 退出码 $code）');
+    }
+  }
+}
+
+/// 桌面实现：rootfs 目录 + 归档解包 + bash 容器映射。
 ///
-/// 刻意边界：解压走系统 `tar`（Android 轮换成 Rust 解包层）；容器映射为
-/// 「rootfs 为工作目录的宿主 bash」（Android 轮为 proot argv）。所有行为真实，
-/// 不存在假结果：缺件一律如实返回 false / 抛错。
+/// 刻意边界：解包经 [ArchiveExtractor] 接缝（系统 tar / Rust 硬化引擎）；
+/// 容器映射为「rootfs 为工作目录的宿主 bash」（Android 轮为 proot argv）。
+/// 所有行为真实，不存在假结果：缺件一律如实返回 false / 抛错。
 class DesktopBootstrap implements RuntimeBootstrap {
   DesktopBootstrap({
     required this.baseDir,
@@ -165,6 +227,7 @@ class DesktopBootstrap implements RuntimeBootstrap {
     this.guestScripts,
     this.offlineTools,
     this.runner,
+    this.extractor = const TarCommandExtractor(),
   });
 
   final io.Directory baseDir;
@@ -184,6 +247,9 @@ class DesktopBootstrap implements RuntimeBootstrap {
 
   /// 容器命令前缀（默认宿主 bash；Android 轮为 proot 包装）。
   final List<String>? runner;
+
+  /// 归档解包实现（缺省系统 tar；注入 RustArchiveExtractor 即硬化引擎）。
+  final ArchiveExtractor extractor;
 
   /// 显式 shell（默认解析 git-bash；绝不落到 WSL System32\bash.exe——
   /// 其 argv 翻译会吃掉引号，实测把 `"$code"` 吞成空）。
@@ -239,32 +305,12 @@ class DesktopBootstrap implements RuntimeBootstrap {
     if (bundle == null || !bundle.existsSync()) {
       throw const io.FileSystemException('离线包不存在');
     }
-    final total = await bundle.length();
     rootfsDir.createSync(recursive: true);
-    // 流式喂给 tar：读多少报多少（原版 ColdBundleTransaction 的逐字节进度）。
-    final process = await io.Process.start(
-      'tar',
-      ['-xzf', '-', '-C', rootfsDir.path],
-      environment: <String, String>{},
+    await extractor.extract(
+      bundle.path,
+      rootfsDir.path,
+      onProgress: onProgress,
     );
-    var done = 0;
-    final sink = process.stdin;
-    final source = bundle.openRead();
-    final feeder = source.listen((chunk) {
-      sink.add(chunk);
-      done += chunk.length;
-      onProgress(done, total);
-    }, onError: (Object error) {
-      sink.addError(error);
-    }, onDone: () {
-      sink.close();
-    }, cancelOnError: true);
-    final code = await process.exitCode.timeout(
-        const Duration(minutes: 10), onTimeout: () => -1);
-    await feeder.cancel();
-    if (code != 0) {
-      throw io.FileSystemException('离线包解压失败（tar 退出码 $code）');
-    }
     await io.File('${rootfsDir.path}/$versionMarker')
         .writeAsString('$expectedVersion\n');
   }

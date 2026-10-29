@@ -73,6 +73,8 @@ dependencies:
     path: packages/hid_gamepad
   hermes_gateway:
     path: packages/hermes_gateway
+  dsha_core:
+    path: packages/dsha_core
   archive: ^4.5.2
   crypto: ^3.0.8
   markdown_widget: ^2.3.2

@@ -12,6 +12,7 @@ export 'src/install/install_process.dart';
 export 'src/install/install_stage.dart';
 export 'src/install/local_install_environment.dart';
 export 'src/install/runtime_bootstrap.dart';
+export 'src/install/rust_unpack.dart';
 export 'src/install/sensitive_data.dart';
 export 'src/util/shell_quote.dart';
 export 'src/vscreen/a11y_support.dart';

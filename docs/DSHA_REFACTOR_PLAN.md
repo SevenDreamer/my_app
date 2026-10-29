@@ -69,8 +69,8 @@ my_app/
 |---|---|---|
 | F1-1 | `InstallProcess.read()/Lines`（有界逐行读取+回收语义，行 16 KiB/4,096 字双阈值脱敏、私钥掩码） | ✅ 冒烟 5/5 |
 | F1-2 | `runtime_bootstrap.dart`（RuntimeBootstrap 接缝 + AndroidGroupMap 逐表 + DesktopBootstrap + BasicToolsInstaller）+ `local_install_environment.dart`（1:1 委托）+ execute() 接 read | ✅ 冒烟 ENV_SMOKE_PASS |
-| F1-3 | 「DSH 系统」feature 壳：registry 登记 + MVVM 页面接 InstallRepository 语义 | ⬜ |
-| F1-4 | hermes-runtime 烘进 rootfs + Android 原生接线（Rust 解包 FFI / proot argv / TrustedAssetFs） | ⬜ |
+| F1-3 | 「DSH 系统」feature 壳：registry 登记 + MVVM 页面接 InstallRepository 语义 | ✅ analyze 绿 + 启动冒烟（入口/limitedNote 视觉核验；页面内点击链路未验收——computer_use 审批拦停） |
+| F1-4 | hermes-runtime 烘进 rootfs + Android 原生接线（Rust 解包 FFI / proot argv / TrustedAssetFs） | 🔨 F1-4a Rust FFI ✅（std_fs 真实现 + `dsha_extract_archive` extern "system" + dart:ffi 桥 RustUnpacker；抓真 bug：`Decompress::new(true)` 误当 zlib 头致 GZIP_DEFLATE、read_file 弱身份守卫）+ F1-4b 接线 ✅（`ArchiveExtractor` 接缝 + RustArchiveExtractor/TarCommandExtractor 双实现 + VM 显式选型 UI 可见 + **Android .so**：NDK 27 链接 libdsha_runtime.so 入 jniLibs，`dsha_extract_archive` 符号核验；19 Rust 依赖入 NOTICES）；余：proot argv、hermes 烘层 |
 | F2 | Manager `requestAt` HTTP + `readBootstrap` + Activity/Preview/Overlay/Foreground Flutter 重写（D6 契约件已备） | ⬜ |
 | F3 | 插件市场宿主面（E2 七件套跑 guest，宿主 UI + bridge 命令封装） | ⬜ |
 | F4 | 备份/恢复宿主面（E1 v3/v4 归档 + rc1 迁移的管理 UI） | ⬜ |

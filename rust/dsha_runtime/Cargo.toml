@@ -3,6 +3,10 @@ name = "dsha_runtime"
 version = "0.1.0"
 edition = "2024"
 
+# cdylib = Dart FFI 动态库（dsha_extract_archive）；rlib = Rust 侧集成/测试。
+[lib]
+crate-type = ["cdylib", "rlib"]
+
 # 版权来源：DSHA（MIT）——各派生文件带归因头，汇总见 my_app THIRD_PARTY_NOTICES.md。
 # 纯逻辑支撑层零依赖；归档解包层（下一轮）引入现成 tar/flate2 crate。
 [dependencies]

@@ -10,5 +10,7 @@ environment:
 # Rust 系统面经 FFI（后续批次）接入。
 dependencies:
   crypto: ^3.0.0
+  # dart:ffi 分配器（malloc/calloc）；官方 Dart 工具包
+  ffi: ^2.1.0
 
 dev_dependencies: {}
