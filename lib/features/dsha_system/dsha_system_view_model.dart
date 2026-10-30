@@ -18,6 +18,7 @@ class DshaSystemViewModel extends ChangeNotifier {
       : _environment = environment;
 
   InstallEnvironment? _environment;
+  BackgroundRustArchiveExtractor? _extractor;
 
   final InstallTask _task = InstallTask();
   bool _running = false;
@@ -34,6 +35,12 @@ class DshaSystemViewModel extends ChangeNotifier {
   /// 环境就绪（解压标记、版本与 bash 在位）。
   bool get ready => _ready;
 
+  @override
+  void dispose() {
+    _extractor?.close();
+    super.dispose();
+  }
+
   /// 所用解包引擎（UI 显式展示——不许静默降级）。
   String get extractorName => _extractorName;
 
@@ -42,13 +49,19 @@ class DshaSystemViewModel extends ChangeNotifier {
     if (_environment == null) {
       final support = await getApplicationSupportDirectory();
       final base = io.Directory('${support.path}/dsha-system');
-      // 解包引擎选型（显式记录，UI 可见）：Rust 硬化引擎优先，缺库用系统 tar。
-      final unpacker = RustUnpacker.load();
+      // 解包引擎选型（显式记录，UI 可见）：Rust 硬化引擎优先且跑后台隔离岛
+      // （同步 FFI + 逐文件 fsync 直跑 UI 岛会 ANR——真机 MY-APP-2 实证），
+      // 缺库显式降级系统 tar。
+      final background = await BackgroundRustArchiveExtractor.open();
       final ArchiveExtractor extractor;
-      if (unpacker != null) {
-        extractor = RustArchiveExtractor(unpacker);
+      if (background != null) {
+        _extractor = background;
+        extractor = background;
       } else {
-        extractor = const TarCommandExtractor();
+        final unpacker = RustUnpacker.load();
+        extractor = unpacker != null
+            ? RustArchiveExtractor(unpacker)
+            : const TarCommandExtractor();
       }
       _extractorName = extractor.name;
       // 资产暂存（rootBundle → 本地文件；幂等）：DesktopBootstrap 吃文件路径。
