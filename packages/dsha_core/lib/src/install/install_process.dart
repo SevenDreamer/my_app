@@ -29,6 +29,11 @@ class InstallProcess {
   }) async {
     final poller = _ProcessPipePoller(process);
     final lines = _Lines(output);
+    // 原版 RuntimeLauncher 的 redirectErrorStream(true)：stderr 并入同一流。
+    // 不并线则 node -e 报错 / apt E: 全成诊断盲区（真机排障实证）。
+    final stderrSub = process.stderr.listen((chunk) {
+      lines.accept(chunk, chunk.length);
+    });
     final deadline =
         DateTime.now().add(Duration(milliseconds: timeoutMs));
     Object? original;
@@ -64,6 +69,7 @@ class InstallProcess {
       original = error;
       rethrow;
     } finally {
+      await stderrSub.cancel();
       // 回收：未退出先 destroy，再给 2 秒等待；仍未退出 → 清理失败携句柄抛出。
       Object? termination;
       final exited = await _exited(process, timeout: const Duration(milliseconds: 50));

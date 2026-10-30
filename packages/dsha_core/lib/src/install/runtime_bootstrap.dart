@@ -503,6 +503,9 @@ class DesktopBootstrap implements RuntimeBootstrap {
 
   @override
   Future<void> prepareRuntimeTools() async {
+    // dsh 缺失补装先行（后续入口 chmod 能碰到 bin.js 的 x 位）：
+    // 只补缺，不覆盖已存在的用户升级件（「不覆盖用户升级的 Node/dsh」语义）。
+    await ensureBundledDsh();
     // 原版 RuntimeTools.prepare 第一批：随包证书 + 命令入口 + DNS。
     // 补丁链（applyPatchChain 四专项）与托管资产 overlay 随第二批。
     RuntimeToolsLite.ensureCommandEntries(rootfsDir.path);
@@ -512,9 +515,6 @@ class DesktopBootstrap implements RuntimeBootstrap {
           rootfsDir.path, scripts.read('ca-certificates.crt'));
     }
     RuntimeToolsLite.prepareResolver(rootfsDir.path, deviceDns);
-    // dsh 组件缺失补装（原版 cold_split runtime 流的补救面）：只补缺，
-    // 不覆盖已存在的用户升级件（「不覆盖用户升级的 Node/dsh」语义）。
-    await ensureBundledDsh();
   }
 
   /// dsh 运行时缺失补装：包目录不存在才解 dsh-runtime 归档。
