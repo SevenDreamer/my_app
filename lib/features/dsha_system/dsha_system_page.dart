@@ -219,6 +219,10 @@ class _StatusCard extends StatelessWidget {
                   '解包引擎：${viewModel.extractorName}',
                   style: AppTypography.labelSm,
                 ),
+                Text(
+                  '容器执行：${viewModel.runnerName}',
+                  style: AppTypography.labelSm,
+                ),
                 if (snapshot.outcome != InstallOutcome.idle)
                   Text(
                     '耗时 ${snapshot.elapsedSeconds}s',

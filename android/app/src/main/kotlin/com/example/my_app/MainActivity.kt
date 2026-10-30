@@ -8,6 +8,16 @@ import io.flutter.plugin.common.MethodChannel
 class MainActivity : FlutterActivity() {
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        // Runtime channel: nativeLibraryDir is the only exec-allowed dir on
+        // Android 10+ (W^X) — proot ships as jniLibs and runs from there.
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "my_app/runtime")
+            .setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "nativeLibraryDir" -> result.success(applicationInfo.nativeLibraryDir)
+                    "dataDir" -> result.success(applicationInfo.dataDir)
+                    else -> result.notImplemented()
+                }
+            }
         // Lifecycle channel: a Shorebird patch only takes effect after a full
         // process restart, so relaunch into a fresh task and exit ourselves.
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "my_app/lifecycle")

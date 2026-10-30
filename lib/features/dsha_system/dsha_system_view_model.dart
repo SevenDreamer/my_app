@@ -8,6 +8,7 @@ import 'dart:io' as io;
 
 import 'package:dsha_core/dsha_core.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'dsha_asset_staging.dart';
@@ -19,6 +20,7 @@ class DshaSystemViewModel extends ChangeNotifier {
 
   InstallEnvironment? _environment;
   BackgroundRustArchiveExtractor? _extractor;
+  String _runnerName = '宿主 bash';
 
   final InstallTask _task = InstallTask();
   bool _running = false;
@@ -44,6 +46,9 @@ class DshaSystemViewModel extends ChangeNotifier {
   /// 所用解包引擎（UI 显式展示——不许静默降级）。
   String get extractorName => _extractorName;
 
+  /// 容器执行面（UI 显式展示）：proot（内置）/ 宿主 bash。
+  String get runnerName => _runnerName;
+
   /// 准备环境（解析应用目录 + 解包引擎选型 + 就绪查询）；页面打开时调用一次。
   Future<void> prepare() async {
     if (_environment == null) {
@@ -67,6 +72,25 @@ class DshaSystemViewModel extends ChangeNotifier {
       // 资产暂存（rootBundle → 本地文件；幂等）：DesktopBootstrap 吃文件路径。
       final staged = await DshaAssetStaging.stage(
           io.Directory('${support.path}/dsha-assets'));
+      // proot 容器 runner（Android W^X：proot 藏 jniLibs、从
+      // nativeLibraryDir 执行）；组装失败如实留空 = 宿主 bash 直跑。
+      ProotRunnerPlan? proot;
+      if (io.Platform.isAndroid) {
+        try {
+          const channel = MethodChannel('my_app/runtime');
+          final libDir =
+              await channel.invokeMethod<String>('nativeLibraryDir');
+          if (libDir != null) {
+            proot = ProotRunner.plan(
+              nativeLibDir: libDir,
+              rootfsPath: '${base.path}/rootfs',
+              tmpDir: '${support.path}/dsha-tmp',
+              libDir: '${support.path}/dsha-lib',
+            );
+          }
+        } catch (_) {}
+      }
+      _runnerName = proot != null ? 'proot（内置）' : '宿主 bash';
       // 原版 LocalEnvironment：bootstrap 与工具安装器共享同一实例。
       final bootstrap = DesktopBootstrap(
         baseDir: base,
@@ -74,6 +98,8 @@ class DshaSystemViewModel extends ChangeNotifier {
         expectedVersion: '1.0.0',
         uid: _selfUid(),
         extractor: extractor,
+        runner: proot?.argv,
+        environment: proot?.environment,
         guestScripts: FileGuestScriptSource(staged.dir),
         offlineTools: ArchiveOfflineToolSource(
           // 顺序语义：glibc-python 先、python-support 后补 soname。

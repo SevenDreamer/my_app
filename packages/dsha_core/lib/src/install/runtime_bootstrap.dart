@@ -269,6 +269,7 @@ class DesktopBootstrap implements RuntimeBootstrap {
     this.guestScripts,
     this.offlineTools,
     this.runner,
+    this.environment,
     this.extractor = const TarCommandExtractor(),
   });
 
@@ -290,11 +291,17 @@ class DesktopBootstrap implements RuntimeBootstrap {
   /// 容器命令前缀（默认宿主 bash；Android 轮为 proot 包装）。
   final List<String>? runner;
 
+  /// 进程环境增量（proot 轮的 PATH/PROOT_LOADER/LD_LIBRARY_PATH 等；
+  /// 合并语义：Process.start includeParentEnvironment）。
+  final Map<String, String>? environment;
+
   /// 归档解包实现（缺省系统 tar；注入 RustArchiveExtractor 即硬化引擎）。
   final ArchiveExtractor extractor;
 
   /// 显式 shell（默认解析 git-bash；绝不落到 WSL System32\bash.exe——
   /// 其 argv 翻译会吃掉引号，实测把 `"$code"` 吞成空）。
+  /// runner 非空 = 命令在容器内执行，用容器内 /bin/bash（原版
+  /// RuntimeLauncher 固定 `/bin/bash` 字面）。
   static String resolveShell() {
     final override = io.Platform.environment['DSHA_BASH'];
     if (override != null && override.isNotEmpty) return override;
@@ -308,7 +315,7 @@ class DesktopBootstrap implements RuntimeBootstrap {
     return 'bash';
   }
 
-  late final String shell = resolveShell();
+  late final String shell = runner != null ? '/bin/bash' : resolveShell();
 
   io.Directory get rootfsDir => io.Directory('${baseDir.path}/rootfs');
 
@@ -462,6 +469,7 @@ class DesktopBootstrap implements RuntimeBootstrap {
         '-s',
       ],
       workingDirectory: rootfsDir.path,
+      environment: environment,
     );
     process.stdin.add(convert.utf8.encode(command));
     await process.stdin.close();
@@ -471,7 +479,7 @@ class DesktopBootstrap implements RuntimeBootstrap {
   @override
   Future<io.Process> execRootfsForInstallWithPipedInput(String command) =>
       io.Process.start(_argv(command).first, _argv(command).sublist(1),
-          workingDirectory: rootfsDir.path);
+          workingDirectory: rootfsDir.path, environment: environment);
 
   @override
   Future<void> prepareRuntimeTools() {

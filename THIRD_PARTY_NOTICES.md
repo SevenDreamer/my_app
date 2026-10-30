@@ -79,3 +79,19 @@ SOFTWARE.
 （Rust 标准库运行时按 MIT/Apache-2.0 双许可随产物分发；cargo tree 中的
 重复低版本条目如 bitflags 1.3.2 / miniz_oxide 0.8.9 为间接锁版本，未实际
 编译进本产物的以构建闭包为准。）
+
+## 容器运行时预编译件（Android jniLibs，经 DSHA 仓预编译分发）
+
+随 APK 的 `lib/` 原生库五件，本体上游与许可见下表。分发履行对应许可证
+义务：全文随包位于 `assets/dsha/licenses/`（GPL-2.0 / LGPL-3.0 / Apache-2.0），
+对应源码可按各许可证条款从上游获取（proot: github.com/termux/proot；
+talloc: samba.org/ftp/talloc；android-shmem: github.com/termux/android-shmem）。
+
+| 产物 | 上游 | 版本 | 许可证 |
+|---|---|---|---|
+| libproot.so / libprootloader.so / libprootloader32.so | termux/proot（PRoot 派生） | 5.1.107.x | GPL-2.0-or-later |
+| libtalloc.so（容器内别名 libtalloc.so.2） | samba talloc | 2.4.x | LGPL-3.0-or-later |
+| libandroidshmem.so（容器内别名 libandroid-shmem.so） | termux android-shmem | 2022.x | Apache-2.0 |
+
+（聚合分发：以独立进程执行 proot 进入 rootfs，不与本项目代码链接。）
+
