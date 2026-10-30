@@ -338,3 +338,13 @@
   ，完全绕开 argv 引号翻译（`runtime_bootstrap.dart` 的
   `execRootfsForInstall`）。注意 `bash -s` 的参数表：runner 前缀为空时不能把
   shell 路径再塞进 args（会被当脚本名，退出码 126）。
+
+### 32. shorebird patch 漏 `--dart-define` 会把 DSN 抹空：app 显示「Sentry 未启用」
+
+patch 构建**替换整个 Dart 快照**——发版时 `tool/release.sh` 注入的
+`SENTRY_DEFINES`（`--dart-define=SENTRY_DSN=…`）如果 patch 构建没带同款
+defines，补丁生效后 `String.fromEnvironment('SENTRY_DSN')` 恒为空，
+`SentryBridge.enabled` 为 false（真机「上报诊断」按钮显示「Sentry 未启用，
+未上报」实证）。规矩：**热更一律走 `tool/patch.sh <release-version>`**（与
+release.sh 同源加载 `tool/sentry.env` 注入 defines；patch 的 defines 必须与
+目标 release 一致），不要裸跑 `tool/shorebird.sh patch`。
