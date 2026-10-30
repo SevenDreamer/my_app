@@ -23,6 +23,7 @@ class DshaAssetStaging {
   /// Flutter 目录声明不递归）。
   static const List<String> files = <String>[
     'offline-rootfs.bin',
+    'dsh-runtime.bin',
     'glibc-python.tar.gz',
     'python-support.bin',
     'pnpm-runtime.bin',
