@@ -104,6 +104,7 @@ class DshaSystemViewModel extends ChangeNotifier {
       // proot 容器 runner（Android W^X：proot 藏 jniLibs、从
       // nativeLibraryDir 执行）；组装失败如实留空 = 宿主 bash 直跑。
       ProotRunnerPlan? proot;
+      var deviceDns = const <String>[];
       if (io.Platform.isAndroid) {
         try {
           const channel = MethodChannel('my_app/runtime');
@@ -117,6 +118,12 @@ class DshaSystemViewModel extends ChangeNotifier {
               libDir: '${support.path}/dsha-lib',
             );
           }
+          final dns =
+              await channel.invokeMethod<List<Object?>>('deviceDns');
+          deviceDns = <String>[
+            for (final s in dns ?? const <Object?>[])
+              if (s is String) s,
+          ];
         } catch (_) {}
       }
       _runnerName = !io.Platform.isAndroid
@@ -133,6 +140,7 @@ class DshaSystemViewModel extends ChangeNotifier {
         extractor: extractor,
         runner: proot?.argv,
         environment: proot?.environment,
+        deviceDns: deviceDns,
         guestScripts: FileGuestScriptSource(staged.dir),
         offlineTools: ArchiveOfflineToolSource(
           // 顺序语义：glibc-python 先、python-support 后补 soname。

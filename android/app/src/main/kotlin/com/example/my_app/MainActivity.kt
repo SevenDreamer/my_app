@@ -15,6 +15,15 @@ class MainActivity : FlutterActivity() {
                 when (call.method) {
                     "nativeLibraryDir" -> result.success(applicationInfo.nativeLibraryDir)
                     "dataDir" -> result.success(applicationInfo.dataDir)
+                    "deviceDns" -> {
+                        // 设备 DNS（prepareResolver 来源）：连接管理器的链路 DNS。
+                        val cm = getSystemService(android.content.Context.CONNECTIVITY_SERVICE)
+                            as android.net.ConnectivityManager
+                        val servers = cm.allNetworks.mapNotNull { net ->
+                            cm.getLinkProperties(net)?.dnsServers?.map { it.hostAddress }
+                        }.flatten().filterNotNull().distinct()
+                        result.success(servers)
+                    }
                     else -> result.notImplemented()
                 }
             }

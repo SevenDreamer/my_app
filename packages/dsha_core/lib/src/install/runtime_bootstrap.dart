@@ -12,6 +12,7 @@ import 'dart:io' as io;
 
 import 'install_probe.dart';
 import 'install_process.dart';
+import 'runtime_tools.dart';
 import 'install_stage.dart';
 
 /// 运行时引导接缝（原版 `ProotBootstrap` 被 LocalEnvironment 用到的表面）。
@@ -270,6 +271,7 @@ class DesktopBootstrap implements RuntimeBootstrap {
     this.offlineTools,
     this.runner,
     this.environment,
+    this.deviceDns = const <String>[],
     this.extractor = const TarCommandExtractor(),
   });
 
@@ -290,6 +292,10 @@ class DesktopBootstrap implements RuntimeBootstrap {
 
   /// 容器命令前缀（默认宿主 bash；Android 轮为 proot 包装）。
   final List<String>? runner;
+
+  /// 设备 DNS（原版 prepareResolver 的设备 nameserver 来源；空 = 拿不到
+  /// 真值，resolver 如实跳过）。
+  final List<String> deviceDns;
 
   /// 进程环境增量（proot 轮的 PATH/PROOT_LOADER/LD_LIBRARY_PATH 等；
   /// 合并语义：Process.start includeParentEnvironment）。
@@ -482,10 +488,16 @@ class DesktopBootstrap implements RuntimeBootstrap {
           workingDirectory: rootfsDir.path, environment: environment);
 
   @override
-  Future<void> prepareRuntimeTools() {
-    // 原版 RuntimeTools.prepare（随包证书与命令入口）尚未移植；
-    // 如实报未接线，不给假成功（Android 轮随部署契约一并移植）。
-    throw UnimplementedError('RuntimeTools.prepare 未移植（随包证书与命令入口）');
+  Future<void> prepareRuntimeTools() async {
+    // 原版 RuntimeTools.prepare 第一批：随包证书 + 命令入口 + DNS。
+    // 补丁链（applyPatchChain 四专项）与托管资产 overlay 随第二批。
+    RuntimeToolsLite.ensureCommandEntries(rootfsDir.path);
+    final scripts = guestScripts;
+    if (scripts != null) {
+      RuntimeToolsLite.ensureCertificates(
+          rootfsDir.path, scripts.read('ca-certificates.crt'));
+    }
+    RuntimeToolsLite.prepareResolver(rootfsDir.path, deviceDns);
   }
 }
 

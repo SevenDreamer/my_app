@@ -54,7 +54,7 @@ final class InstallProbe {
         label: 'dsh 入口与版本',
         command: "test -x /usr/local/bin/dsh && node -e " +
             shellQuoteArg(
-                r"const p=require('/usr/local/lib/node_modules/@deepseek-ai/dsh/package.json'); if(!/^\\d+\\./.test(p.version))process.exit(1); console.log(p.version)"),
+                r"const p=require('/usr/local/lib/node_modules/@deepseek-ai/dsh/package.json'); if(!/^\d+\./.test(p.version))process.exit(1); console.log(p.version)"),
       ),
       InstallCheck(
         step: 6,
