@@ -149,6 +149,7 @@ class DshaSystemViewModel extends ChangeNotifier {
             staged.path('python-support.bin'),
           ],
           pnpm: <String>[staged.path('pnpm-runtime.bin')],
+          dsh: <String>[staged.path('dsh-runtime.bin')],
         ),
       );
       _environment = LocalInstallEnvironment(

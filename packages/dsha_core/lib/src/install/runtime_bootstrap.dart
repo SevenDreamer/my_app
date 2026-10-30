@@ -160,14 +160,19 @@ abstract interface class ArchiveToolSource implements OfflineToolSource {
 
   /// pnpm 归档路径集（pnpm-runtime.bin）。
   List<String> pnpmArchives();
+
+  /// dsh 运行时归档路径集（dsh-runtime.bin——cold_split 的 runtime 流）。
+  List<String> dshArchives();
 }
 
 /// 归档形态实现（映射形态返回 null：本形态不提供文件映射）。
 class ArchiveOfflineToolSource implements ArchiveToolSource {
-  ArchiveOfflineToolSource({required this.python, required this.pnpm});
+  ArchiveOfflineToolSource(
+      {required this.python, required this.pnpm, this.dsh = const <String>[]});
 
   final List<String> python;
   final List<String> pnpm;
+  final List<String> dsh;
 
   @override
   Map<String, List<int>>? pnpmFiles() => null;
@@ -180,6 +185,9 @@ class ArchiveOfflineToolSource implements ArchiveToolSource {
 
   @override
   List<String> pnpmArchives() => pnpm;
+
+  @override
+  List<String> dshArchives() => dsh;
 }
 
 /// 文件系统 guest 脚本源（APK 资产暂存到本地后的同步读取面）。
@@ -366,6 +374,12 @@ class DesktopBootstrap implements RuntimeBootstrap {
       rootfsDir.path,
       onProgress: onProgress,
     );
+    // cold_split 双流合成（原版 ColdBundleTransaction）：base 流（offline-
+    // rootfs）之后叠 runtime 流（dsh 全家桶）——初装一步到位。
+    final source = offlineTools;
+    if (source is ArchiveToolSource) {
+      await _extractToolArchives(source.dshArchives());
+    }
     await io.File('${rootfsDir.path}/$versionMarker')
         .writeAsString('$expectedVersion\n');
   }
@@ -498,6 +512,21 @@ class DesktopBootstrap implements RuntimeBootstrap {
           rootfsDir.path, scripts.read('ca-certificates.crt'));
     }
     RuntimeToolsLite.prepareResolver(rootfsDir.path, deviceDns);
+    // dsh 组件缺失补装（原版 cold_split runtime 流的补救面）：只补缺，
+    // 不覆盖已存在的用户升级件（「不覆盖用户升级的 Node/dsh」语义）。
+    await ensureBundledDsh();
+  }
+
+  /// dsh 运行时缺失补装：包目录不存在才解 dsh-runtime 归档。
+  Future<void> ensureBundledDsh() async {
+    final source = offlineTools;
+    if (source is! ArchiveToolSource) return;
+    final archives = source.dshArchives();
+    if (archives.isEmpty) return;
+    final pkg = io.Directory(
+        '${rootfsDir.path}/usr/local/lib/node_modules/@deepseek-ai/dsh');
+    if (pkg.existsSync()) return; // 在位即不覆盖（用户升级件受保护）
+    await _extractToolArchives(archives);
   }
 }
 
