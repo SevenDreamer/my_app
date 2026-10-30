@@ -65,6 +65,21 @@ class SentryBridge {
     return Sentry.captureException(error, stackTrace: stack);
   }
 
+  /// 诊断包上报（DSH 系统「上报诊断」按钮）：六步状态/详细输出/日志/环境
+  /// 选型整体打成自定义事件。字段经 _scrub 脱敏后出网。
+  static Future<bool> captureDiagnostics(Map<String, Object> payload) async {
+    if (!enabled) return false;
+    final event = SentryEvent(
+      message: SentryMessage('dsha-diagnostics'),
+      level: SentryLevel.warning,
+      tags: const <String, String>{'kind': 'dsha-diagnostics'},
+    );
+    // 结构化上下文（SDK 建议替代已弃用的 extra）。
+    event.contexts['dsha'] = payload;
+    await Sentry.captureEvent(event);
+    return true;
+  }
+
   /// beforeSend 脱敏：消息/异常值/面包屑逐字段过 `sensitive.redact`。
   /// （Sentry 协议对象字段可变：原地改写后原样返回，结构不动。）
   static Future<SentryEvent?> _scrub(SentryEvent event, dynamic hint) async {

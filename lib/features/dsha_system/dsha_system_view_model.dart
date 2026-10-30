@@ -11,6 +11,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 
+import '../../core/logging/sentry_bridge.dart';
 import 'dsha_asset_staging.dart';
 
 class DshaSystemViewModel extends ChangeNotifier {
@@ -48,6 +49,34 @@ class DshaSystemViewModel extends ChangeNotifier {
 
   /// 容器执行面（UI 显式展示）：proot（内置）/ 宿主 bash。
   String get runnerName => _runnerName;
+
+  /// 上报诊断结果（「上报诊断」按钮反馈文案；空 = 未上报过）。
+  String get reportNote => _reportNote;
+  String _reportNote = '';
+
+  /// 把当前任务快照（六步状态/详细输出/日志/失败/环境选型）上报 Sentry。
+  /// 返回是否已发出（Sentry 未启用时 false，UI 如实提示）。
+  Future<bool> reportDiagnostics() async {
+    final s = snapshot;
+    final sent = await SentryBridge.captureDiagnostics(<String, Object>{
+      'steps': <String>[
+        for (var i = 0; i < s.steps.length; i++) '${i + 1}:${s.steps[i].name}',
+      ].join(','),
+      'details': s.details.join('\n'),
+      'log': s.log,
+      'failure': s.failure,
+      'phase': s.phase,
+      'outcome': s.outcome.name,
+      'extractor': _extractorName,
+      'runner': _runnerName,
+      'ready': _ready,
+      'elapsedSeconds': s.elapsedSeconds,
+      'platform': io.Platform.operatingSystem,
+    });
+    _reportNote = sent ? '已上报到 Sentry' : 'Sentry 未启用，未上报';
+    notifyListeners();
+    return sent;
+  }
 
   /// 准备环境（解析应用目录 + 解包引擎选型 + 就绪查询）；页面打开时调用一次。
   Future<void> prepare() async {

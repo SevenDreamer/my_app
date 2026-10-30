@@ -223,6 +223,18 @@ class _StatusCard extends StatelessWidget {
                   '容器执行：${viewModel.runnerName}',
                   style: AppTypography.labelSm,
                 ),
+                Row(
+                  children: [
+                    ShadButton(
+                      onPressed: () => viewModel.reportDiagnostics(),
+                      child: const Text('上报诊断'),
+                    ),
+                    if (viewModel.reportNote.isNotEmpty) ...<Widget>[
+                      const SizedBox(width: 8),
+                      Text(viewModel.reportNote, style: AppTypography.labelSm),
+                    ],
+                  ],
+                ),
                 if (snapshot.outcome != InstallOutcome.idle)
                   Text(
                     '耗时 ${snapshot.elapsedSeconds}s',
