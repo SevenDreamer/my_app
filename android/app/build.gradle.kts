@@ -61,6 +61,15 @@ android {
         }
     }
 
+    packaging {
+        jniLibs {
+            // proot 必须以可执行实体落盘（Android 10+ W^X 只许从
+            // nativeLibraryDir 执行）：.so 解压到 lib 目录，不用
+            // extractNativeLibs=false 的 APK 直载模式。
+            useLegacyPackaging = true
+        }
+    }
+
     buildTypes {
         release {
             // 有完整签名（key.properties 四字段齐）时用 release 签名；否则降级 debug

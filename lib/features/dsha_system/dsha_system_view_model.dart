@@ -90,7 +90,11 @@ class DshaSystemViewModel extends ChangeNotifier {
           }
         } catch (_) {}
       }
-      _runnerName = proot != null ? 'proot（内置）' : '宿主 bash';
+      _runnerName = !io.Platform.isAndroid
+          ? '宿主 bash'
+          : proot != null
+              ? 'proot（内置）'
+              : '宿主 bash（proot 不可用）';
       // 原版 LocalEnvironment：bootstrap 与工具安装器共享同一实例。
       final bootstrap = DesktopBootstrap(
         baseDir: base,
