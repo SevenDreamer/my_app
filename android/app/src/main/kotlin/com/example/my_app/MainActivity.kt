@@ -44,10 +44,11 @@ class MainActivity : FlutterActivity() {
                             p.waitFor(3, java.util.concurrent.TimeUnit.SECONDS)
                             // 只留 Shizuku/Shell/崩溃相关段（诊断包瘦身）。
                             val kept = text.lines().filter {
-                                it.contains("Shizuku") || it.contains("ShellService") ||
-                                    it.contains("AndroidRuntime") || it.contains("my_app") ||
-                                    it.contains("FATAL") || it.contains("shizuku")
-                            }.takeLast(60).joinToString("\n")
+                                it.contains("Shizuku") || it.contains("shizuku") ||
+                                    it.contains("ShellService") || it.contains("ShizukuShell") ||
+                                    it.contains("AndroidRuntime") || it.contains("FATAL") ||
+                                    it.contains("bindUserService") || it.contains("UserService")
+                            }.takeLast(80).joinToString("\n")
                             result.success(kept)
                         } catch (e: Throwable) {
                             result.success("LOGCAT_FAILED ${e.message ?: ""}")

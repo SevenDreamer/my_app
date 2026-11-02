@@ -122,16 +122,21 @@ class ShizukuShell private constructor() {
                 .daemon(false).debuggable(false).version(1)
             val conn = object : ServiceConnection {
                 override fun onServiceConnected(name: ComponentName?, binder: IBinder?) {
+                    android.util.Log.i("ShizukuShell", "onServiceConnected: binder=$binder")
                     service = IShellService.Stub.asInterface(binder)
                 }
                 override fun onServiceDisconnected(name: ComponentName?) {
+                    android.util.Log.w("ShizukuShell", "onServiceDisconnected")
                     service = null
                 }
             }
             connection = conn
+            android.util.Log.i("ShizukuShell", "bindUserService: dispatching args=$args")
             try {
                 Shizuku.bindUserService(args, conn)
+                android.util.Log.i("ShizukuShell", "bindUserService: dispatched, awaiting callback")
             } catch (e: Throwable) {
+                android.util.Log.e("ShizukuShell", "bindUserService: failed", e)
                 failure = e.message ?: "SHIZUKU_BIND_FAILED"
                 connection = null
             }
