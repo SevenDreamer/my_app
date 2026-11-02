@@ -565,15 +565,9 @@ class BasicToolsInstaller {
     // 的物理标志（updates/ 残留 + status-new 半成品）并预置 status-old。
     final heal = await bootstrap.execRootfsForInstall(
         'echo "--- dpkg 权限探针 ---"; '
-        'python3 -c "'
-        'import os\\n'
-        'for op in ('
-        ' lambda: os.link(\\"/var/lib/dpkg/status\\", \\"/var/lib/dpkg/t1\\"),'
-        ' lambda: os.rename(\\"/var/lib/dpkg/status\\", \\"/var/lib/dpkg/t2\\"),'
-        ' lambda: open(\\"/var/lib/dpkg/t3\\", \\"w\\").close()):'
-        ' try: op(); print(op, \\"ok\\")'
-        ' except OSError as e: print(op, \\"errno=\\", e.errno, e.strerror)'
-        '" 2>&1; '
+        'python3 -c "import os; os.link(\\"/var/lib/dpkg/status\\", \\"/var/lib/dpkg/t1\\")" 2>&1 | tail -1; '
+        'python3 -c "import os; os.rename(\\"/var/lib/dpkg/status\\", \\"/var/lib/dpkg/t2\\")" 2>&1 | tail -1; '
+        'python3 -c "open(\\"/var/lib/dpkg/t3\\", \\"w\\").close(); print(\\"create ok\\")" 2>&1 | tail -1; '
         'cp /var/lib/dpkg/status /var/lib/dpkg/status-old 2>&1; '
         'rm -f /var/lib/dpkg/status-new /var/lib/dpkg/t1 /var/lib/dpkg/t2 /var/lib/dpkg/t3 2>&1; '
         'rm -rf /var/lib/dpkg/updates/* 2>&1; echo "updates cleared"; '
