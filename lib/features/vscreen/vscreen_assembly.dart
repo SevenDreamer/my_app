@@ -1,0 +1,167 @@
+//! Manager 装配（原版 VirtualScreenManager 的 Flutter 壳接线）。
+//!
+//! 轻件全装（Clock/Launcher/Journal/诊断/失败捕获），语义面（无障碍服务）
+//! 与 Channels/Transport 按诚实占位：语义未接报 `ACCESSIBILITY_SERVICE_
+//! UNAVAILABLE`，Transport 未接抛 `TRANSPORT_NOT_WIRED`（F2-4 requestAt
+//! HTTP 落地后替换）。
+import 'dart:async';
+import 'dart:io' as io;
+
+import 'package:dsha_core/dsha_core.dart';
+
+/// 无障碍服务占位（语义控制面随 F2-3b 真实现；未接不给假结果）。
+class NullAccessibilityService implements AccessibilityServiceApi {
+  const NullAccessibilityService();
+
+  @override
+  bool isConnected() => false;
+
+  @override
+  Map<String, Object?> virtualControl(
+          VscreenAccessibility session,
+          CapabilityBrokerApi broker,
+          CapabilityRequestApi request,
+          bool Function() current,
+          int display,
+          String operation,
+          Map<String, Object?> args) =>
+      vscreenFailure('ACCESSIBILITY_SERVICE_UNAVAILABLE', false);
+
+  @override
+  Map<String, Object?> virtualObservedControl(
+          VscreenAccessibility session,
+          CapabilityBrokerApi broker,
+          CapabilityRequestApi request,
+          bool Function() current,
+          int display,
+          String operation,
+          Map<String, Object?> args,
+          ObservedPixelsApi pixels) =>
+      vscreenFailure('ACCESSIBILITY_SERVICE_UNAVAILABLE', false);
+
+  @override
+  Map<String, Object?> typeVirtual(CapabilityBrokerApi broker,
+          CapabilityRequestApi request, bool Function() current, int display,
+          String text) =>
+      vscreenFailure('ACCESSIBILITY_SERVICE_UNAVAILABLE', false);
+
+  @override
+  Map<String, Object?> typeVirtualUser(
+          int display, String text, bool Function() current) =>
+      vscreenFailure('ACCESSIBILITY_SERVICE_UNAVAILABLE', false);
+}
+
+class NullTransport implements VscreenTransportApi {
+  const NullTransport();
+  @override
+  Map<String, Object?> request(
+          VscreenHandshake endpoint, String route, String query) =>
+      throw StateError('TRANSPORT_NOT_WIRED'); // F2-4 接入前不给假结果
+}
+
+class NullChannels implements VscreenChannelsApi {
+  const NullChannels();
+  @override
+  VscreenChannel? choose() => null;
+  @override
+  VscreenChannel? find(String id) => null;
+}
+
+/// 装配工厂：[sourceDir] = APK 路径（ApplicationInfo.sourceDir），
+/// [packageName] = 包名（Kotlin channel 供）；[root] = 应用目录（journal）。
+VscreenManager buildVscreenManager({
+  required String sourceDir,
+  required String packageName,
+  required io.Directory root,
+  required String installation,
+  required String applicationId,
+  VscreenTransportApi transport = const NullTransport(),
+  VscreenChannelsApi channels = const NullChannels(),
+  AccessibilityServiceApi accessibility = const NullAccessibilityService(),
+  int sdkInt = 30,
+  bool lowAndroid = false,
+}) {
+  return VscreenManager(
+    clock: _SystemClock(),
+    channels: channels,
+    worker: _MicrotaskWorker(),
+    transport: transport,
+    semantics: VscreenSemanticAdapter(accessibility),
+    launcher: VscreenLauncher(sourceDir: sourceDir, packageName: packageName),
+    journal: VscreenSessionJournal(
+      root: root,
+      installation: installation,
+      applicationId: applicationId,
+    ),
+    diagnostics: (stage, detail) {
+      // 诊断缝：面包屑进 Sentry（脱敏在桥内）。
+      try {
+        // 延迟导入面：桥在 app 层，这里保持 dsha_core 无 Flutter 依赖——
+        // 调用方也可注入覆盖；默认落 Zone 打印。
+        // ignore: avoid_print
+        print('[vscreen:$stage] $detail');
+      } catch (_) {}
+    },
+    failureCapture: (stage, error, safeCodes) {
+      // 启动异常捕获缝：仅透出白名单消息码（原版 safeCodes 语义）。
+      final message = error?.toString() ?? '';
+      for (final code in safeCodes) {
+        if (message.contains(code)) return <String, Object?>{'code': code};
+      }
+      return null;
+    },
+    bootSource: () => 'boot-${DateTime.now().millisecondsSinceEpoch}',
+    lowAndroid: lowAndroid,
+    sdkInt: sdkInt,
+  );
+}
+
+class _SystemClock implements VscreenClock {
+  @override
+  int millis() => DateTime.now().millisecondsSinceEpoch;
+}
+
+class _MicrotaskWorker implements VscreenWorkerApi {
+  @override
+  void execute(void Function() task) => scheduleMicrotask(task);
+
+  @override
+  ScheduledCancellable schedule(void Function() task, int delayMs) =>
+      _TimerCancellable(Timer(Duration(milliseconds: delayMs), task));
+
+  @override
+  ScheduledCancellable scheduleWithFixedDelay(
+      void Function() task, int initialDelayMs, int delayMs) {
+    Timer? timer;
+    Timer? initial;
+    initial = Timer(Duration(milliseconds: initialDelayMs), () {
+      task();
+      timer = Timer.periodic(Duration(milliseconds: delayMs), (_) => task());
+    });
+    return _TimerCancellable(_CompositeTimer(initial, () => timer));
+  }
+}
+
+class _TimerCancellable implements ScheduledCancellable {
+  _TimerCancellable(this._timer);
+  final dynamic _timer;
+  @override
+  void cancel() {
+    final t = _timer;
+    if (t is Timer) {
+      t.cancel();
+    } else if (t is _CompositeTimer) {
+      t.cancel();
+    }
+  }
+}
+
+class _CompositeTimer {
+  _CompositeTimer(this.initial, this.periodic);
+  final Timer initial;
+  final Timer? Function() periodic;
+  void cancel() {
+    initial.cancel();
+    periodic()?.cancel();
+  }
+}
