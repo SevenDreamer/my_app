@@ -558,14 +558,25 @@ class BasicToolsInstaller {
       throw const io.FileSystemException('install-basic-tools.sh 资产未配置');
     }
     final script = source.read('install-basic-tools.sh');
-    // dpkg 中断自愈（官方恢复法 `dpkg --configure -a`；幂等）：apt 断流
-    // 死在半截会留「E: dpkg was interrupted」残留。真机发现 configure 自身
-    // 写 status-old 报 Permission denied——先取现场（属主/id/可写性）再试
-    // 自愈（删 status-old 让 dpkg 重建），失败信息全留日志定真因。
+    // dpkg 中断自愈 + 权限真因探针。现场已证：目录可写（rm 成功）、
+    // id=root（proot 伪装），但 dpkg 的备份操作（status→status-old 的
+    // rename/link）报 Permission denied——选择性拒绝，位/属主正常。
+    // 探针用 python 精确测两 syscall 的 errno；绕道直接清「interrupted」
+    // 的物理标志（updates/ 残留 + status-new 半成品）并预置 status-old。
     final heal = await bootstrap.execRootfsForInstall(
-        'echo "--- dpkg 自愈现场 ---"; ls -la /var/lib/dpkg/ 2>&1; id; '
-        'ls -la /var/lib/ 2>&1 | head -5; '
-        'rm -f /var/lib/dpkg/status-old 2>&1; '
+        'echo "--- dpkg 权限探针 ---"; '
+        'python3 -c "'
+        'import os\\n'
+        'for op in ('
+        ' lambda: os.link(\\"/var/lib/dpkg/status\\", \\"/var/lib/dpkg/t1\\"),'
+        ' lambda: os.rename(\\"/var/lib/dpkg/status\\", \\"/var/lib/dpkg/t2\\"),'
+        ' lambda: open(\\"/var/lib/dpkg/t3\\", \\"w\\").close()):'
+        ' try: op(); print(op, \\"ok\\")'
+        ' except OSError as e: print(op, \\"errno=\\", e.errno, e.strerror)'
+        '" 2>&1; '
+        'cp /var/lib/dpkg/status /var/lib/dpkg/status-old 2>&1; '
+        'rm -f /var/lib/dpkg/status-new /var/lib/dpkg/t1 /var/lib/dpkg/t2 /var/lib/dpkg/t3 2>&1; '
+        'rm -rf /var/lib/dpkg/updates/* 2>&1; echo "updates cleared"; '
         'dpkg --configure -a 2>&1; echo "dpkg-heal-exit:\$?"');
     await InstallProcess.read(heal,
         timeoutMs: 120000,
