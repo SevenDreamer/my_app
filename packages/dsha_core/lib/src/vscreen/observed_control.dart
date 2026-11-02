@@ -144,14 +144,14 @@ class VscreenObservedControl {
   int _readers = 0;
 
   /// 原版 `run(service, display, operation, args, context, pixels, click)`。
-  Map<String, Object?> run(
+  Future<Map<String, Object?>> run(
     int display,
     String operation,
     Map<String, Object?> args,
     VscreenContext context,
     ObservedPixelsApi pixels,
     VscreenClick click,
-  ) {
+  ) async {
     _gate.lock();
     if (_clearedVersion != _invalidation) {
       _clearLocked();
@@ -159,7 +159,7 @@ class VscreenObservedControl {
     final version = _invalidation;
     _readers++;
     try {
-      var result = _runLocked(display, operation, args, context, pixels, click);
+      var result = await _runLocked(display, operation, args, context, pixels, click);
       if (operation == 'anchored-click') {
         result = _clickMetadata(result, args);
       }
@@ -198,14 +198,14 @@ class VscreenObservedControl {
     }
   }
 
-  Map<String, Object?> _runLocked(
+  Future<Map<String, Object?>> _runLocked(
     int display,
     String operation,
     Map<String, Object?> args,
     VscreenContext context,
     ObservedPixelsApi pixels,
     VscreenClick click,
-  ) {
+  ) async {
     _prune();
     try {
       if (context.request().target is! VscreenTargetEvidence ||
@@ -214,13 +214,13 @@ class VscreenObservedControl {
         return vscreenFailure('ANCHOR_IDENTITY_UNAVAILABLE', false);
       }
       if (operation == 'see') {
-        return _see(context, pixels);
+        return await _see(context, pixels);
       }
       if (operation == 'anchor') {
-        return _select(context, args);
+        return await _select(context, args);
       }
       if (operation == 'anchored-click') {
-        final result = _click(context, args, pixels, click);
+        final result = await _click(context, args, pixels, click);
         result.put('mode', 'ANCHORED_NODE');
         if (!result.has('sourceFrameSeq')) {
           result.put('sourceFrameSeq', args.optLong('frameSeq', -1));
@@ -238,10 +238,10 @@ class VscreenObservedControl {
     }
   }
 
-  Map<String, Object?> _see(
+  Future<Map<String, Object?>> _see(
       VscreenContext context,
       ObservedPixelsApi pixels,
-  ) {
+  ) async {
     if (!context.claimDispatch()) {
       return vscreenFailure('SCREEN_TARGET_CHANGED', false);
     }
@@ -258,7 +258,7 @@ class VscreenObservedControl {
             ? error.reason
             : 'ANCHOR_TREE_UNAVAILABLE';
       }
-      frame = pixels.capture(before != null);
+      frame = await pixels.capture(before != null);
       capturedId = frame.optString('observationId');
       if (!frame.optBoolean('ok')) {
         return frame;
@@ -326,10 +326,10 @@ class VscreenObservedControl {
     }
   }
 
-  Map<String, Object?> _select(
+  Future<Map<String, Object?>> _select(
       VscreenContext context,
       Map<String, Object?> args,
-  ) {
+  ) async {
     final id = args.optString('observationId');
     final observation = _observations[id];
     if (observation == null || _expired(observation)) {
@@ -374,12 +374,12 @@ class VscreenObservedControl {
         : result;
   }
 
-  Map<String, Object?> _click(
+  Future<Map<String, Object?>> _click(
     VscreenContext context,
     Map<String, Object?> args,
     ObservedPixelsApi pixels,
     VscreenClick click,
-  ) {
+  ) async {
     _Observation? observation;
     final id = args.optString('anchorId');
     for (final candidate in _observations.values) {
@@ -425,7 +425,7 @@ class VscreenObservedControl {
         if (!live.unobscured(region)) {
           return vscreenFailure('ANCHOR_OCCLUDED', false);
         }
-        final check = pixels.region(observation.id, region);
+        final check = await pixels.region(observation.id, region);
         if (!check.optBoolean('ok')) {
           return check;
         }

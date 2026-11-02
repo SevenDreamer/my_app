@@ -174,11 +174,13 @@ abstract class ExpiryHandle {
 
 /// 观察像素面（原版 `VirtualScreenAccessibility.ObservedPixels` 接口）。
 abstract class ObservedPixelsApi {
-  Map<String, Object?> capture(bool proofAvailable);
+  /// 唯一签名偏移（同 awaitExit/request 惯例）：capture/region 走网络
+  /// （observe 路由），Dart 无同步 IO → Future。
+  Future<Map<String, Object?>> capture(bool proofAvailable);
 
   void release(String id);
 
-  Map<String, Object?> region(String id, VscreenRect bounds);
+  Future<Map<String, Object?>> region(String id, VscreenRect bounds);
 
   ExpiryHandle expireAfter(void Function() callback, int delayMs);
 }

@@ -54,7 +54,7 @@ class NullAccessibilityService implements AccessibilityServiceApi {
 class NullTransport implements VscreenTransportApi {
   const NullTransport();
   @override
-  Map<String, Object?> request(
+  Future<Map<String, Object?>> request(
           VscreenHandshake endpoint, String route, String query) =>
       throw StateError('TRANSPORT_NOT_WIRED'); // F2-4 接入前不给假结果
 }

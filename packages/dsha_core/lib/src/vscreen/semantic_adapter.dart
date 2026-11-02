@@ -59,13 +59,13 @@ class VscreenSemanticAdapter {
     return nativeSession.runNative(lease, display, operation, args);
   }
 
-  Map<String, Object?> control(
+  Future<Map<String, Object?>> control(
       CapabilityBrokerApi? broker,
       CapabilityRequestApi? request,
       bool Function() current,
       int display,
       String operation,
-      Map<String, Object?> args) {
+      Map<String, Object?> args) async {
     if (request == null || broker == null) {
       return vscreenFailure('EXPLICIT_SCREEN_REQUEST_REQUIRED', false);
     }
@@ -73,14 +73,14 @@ class VscreenSemanticAdapter {
         session, broker, request, current, display, operation, args);
   }
 
-  Map<String, Object?> observed(
+  Future<Map<String, Object?>> observed(
       CapabilityBrokerApi? broker,
       CapabilityRequestApi? request,
       bool Function() current,
       int display,
       String operation,
       Map<String, Object?> args,
-      ObservedPixelsApi pixels) {
+      ObservedPixelsApi pixels) async {
     if (request == null || broker == null) {
       return vscreenFailure('EXPLICIT_SCREEN_REQUEST_REQUIRED', false);
     }
@@ -88,8 +88,9 @@ class VscreenSemanticAdapter {
         session, broker, request, current, display, operation, args, pixels);
   }
 
-  Map<String, Object?> type(CapabilityBrokerApi? broker, CapabilityRequestApi? request,
-      bool Function() current, int display, String text) {
+  Future<Map<String, Object?>> type(CapabilityBrokerApi? broker,
+      CapabilityRequestApi? request, bool Function() current, int display,
+      String text) async {
     if (request == null) return service.typeVirtualUser(display, text, current);
     if (broker == null) {
       return vscreenFailure('EXPLICIT_SCREEN_REQUEST_REQUIRED', false);

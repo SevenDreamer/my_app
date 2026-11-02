@@ -67,8 +67,12 @@ typedef StartFailureCaptureFn = Map<String, Object?>? Function(
     String stage, Object? error, Set<String> safeCodes);
 
 /// Core HTTP 传输缝（原版 `VirtualScreenTransport.request`；HTTP 客户端留接线轮）。
+///
+/// 唯一签名偏移（同 awaitExit 惯例）：Dart 无同步网络 IO，request 改
+/// Future 返回；原版 Java 同步 HttpURLConnection 跑在工作线程。
 abstract class VscreenTransportApi {
-  Map<String, Object?> request(VscreenHandshake endpoint, String route, String query);
+  Future<Map<String, Object?>> request(
+      VscreenHandshake endpoint, String route, String query);
 }
 
 /// 启动异常安全消息码（原版 `startExceptionMessagePolicy` 白名单，逐字）。
@@ -280,9 +284,10 @@ class VscreenManager {
   }
 
   /// 请求编排核心（原版 `perform`）：栅栏 + 帧门 + 代次迁移 + 执行后判定。
-  Map<String, Object?> perform(VscreenSnapshot? snapshot, String route, String query,
+  Future<Map<String, Object?>> perform(
+      VscreenSnapshot? snapshot, String route, String query,
       bool changeGeneration,
-      [bool freshFrame = true]) {
+      [bool freshFrame = true]) async {
     if (snapshot == null) return missingSnapshot(null);
     if (!current(snapshot)) return failure('VSCREEN_REVOKED');
     var q = query;
@@ -298,7 +303,8 @@ class VscreenManager {
         !_claim(snapshot)) {
       return failure('SCREEN_TARGET_CHANGED');
     }
-    final value = requestAt(snapshot.identity.port, snapshot.identity.token, route, q);
+    final value =
+        await requestAt(snapshot.identity.port, snapshot.identity.token, route, q);
     // 授权与目标检查可能走平台调用；同样不持 LOCK。
     if (!authorized(snapshot.authority)) {
       return afterExecutionOrNotExecuted(value, VscreenRoutes.mutatesCore(route),
@@ -396,10 +402,10 @@ class VscreenManager {
             : 'VSCREEN_REVOKED');
   }
 
-  Map<String, Object?> performRequired(
-      String gen, String route, String query, VscreenRequestScope scope) {
+  Future<Map<String, Object?>> performRequired(
+      String gen, String route, String query, VscreenRequestScope scope) async {
     final session = snapshot(gen, scope);
-    return session == null ? missingSnapshot(gen) : perform(session, route, query, false);
+    return session == null ? missingSnapshot(gen) : await perform(session, route, query, false);
   }
 
   /// 「执行后状态已变」判定：保留真实结果 + 标记；未执行才给稳定拒绝码。
@@ -432,14 +438,15 @@ class VscreenManager {
       generation == value.optString('generation') &&
       value.optLong('frameSeq', -1) >= frameSequence;
 
-  Map<String, Object?> _request(String route, String query, VscreenRequestScope scope) =>
-      perform(snapshot(null, scope), route, query, false);
+  Future<Map<String, Object?>> _request(
+          String route, String query, VscreenRequestScope scope) async =>
+      await perform(snapshot(null, scope), route, query, false);
 
   /// 启动（原版 `start(orientation)`）。
-  Map<String, Object?> start(String orientation,
-      [VscreenRequestScope? scope, bool foreground = false]) {
+  Future<Map<String, Object?>> start(String orientation,
+      [VscreenRequestScope? scope, bool foreground = false]) async {
     final s = scope ?? localScope();
-    final outcome = startOrdered(orientation, s);
+    final outcome = await startOrdered(orientation, s);
     rememberStartOutcome(outcome);
     return outcome;
   }
@@ -508,7 +515,8 @@ class VscreenManager {
   }
 
   /// 启动流水线（原版 `startOrdered`）。
-  Map<String, Object?> startOrdered(String orientation, VscreenRequestScope scope) {
+  Future<Map<String, Object?>> startOrdered(
+      String orientation, VscreenRequestScope scope) async {
     if (lowAndroid) return failure('VSCREEN_UNSUPPORTED_LOW');
     if (!supported()) return failure('VSCREEN_API_30_REQUIRED');
     if (orientation != 'portrait' && orientation != 'landscape') {
@@ -530,7 +538,7 @@ class VscreenManager {
     final existing = snapshot(null, scope);
     if (existing != null) {
       final result =
-          perform(existing, '/vscreen/create', 'width=$width&height=$height', true);
+                await perform(existing, '/vscreen/create', 'width=$width&height=$height', true);
       if (result.optBoolean('ok')) _visuals.present();
       return decorate(result);
     }
@@ -619,8 +627,8 @@ class VscreenManager {
         cleanupLaunched(launched, selected.id());
         return decorate(failure('VSCREEN_START_CANCELLED'));
       }
-      final created = requestAt(
-          launched.port, launched.token, '/vscreen/create', 'width=$width&height=$height');
+      final created = await requestAt(
+                launched.port, launched.token, '/vscreen/create', 'width=$width&height=$height');
       recordCreateOutcome(created);
       final live = scope.current();
       final committed =
@@ -751,13 +759,13 @@ class VscreenManager {
     closeDetached(closed);
   }
 
-  void _heartbeatTick(int launchEpoch) {
+  Future<void> _heartbeatTick(int launchEpoch) async {
     final session = snapshot(null, VscreenRequestScope(null, null, null, ''));
     if (session == null || session.identity.epoch != launchEpoch) return;
     final selected = channels.find(session.channel);
     final available = selected != null && selected.available();
     final ping = available
-        ? perform(session, '/vscreen/ping', '', false)
+        ? await perform(session, '/vscreen/ping', '', false)
         : failure('DEVICE_CHANNEL_UNAVAILABLE');
     if (!ping.optBoolean('ok')) {
       if (currentLocked(session)) lifecycleState = VscreenLifecycleState.disconnected;
@@ -765,14 +773,14 @@ class VscreenManager {
     }
   }
 
-  Map<String, Object?> status([VscreenRequestScope? scope]) =>
-      decorate(_request('/vscreen/status', '', scope ?? localScope()));
+  Future<Map<String, Object?>> status([VscreenRequestScope? scope]) async =>
+      decorate(await _request('/vscreen/status', '', scope ?? localScope()));
 
-  Map<String, Object?> preview([VscreenRequestScope? scope]) =>
+  Future<Map<String, Object?>> preview([VscreenRequestScope? scope]) =>
       _request('/vscreen/preview', '', scope ?? localScope());
 
   /// agent see（原版 `agentSee`）：DISPLAY 证据外一律 `CORE_EVIDENCE_REQUIRED`。
-  Map<String, Object?> agentSee(VscreenRequestScope scope) {
+  Future<Map<String, Object?>> agentSee(VscreenRequestScope scope) async {
     final request = scope.request;
     final target = request?.target;
     if (target is VscreenTargetEvidence && target.observation != Observation.display) {
@@ -783,23 +791,24 @@ class VscreenManager {
         target is! VscreenTargetEvidence ||
         target.windowId < 0 ||
         target.consentRevision < 0) {
-      final image = preview(scope);
+      final image = await preview(scope);
       image
         ..put('anchoredAvailable', false)
         ..put('availabilityReason', 'ANCHOR_ACCESSIBILITY_UNAVAILABLE')
         ..put('sourceFrameSeq', image.optLong('frameSeq', -1));
       return image;
     }
-    return observed('see', null, -1, '', -1, -1, scope);
+    return await observed('see', null, -1, '', -1, -1, scope);
   }
 
   /// 观察/锚点/受管点击编排（原版 `observed`）。
-  Map<String, Object?> observed(String operation, String? gen, int source, String id,
-      int x, int y, VscreenRequestScope scope) {
+  Future<Map<String, Object?>> observed(
+      String operation, String? gen, int source, String id,
+      int x, int y, VscreenRequestScope scope) async {
     final session = snapshot(gen, scope);
     if (session == null) return missingSnapshot(gen);
     if (scope.request == null) return failure('EXPLICIT_SCREEN_REQUEST_REQUIRED');
-    final info = perform(session, '/vscreen/status', '', false, false);
+    final info = await perform(session, '/vscreen/status', '', false, false);
     if (!info.optBoolean('ok')) return info;
     try {
       final args = <String, Object?>{
@@ -817,8 +826,8 @@ class VscreenManager {
         return failure('VSCREEN_CORE_IDENTITY_CHANGED');
       }
       final pixels = _ObservedPixelsBridge(this, session, endpoint);
-      final result = semantics.observed(scope.broker, scope.request, () => current(session),
-          info.optInt('displayId', -1), operation, args, pixels);
+      final result = await semantics.observed(scope.broker, scope.request,
+          () => current(session), info.optInt('displayId', -1), operation, args, pixels);
       return current(session)
           ? result
           : afterExecutionOrNotExecuted(
@@ -839,8 +848,8 @@ class VscreenManager {
     while (observationReleases.length >= 2 && !observationReleases.containsKey(key)) {
       observationReleases.remove(observationReleases.keys.first);
     }
-    observationReleases[key] = () {
-      transport.request(
+    observationReleases[key] = () async {
+      await transport.request(
           endpoint, '/vscreen/observation-release', 'observationId=${encode(id)}');
     };
     if (!observationReleaseScheduled) scheduleObservationReleases();
@@ -873,16 +882,18 @@ class VscreenManager {
   }
 
   /// 授权与语义操作只需要本次显示身份；旧像素元数据不能阻断它们。
-  Map<String, Object?> targetStatus([VscreenRequestScope? scope]) =>
+  Future<Map<String, Object?>> targetStatus([VscreenRequestScope? scope]) =>
       perform(snapshot(null, scope ?? localScope()), '/vscreen/status', '', false, false);
 
-  Map<String, Object?> previewSince(String gen, int seq, [VscreenRequestScope? scope]) =>
+  Future<Map<String, Object?>> previewSince(
+          String gen, int seq, [VscreenRequestScope? scope]) =>
       _request('/vscreen/preview', 'since=$seq&generation=${encode(gen)}',
           scope ?? localScope());
 
-  Map<String, Object?> touch(String gen, int seq, String stroke, int action, double x,
+  Future<Map<String, Object?>> touch(
+      String gen, int seq, String stroke, int action, double x,
       double y,
-      [VscreenRequestScope? scope]) {
+      [VscreenRequestScope? scope]) async {
     return performRequired(
         gen,
         '/vscreen/touch',
@@ -891,16 +902,17 @@ class VscreenManager {
   }
 
   /// 编辑器编排（原版 `editor`）：edit/submit 可能已写入，只有只读 editor 报「未执行」（#140）。
-  Map<String, Object?> editor(String gen, String operation, Map<String, Object?> args,
-      [VscreenRequestScope? scope]) {
+  Future<Map<String, Object?>> editor(
+      String gen, String operation, Map<String, Object?> args,
+      [VscreenRequestScope? scope]) async {
     final s = scope ?? localScope();
     final session = snapshot(gen, s);
     if (session == null) return missingSnapshot(gen);
-    final info = perform(session, '/vscreen/status', '', false, false);
+    final info = await perform(session, '/vscreen/status', '', false, false);
     if (!info.optBoolean('ok')) return info;
     if (!current(session)) return failure('VSCREEN_REVOKED');
-    final result = semantics.control(s.broker, s.request, () => current(session),
-        info.optInt('displayId', -1), operation, args);
+    final result = await semantics.control(s.broker, s.request,
+        () => current(session), info.optInt('displayId', -1), operation, args);
     if (current(session)) return result;
     return afterExecutionOrNotExecuted(
         result,
@@ -909,14 +921,14 @@ class VscreenManager {
         'SCREEN_TARGET_CHANGED');
   }
 
-  Map<String, Object?> tree([VscreenRequestScope? scope]) {
+  Future<Map<String, Object?>> tree([VscreenRequestScope? scope]) async {
     final s = scope ?? localScope();
     final session = snapshot(null, s);
-    final frame = perform(session, '/vscreen/status', '', false, false);
+    final frame = await perform(session, '/vscreen/status', '', false, false);
     if (!frame.optBoolean('ok')) return frame;
     if (!current(session)) return failure('VSCREEN_REVOKED');
-    final result = semantics.control(s.broker, s.request, () => current(session),
-        frame.optInt('displayId', -1), 'tree', <String, Object?>{});
+    final result = await semantics.control(s.broker, s.request,
+        () => current(session), frame.optInt('displayId', -1), 'tree', <String, Object?>{});
     if (!current(session)) return failure('SCREEN_TARGET_CHANGED');
     result
       ..put('generation', frame.optString('generation'))
@@ -926,17 +938,18 @@ class VscreenManager {
   }
 
   /// node 编排（原版 `node`）：像素帧门只对坐标注入有意义，node 走无障碍树判定（issue #117）。
-  Map<String, Object?> node(String gen, int seq, String node, String action, String text,
-      [VscreenRequestScope? scope]) {
+  Future<Map<String, Object?>> node(
+      String gen, int seq, String node, String action, String text,
+      [VscreenRequestScope? scope]) async {
     final s = scope ?? localScope();
     final session = snapshot(gen, s);
     if (session == null) return missingSnapshot(gen);
-    final info = perform(session, '/vscreen/status', '', false, false);
+    final info = await perform(session, '/vscreen/status', '', false, false);
     if (!info.optBoolean('ok')) return info;
     if (!current(session)) return failure('VSCREEN_REVOKED');
     try {
-      final result = semantics.control(s.broker, s.request, () => current(session),
-          info.optInt('displayId', -1), 'node', {
+      final result = await semantics.control(s.broker, s.request,
+          () => current(session), info.optInt('displayId', -1), 'node', {
         'nodeId': node,
         'action': action,
         'text': text,
@@ -950,7 +963,7 @@ class VscreenManager {
     }
   }
 
-  Map<String, Object?> launch(String? pkg, [VscreenRequestScope? scope]) {
+  Future<Map<String, Object?>> launch(String? pkg, [VscreenRequestScope? scope]) async {
     if (pkg == null ||
         !RegExp(r'^[A-Za-z][A-Za-z0-9_]*(?:\.[A-Za-z0-9_]+)+$').hasMatch(pkg)) {
       return failure('INVALID_PACKAGE');
@@ -961,8 +974,9 @@ class VscreenManager {
     return _request('/vscreen/launch', 'package=${encode(pkg)}', s);
   }
 
-  Map<String, Object?> action(String action, String gen, int seq, String params,
-      [VscreenRequestScope? scope]) {
+  Future<Map<String, Object?>> action(
+      String action, String gen, int seq, String params,
+      [VscreenRequestScope? scope]) async {
     return performRequired(
         gen,
         '/vscreen/$action',
@@ -971,8 +985,8 @@ class VscreenManager {
   }
 
   /// 文本输入（原版 `type`）：ASCII 走命令；Unicode 需要无障碍（原语义保留）。
-  Map<String, Object?> type(String gen, int seq, String text,
-      [VscreenRequestScope? scope]) {
+  Future<Map<String, Object?>> type(String gen, int seq, String text,
+      [VscreenRequestScope? scope]) async {
     if (text.isEmpty || text.length > 2000) return failure('INVALID_TEXT');
     final s = scope ?? localScope();
     final session = snapshot(gen, s);
@@ -984,11 +998,11 @@ class VscreenManager {
     if (!semantics.service.isConnected()) {
       return failure('ACCESSIBILITY_REQUIRED_FOR_UNICODE');
     }
-    final check = perform(session, '/vscreen/check', query, false);
+    final check = await perform(session, '/vscreen/check', query, false);
     if (!check.optBoolean('ok')) return check;
     if (!current(session)) return failure('VSCREEN_REVOKED');
-    final result = semantics.type(s.broker, s.request, () => current(session),
-        check.optInt('displayId', -1), text);
+    final result = await semantics.type(s.broker, s.request,
+        () => current(session), check.optInt('displayId', -1), text);
     return current(session)
         ? result
         : afterExecutionOrNotExecuted(result, true,
@@ -1033,7 +1047,7 @@ class VscreenManager {
   }
 
   /// 拆除会话（原版 `closeDetached`）：close 回复只证明 release；只有绑定的只读出生探针关账。
-  Map<String, Object?> closeDetached(_ClosedSession? closed) {
+  Future<Map<String, Object?>> closeDetached(_ClosedSession? closed) async {
     semantics.clearObserved();
     saveJournal();
     if (closed == null) {
@@ -1045,7 +1059,7 @@ class VscreenManager {
           : failure('VSCREEN_${lifecycleState.wireName}'));
     }
     final release =
-        requestAt(closed.port, closed.token, '/vscreen/close', '');
+        await requestAt(closed.port, closed.token, '/vscreen/close', '');
     final proof = probeClosed(closed, 3);
     final commit = proof == VscreenExit.exited
         ? persistCleanupExited(closed)
@@ -1183,12 +1197,12 @@ class VscreenManager {
     }
   }
 
-  Map<String, Object?> stopResult() {
+  Future<Map<String, Object?>> stopResult() async {
     final closed = detachLocked();
     return closeDetached(closed);
   }
 
-  Map<String, Object?> closeExpected(String expectedCore) {
+  Future<Map<String, Object?>> closeExpected(String expectedCore) async {
     final handle = core ?? pendingCleanup?.handle;
     if (handle != null && handle.identity.instance != expectedCore) {
       return identityFailure(expectedCore.isEmpty
@@ -1201,7 +1215,7 @@ class VscreenManager {
     return closeDetached(detachLocked());
   }
 
-  Map<String, Object?> close() => stopResult();
+  Future<Map<String, Object?>> close() => stopResult();
 
   void stop() {
     stopResult();
@@ -1380,15 +1394,15 @@ class VscreenManager {
   }
 
   /// 桥入口（原版 `bridge` 三态）。
-  String bridge(String route, String query) {
+  Future<String> bridge(String route, String query) async {
     try {
-      return bridgeRequest(VscreenBridgeRequest.query(route, query));
+      return await bridgeRequest(VscreenBridgeRequest.query(route, query));
     } on BridgeRequestFailure catch (invalid) {
       return jsonEncode(failure(invalid.code));
     }
   }
 
-  String bridgeRequest(VscreenBridgeRequest request) {
+  Future<String> bridgeRequest(VscreenBridgeRequest request) async {
     if (request.operation != VscreenOperation.status &&
         request.operation != VscreenOperation.close) {
       return jsonEncode(failure('EXPLICIT_SCREEN_REQUEST_REQUIRED'));
@@ -1396,7 +1410,7 @@ class VscreenManager {
     return dispatch(request, localScope());
   }
 
-  String bridgeAuthorized(VscreenBridgeRequest request, VscreenRequestScope scope) {
+  Future<String> bridgeAuthorized(VscreenBridgeRequest request, VscreenRequestScope scope) async {
     final caller = request.parameters['coreInstance'] ?? '';
     if (request.requiresExistingCore() || caller.isNotEmpty) {
       if (caller.isEmpty) return jsonEncode(identityFailure('VSCREEN_CORE_IDENTITY_REQUIRED'));
@@ -1420,8 +1434,10 @@ class VscreenManager {
   }
 
   /// 派发（原版 `dispatch` + `Actions` 实现）。
-  String dispatch(VscreenBridgeRequest request, VscreenRequestScope scope) {
-    return jsonEncode(decorate(request.execute(_BridgeActions(this, scope, request))));
+  Future<String> dispatch(
+      VscreenBridgeRequest request, VscreenRequestScope scope) async {
+    return jsonEncode(
+        decorate(await request.execute(_BridgeActions(this, scope, request))));
   }
 
   /// 创建结果留痕（原版 `recordCreateOutcome`）：失败写稳定码 + 根因摘要；同签名只写一次。
@@ -1485,7 +1501,8 @@ class VscreenManager {
     return omissions;
   }
 
-  Map<String, Object?> requestAt(int port, String token, String route, String query) {
+  Future<Map<String, Object?>> requestAt(
+      int port, String token, String route, String query) async {
     var endpoint = core;
     final cleanup = pendingCleanup;
     if (endpoint == null || endpoint.port != port || endpoint.token != token) {
@@ -1555,8 +1572,8 @@ class _ObservedPixelsBridge implements ObservedPixelsApi {
   final VscreenHandshake endpoint;
 
   @override
-  Map<String, Object?> capture(bool retain) {
-    var frame = manager.perform(
+  Future<Map<String, Object?>> capture(bool retain) async {
+    var frame = await manager.perform(
         session,
         '/vscreen/observe',
         'generation=${VscreenManager.encode(session.identity.generation)}&retain=$retain',
@@ -1567,7 +1584,7 @@ class _ObservedPixelsBridge implements ObservedPixelsApi {
         const {'OBSERVATION_IMAGE_BUDGET', 'OBSERVATION_IMAGE_UNAVAILABLE'}
             .contains(frame.optString('error'))) {
       final reason = frame.optString('error');
-      frame = manager.perform(
+      frame = await manager.perform(
           session,
           '/vscreen/observe',
           'generation=${VscreenManager.encode(session.identity.generation)}&retain=false',
@@ -1579,7 +1596,7 @@ class _ObservedPixelsBridge implements ObservedPixelsApi {
   }
 
   @override
-  Map<String, Object?> region(String observationId, VscreenRect bounds) {
+  Future<Map<String, Object?>> region(String observationId, VscreenRect bounds) {
     return manager.perform(
         session,
         '/vscreen/observation-region',
@@ -1626,7 +1643,8 @@ class _DefaultVisuals implements VscreenVisuals {
 class VscreenInterruptedException implements Exception {}
 
 /// bridge 派发表（原版匿名 `Actions<JSONObject>`）。
-class _BridgeActions implements VscreenBridgeActions<Map<String, Object?>> {
+class _BridgeActions
+    implements VscreenBridgeActions<Future<Map<String, Object?>>> {
   _BridgeActions(this.manager, this.scope, this.request);
 
   final VscreenManager manager;
@@ -1634,24 +1652,26 @@ class _BridgeActions implements VscreenBridgeActions<Map<String, Object?>> {
   final VscreenBridgeRequest request;
 
   @override
-  Map<String, Object?> create(String orientation) => manager.start(orientation, scope);
+  Future<Map<String, Object?>> create(String orientation) =>
+      manager.start(orientation, scope);
 
   @override
-  Map<String, Object?> status() => manager.status(scope);
+  Future<Map<String, Object?>> status() => manager.status(scope);
 
   @override
-  Map<String, Object?> launch(String pkg) => manager.launch(pkg, scope);
+  Future<Map<String, Object?>> launch(String pkg) => manager.launch(pkg, scope);
 
   @override
-  Map<String, Object?> tree() => manager.tree(scope);
+  Future<Map<String, Object?>> tree() => manager.tree(scope);
 
   @override
-  Map<String, Object?> node(String generation, int frame, String id, String action, String text) =>
+  Future<Map<String, Object?>> node(
+          String generation, int frame, String id, String action, String text) =>
       manager.node(generation, frame, id, action, text, scope);
 
   @override
-  Map<String, Object?> editor(String generation, String mode, String editorId, String text,
-          int start, int end) =>
+  Future<Map<String, Object?>> editor(String generation, String mode,
+          String editorId, String text, int start, int end) =>
       manager.editor(generation, mode, {
         'editorId': editorId,
         'text': text,
@@ -1660,39 +1680,40 @@ class _BridgeActions implements VscreenBridgeActions<Map<String, Object?>> {
       }, scope);
 
   @override
-  Map<String, Object?> touch(String generation, int frame, String stroke, int action,
-          double x, double y) =>
+  Future<Map<String, Object?>> touch(String generation, int frame,
+          String stroke, int action, double x, double y) =>
       manager.touch(generation, frame, stroke, action, x, y, scope);
 
   @override
-  Map<String, Object?> preview() {
-    final result = manager.preview(scope);
+  Future<Map<String, Object?>> preview() async {
+    final result = await manager.preview(scope);
     return !result.optBoolean('ok') || manager.frameCurrent(result)
         ? result
         : VscreenManager.failure('VSCREEN_REVOKED');
   }
 
   @override
-  Map<String, Object?> see() => manager.agentSee(scope);
+  Future<Map<String, Object?>> see() => manager.agentSee(scope);
 
   @override
-  Map<String, Object?> anchor(String generation, int frame, String observation, int x, int y) =>
+  Future<Map<String, Object?>> anchor(
+          String generation, int frame, String observation, int x, int y) =>
       manager.observed('anchor', generation, frame, observation, x, y, scope);
 
   @override
-  Map<String, Object?> anchoredClick(String generation, int frame, String anchor) =>
+  Future<Map<String, Object?>> anchoredClick(String generation, int frame, String anchor) =>
       manager.observed('anchored-click', generation, frame, anchor, -1, -1, scope);
 
   @override
-  Map<String, Object?> action(String mode, String generation, int frame, String query) =>
+  Future<Map<String, Object?>> action(String mode, String generation, int frame, String query) =>
       manager.action(mode, generation, frame, query, scope);
 
   @override
-  Map<String, Object?> type(String generation, int frame, String text) =>
+  Future<Map<String, Object?>> type(String generation, int frame, String text) =>
       manager.type(generation, frame, text, scope);
 
   @override
-  Map<String, Object?> close() =>
+  Future<Map<String, Object?>> close() =>
       manager.closeExpected(request.parameters['coreInstance'] ?? '');
 }
 
