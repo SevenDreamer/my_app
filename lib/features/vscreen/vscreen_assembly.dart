@@ -150,6 +150,10 @@ VscreenManager buildVscreenManager({
       root: root,
       installation: installation,
       applicationId: applicationId,
+      // POSIX 权限缝：Android app 私有目录天然 rw-------（沙箱保证只有 app
+      // 可访问）——chmod 语义由沙箱等价满足，返回接受（默认 unsupported 恒
+      // false 会在非 Windows 抛 VSCREEN_JOURNAL_PERMISSIONS，MY-APP-5 实证）。
+      setPosixPermissions: (path, permissions) => true,
     ),
     diagnostics: (stage, detail) {
       // 诊断缝：面包屑进 Sentry（脱敏在桥内）。
