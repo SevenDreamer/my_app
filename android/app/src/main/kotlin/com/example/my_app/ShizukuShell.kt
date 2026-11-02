@@ -106,7 +106,8 @@ class ShizukuShell private constructor() {
             failure = ""
             val args = Shizuku.UserServiceArgs(
                 ComponentName(ctx.packageName, ShellService::class.java.name)
-            ).daemon(false).processNameSuffix("shell").debuggable(false).version(1)
+            ).processNameSuffix("shizuku").tag("dsha-device-shell")
+                .daemon(false).debuggable(false).version(1)
             val conn = object : ServiceConnection {
                 override fun onServiceConnected(name: ComponentName?, binder: IBinder?) {
                     service = IShellService.Stub.asInterface(binder)

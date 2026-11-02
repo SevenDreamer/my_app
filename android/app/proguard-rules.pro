@@ -8,3 +8,11 @@
 # 目标接口被混淆即炸——lifecycle 库 + Flutter embedding lifecycle 一并 keep
 -keep class androidx.lifecycle.** { *; }
 -keep class io.flutter.embedding.engine.plugins.lifecycle.** { *; }
+
+# Shizuku UserService（MY-APP-5 binding 卡死真因：R8 混淆/裁剪后
+# Shizuku 反射实例化 ShellService 失败 → bindUserService 永远 binding）。
+-keep class com.example.my_app.ShellService { *; }
+-keep class com.example.my_app.IShellService { *; }
+-keep class com.example.my_app.IShellService$Stub { *; }
+-keep class com.example.my_app.StartupCrashRecorder { *; }
+-keep class rikka.shizuku.** { *; }
