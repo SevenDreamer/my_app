@@ -73,7 +73,20 @@
         <service
             android:name=".ShellService"
             android:exported="false" />
+        <!-- Shizuku binder 分发（provider 库契约：ContentProvider 递 binder；
+             缺声明则 binder haven't been received（MY-APP-5 实证））。 -->
+        <provider
+            android:name="rikka.shizuku.shared.ShizukuProvider"
+            android:authorities="${applicationId}.shizuku"
+            android:multiprocess="false"
+            android:enabled="true"
+            android:exported="true"
+            android:permission="android.permission.INTERACT_ACROSS_USERS_FULL" />
     </application>
+    <!-- Android 11+ 包可见性：Shizuku 管理器。 -->
+    <queries>
+        <package android:name="moe.shizuku.privileged.api" />
+    </queries>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and
          https://developer.android.com/reference/android/content/Intent#ACTION_PROCESS_TEXT.
