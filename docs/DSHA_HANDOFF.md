@@ -20,21 +20,20 @@ pnpm → dsh → 运行补丁）。离线运行时已全内置（APK ~277MB）�
    `details`/`log` 字段（六步现场全在里面，勿让用户手抄）
 5. 对症修 → 回到 1。改完直接 `git push origin main`（用户已授权直接推）
 
-## 二、真机现状（第 4 个诊断包，dev.26+70 Patch 2）
+## 二、真机现状（第 5 个诊断包，dev.26+70 Patch 3）
 
 | 步 | 状态 | 备注 |
 |---|---|---|
 | 1 Linux 环境 | ✅ | rootfs + 标记 + bash |
-| 2 基础工具 | ❌ | **curl/git**：apt update 两轮源（ports+USTC）都过，`apt install` 无输出即死（退出 1）→ **stderr 盲区已修（Patch 3）**，下次上报看 E: 真因；Python ✅ 3.12.3 |
+| 2 基础工具 | ❌→Patch 4 | Python ✅ 3.12.3；**curl/git** 真因已破：stderr 现形 `E: dpkg was interrupted, run dpkg --configure -a`（前几轮 apt 断流残留）——Patch 4 编排层已加幂等自愈，待真机复验 |
 | 3 Node.js | ✅ | v24.16.0 |
 | 4 pnpm | ✅ | 10.34.5 |
-| 5 dsh | ❌ | 退出码 1：`test -x /usr/local/bin/dsh && node -e 'require package.json + /^\d+\./ 版本正则'`——**Patch 3 后能看到 node -e 的真实报错**；候选：bin.js x 位（chmod 时序已修）、require 抛错 |
-| 6 运行补丁 | ✅✅ | **四条全过**（补丁烘在 dsh-runtime.bin 里，解包即成品） |
+| 5 dsh | ✅ | **0.2.1-rc.2**（Patch 3 chmod 时序修后点亮） |
+| 6 运行补丁 | ✅ | 四条全过（补丁烘在 dsh-runtime.bin 里，解包即成品） |
 
 ## 三、下一步（按序）
 
-1. **等下一轮诊断包**（Patch 3 的 stderr 并线生效后）→ 定位 dsh exit 1 与
-   apt install 之死的真因（两块此前都是盲区）
+1. **Patch 4 真机复验**（dpkg 自愈后 apt 装 curl/git）→ 六步全绿即 F1 线点亮收官
 2. 补丁链 `applyPatchChain`（四专项：pdf/browser/combo/lan-settings）——
    注意：我们的 dsh-runtime 烘制时已带补丁，**仅升级场景需要**（旧 dsh
    覆盖式升级时现场打补丁），优先级可后置
