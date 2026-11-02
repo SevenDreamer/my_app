@@ -85,6 +85,20 @@ LaunchSpec.hardlinks 默认 false，link 仿真为 symlink，dpkg 备份才不�
 - **跟进法**：`git fetch && git log 98bd97a..origin/main --oneline` 看上游增量，
   按 `third-party-refactor` 批次法吸收（行为契约逐字、每批双绿 + notices）
 
+## 六·六、生态观察：dsh-go（第三方 DSH 客户端，⚠️ 只学设计不抄码）
+
+- **仓库**：`github.com/ccch1mneyyy/dsh-Go`（2026-10-25 创建，一周 ~4.7k stars）
+- **是什么**：DeepSeek Harness 的第三方 Android 客户端（Flutter + Kotlin），
+  「App 内安装 Ubuntu/Node/DSH 运行环境（无需 Root/Termux）」——**与我们
+  F1 线同构的路线**，另带遥控电脑（SSH/DSH Remote）、插件 JSON 视图声明
+  （App 渲染声明、不执行插件代码）、手机操控（读屏/点按/输入）。
+- **⚠️ 合规**：主仓 **AGPL-3.0**（与 Coopanion 同规格：只学设计不抄码）；
+  仅 `sdk/plugin-kit` + `examples/` 为 MIT 可用。
+- **可借鉴面**：`packages/dsh_client/`（DSH Web API Dart 客户端——
+  F2-4 requestAt 的协议参考）、`runtime/` 运行时打包（与我们烘层互证）、
+  插件原生视图声明（F3 插件市场 UI 设计参考）。
+- 关键词：dsh-plugin 生态已有第三方原生插件工具包（插件互通话题的旁证）。
+
 ## 七、环境要点
 
 - Flutter `/d/flutter/bin`（export PATH）；Android：`export ANDROID_HOME=D:/AndroidSdk
