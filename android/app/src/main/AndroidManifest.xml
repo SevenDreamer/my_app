@@ -69,6 +69,10 @@
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
                 android:value="runtime keep-alive for virtual screen and install tasks" />
         </service>
+        <!-- Shizuku UserService（DSHA ShellService 契约：shell uid 执行面）。 -->
+        <service
+            android:name=".ShellService"
+            android:exported="false" />
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

@@ -31,6 +31,21 @@ class MainActivity : FlutterActivity() {
                             this, com.example.my_app.RuntimeForegroundService::class.java))
                         result.success(true)
                     }
+                    "shizukuInit" -> {
+                        com.example.my_app.ShizukuShell.init(applicationContext)
+                        result.success(true)
+                    }
+                    "shizukuStatus" -> result.success(com.example.my_app.ShizukuShell.status())
+                    "shizukuReady" -> result.success(com.example.my_app.ShizukuShell.isReady())
+                    "shizukuRequestPermission" -> {
+                        com.example.my_app.ShizukuShell.requestPermission { granted ->
+                            runOnUiThread { result.success(granted) }
+                        }
+                    }
+                    "shizukuExec" -> {
+                        val command = call.argument<String>("command") ?: ""
+                        result.success(com.example.my_app.ShizukuShell.execVirtualScreen(command))
+                    }
                     "deviceDns" -> {
                         // 设备 DNS（prepareResolver 来源）：连接管理器的链路 DNS。
                         val cm = getSystemService(android.content.Context.CONNECTIVITY_SERVICE)
