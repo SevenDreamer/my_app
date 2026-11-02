@@ -1,12 +1,15 @@
 package com.example.my_app
 
 import android.content.Intent
+import androidx.annotation.NonNull
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
-    override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
+    override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
+        // 启动崩溃兜底最先装（ContentProvider 期崩溃的补报机制）。
+        com.example.my_app.StartupCrashRecorder.install(applicationContext)
         super.configureFlutterEngine(flutterEngine)
         // Runtime channel: nativeLibraryDir is the only exec-allowed dir on
         // Android 10+ (W^X) — proot ships as jniLibs and runs from there.
@@ -31,6 +34,8 @@ class MainActivity : FlutterActivity() {
                             this, com.example.my_app.RuntimeForegroundService::class.java))
                         result.success(true)
                     }
+                    "startupCrashConsume" ->
+                        result.success(com.example.my_app.StartupCrashRecorder.consume(applicationContext))
                     "shizukuInit" -> {
                         com.example.my_app.ShizukuShell.init(applicationContext)
                         result.success(true)

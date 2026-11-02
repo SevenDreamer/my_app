@@ -2,6 +2,7 @@
 //!
 //! ShadApp 标准构造内置 Material 联动（shadcn_ui 内部持有），业务代码
 //! 只接触 shadcn_ui 与 design 层——Material 库在业务层全仓退场。
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:forui/forui.dart';
@@ -15,6 +16,17 @@ import 'core/logging/sentry_bridge.dart';
 Future<void> main() async {
   // Sentry 崩溃聚合（DSN 空 = 禁用直启）；框架异常由 SDK 全局挂钩收集。
   await SentryBridge.init(appRunner: () async {
+    // 启动崩溃补报（上轮 ContentProvider 期崩溃本地留痕，本轮上报）。
+    try {
+      const channel = MethodChannel('my_app/runtime');
+      final crash = await channel.invokeMethod<String>('startupCrashConsume');
+      if (crash != null && crash.isNotEmpty) {
+        await SentryBridge.captureDiagnostics({
+          'phase': 'startup-crash',
+          'detail': crash,
+        }, kind: 'startup-crash');
+      }
+    } catch (_) {}
     runApp(const MyApp());
     SentryBridge.maybeScheduleTestError();
   });
