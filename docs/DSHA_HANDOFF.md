@@ -20,23 +20,19 @@ pnpm → dsh → 运行补丁）。离线运行时已全内置（APK ~277MB）�
    `details`/`log` 字段（六步现场全在里面，勿让用户手抄）
 5. 对症修 → 回到 1。改完直接 `git push origin main`（用户已授权直接推）
 
-## 二、真机现状（第 5 个诊断包，dev.26+70 Patch 3）
+## 二、真机现状（🎉 六步全绿，2026-11-02 dev.26+70 Patch 8 收官）
 
-| 步 | 状态 | 备注 |
-|---|---|---|
-| 1 Linux 环境 | ✅ | rootfs + 标记 + bash |
-| 2 基础工具 | ❌→Patch 4 | Python ✅ 3.12.3；**curl/git** 真因已破：stderr 现形 `E: dpkg was interrupted, run dpkg --configure -a`（前几轮 apt 断流残留）——Patch 4 编排层已加幂等自愈，待真机复验 |
-| 3 Node.js | ✅ | v24.16.0 |
-| 4 pnpm | ✅ | 10.34.5 |
-| 5 dsh | ✅ | **0.2.1-rc.2**（Patch 3 chmod 时序修后点亮） |
-| 6 运行补丁 | ✅ | 四条全过（补丁烘在 dsh-runtime.bin 里，解包即成品） |
+六步全过：Linux 环境 / 基础工具（curl+git+Python 3.12.3）/ Node v24.16.0 /
+pnpm 10.34.5 / dsh 0.2.1-rc.2 / 运行补丁（DNS+会话+局域网+用户组）。
+收官正解 = **L2S 模式**（proot `--link2symlink`：原版 install 路径
+LaunchSpec.hardlinks 默认 false，link 仿真为 symlink，dpkg 备份才不炸）。
 
 ## 三、下一步（按序）
 
-1. **Patch 4 真机复验**（dpkg 自愈后 apt 装 curl/git）→ 六步全绿即 F1 线点亮收官
-2. 补丁链 `applyPatchChain`（四专项：pdf/browser/combo/lan-settings）——
-   注意：我们的 dsh-runtime 烘制时已带补丁，**仅升级场景需要**（旧 dsh
-   覆盖式升级时现场打补丁），优先级可后置
+1. **六步已全绿收官**——下一步方向由用户定：M-R（Hermes 进 rootfs，
+   最初动机）/ F2 Manager 宿主面 / F3 插件市场 / F4 备份恢复
+2. 补丁链 `applyPatchChain`（四专项）——仅升级场景需要（dsh-runtime 烘制
+   已带补丁），优先级可后置
 3. F2/F3/F4（Manager 宿主面 / 插件市场宿主面 / 备份恢复宿主面）——见台账
 
 ## 四、架构速览（F1 线落位图）
