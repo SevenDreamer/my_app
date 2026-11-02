@@ -115,8 +115,13 @@ class VscreenViewModel extends ChangeNotifier {
       _status = 'Shizuku 请求授权…';
       notifyListeners();
       final granted = await ShizukuChannel.requestPermission();
-      final nowReady =
-          granted ? await ShizukuChannel.refreshReady() : false;
+      // UserService 绑定是异步的（logcat 实证 dispatch→connected 有时差）——
+      // 轮询等 bound（最多 5s），不许一锤定音误报「连接未完成」。
+      var nowReady = granted ? await ShizukuChannel.refreshReady() : false;
+      for (var i = 0; i < 10 && !nowReady; i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 500));
+        nowReady = await ShizukuChannel.refreshReady();
+      }
       if (!nowReady) {
         final detail = await ShizukuChannel.status();
         // 文案契约（原版 userStatus）：授权态与连接态分开，不许把「没绑上」
