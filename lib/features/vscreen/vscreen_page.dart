@@ -52,15 +52,18 @@ class _VscreenPageState extends State<VscreenPage> {
                 padding: const EdgeInsets.all(16),
                 child: Row(children: [
                   Expanded(
-                    child: Text(_viewModel.status,
+                    child: Text(
+                        _viewModel.booting
+                            ? '⏳ ${_viewModel.status}'
+                            : _viewModel.status,
                         style: AppTypography.bodyMd.copyWith(
                           color:
                               ShadTheme.of(context).colorScheme.mutedForeground,
                         )),
                   ),
                   ShadButton(
-                    onPressed: _boot,
-                    child: const Text('启动'),
+                    onPressed: _viewModel.booting ? null : _boot,
+                    child: Text(_viewModel.booting ? '启动中…' : '启动'),
                   ),
                   const SizedBox(width: 8),
                   ShadButton.outline(

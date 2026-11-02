@@ -27,6 +27,10 @@ class VscreenViewModel extends ChangeNotifier {
   final PreviewTransform _transform = PreviewTransform();
   ui.Image? _frame;
   String _status = '未连接虚拟屏服务';
+  bool _booting = false;
+
+  /// 启动进行中（View 据此显示进度/禁用按钮——不许干等无反馈）。
+  bool get booting => _booting;
   int _downAt = 0;
   List<double>? _touchStart;
 
@@ -95,6 +99,28 @@ class VscreenViewModel extends ChangeNotifier {
   /// Manager 未注入时按 [buildVscreenManager] 默认装配（HttpTransport +
   /// applicationId 包名）自建。失败如实进 status（安全消息码进文案）。
   Future<void> boot({
+    required String sourceDir,
+    required String packageName,
+    required io.Directory root,
+    required String installation,
+  }) async {
+    if (_booting) return;
+    _booting = true;
+    _status = '启动中…';
+    notifyListeners();
+    try {
+      await _bootInner(
+          sourceDir: sourceDir,
+          packageName: packageName,
+          root: root,
+          installation: installation);
+    } finally {
+      _booting = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> _bootInner({
     required String sourceDir,
     required String packageName,
     required io.Directory root,
