@@ -16,3 +16,6 @@
 -keep class com.example.my_app.IShellService$Stub { *; }
 -keep class com.example.my_app.StartupCrashRecorder { *; }
 -keep class rikka.shizuku.** { *; }
+# AIDL 全家（Stub 的 Proxy/Default 内部类是独立 class，单个 keep 不够）。
+-keep class com.example.my_app.IShellService$** { *; }
+-keep class com.example.my_app.ShellService$** { *; }
