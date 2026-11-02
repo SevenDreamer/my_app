@@ -139,7 +139,13 @@ class VscreenViewModel extends ChangeNotifier {
     notifyListeners();
     final outcome = await _manager!.start('portrait');
     final ok = outcome['ok'] == true;
-    _status = ok ? '虚拟屏运行中' : '启动失败：${outcome['error'] ?? '未知'}';
+    final error = outcome['error'] ?? '';
+    // 三态契约：125 结果未知不是终错——命令已发出，可再点启动重试/确认。
+    _status = ok
+        ? '虚拟屏运行中'
+        : error == 'VSCREEN_START_UNKNOWN' || error == 'VSCREEN_STARTUNKNOWN'
+            ? '启动命令已发出，结果确认中——请再点一次「启动」重试'
+            : '启动失败：$error';
     notifyListeners();
     if (!ok) {
       await reportDiagnostics(); // 失败自动上报（排障闭环）
@@ -152,6 +158,8 @@ class VscreenViewModel extends ChangeNotifier {
 
   /// 诊断上报（自动=boot 失败；手动=页面「上报诊断」按钮）。
   Future<bool> reportDiagnostics() async {
+    // 等异步执行结果回来（execVirtualScreen ~500ms；否则诊断竞态拿空）。
+    await Future<void>.delayed(const Duration(milliseconds: 1200));
     String logcat = '';
     try {
       const channel = MethodChannel('my_app/runtime');
