@@ -19,3 +19,10 @@
 # AIDL 全家（Stub 的 Proxy/Default 内部类是独立 class，单个 keep 不够）。
 -keep class com.example.my_app.IShellService$** { *; }
 -keep class com.example.my_app.ShellService$** { *; }
+
+# 虚拟屏 core（app_process 按类名加载 VirtualScreenCore.main——R8 不可混淆/裁剪）。
+-keep class com.example.my_app.vscreen.** { *; }
+-keep class com.example.my_app.util.** { *; }
+-keep class com.example.my_app.bridge.** { *; }
+-keep class com.example.my_app.runtime.** { *; }
+-keep class com.example.my_app.diagnostics.** { *; }

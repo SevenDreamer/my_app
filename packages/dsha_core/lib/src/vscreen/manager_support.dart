@@ -297,7 +297,7 @@ class VscreenLauncher {
 
   String _prefix() =>
       '/system/bin/app_process ${shellQuoteArg('-Djava.class.path=$sourceDir')} '
-      '/system/bin com.deepseekharness.app.vscreen.VirtualScreenCore ';
+      '/system/bin com.example.my_app.vscreen.VirtualScreenCore ';
 
   String launchCommand() =>
       '${_prefix()}--launch --port 0 --package ${shellQuoteArg(packageName)}';
