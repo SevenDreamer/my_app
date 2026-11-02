@@ -558,6 +558,17 @@ class BasicToolsInstaller {
       throw const io.FileSystemException('install-basic-tools.sh 资产未配置');
     }
     final script = source.read('install-basic-tools.sh');
+    // dpkg 中断自愈（官方恢复法 `dpkg --configure -a`；幂等，无中断时空
+    // 操作）：apt 断流死在半截会留「E: dpkg was interrupted」残留，之后
+    // 所有 apt 拒绝执行——真机 stderr 实证坑。
+    final heal = await bootstrap.execRootfsForInstall('dpkg --configure -a');
+    await InstallProcess.read(heal,
+        timeoutMs: 120000,
+        cancellable: false,
+        cancelled: task.cancellationRequested,
+        output: task.append,
+        destroy: (proc) => proc.kill(io.ProcessSignal.sigkill));
+    task.checkCancelled();
     task.stage(2, '修复第 2 步：联网补齐 curl / git（取消将在本轮软件包操作后生效）',
         cancellable: false);
     final process =
