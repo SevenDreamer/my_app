@@ -5,6 +5,8 @@
 //! UNAVAILABLE`，Transport 未接抛 `TRANSPORT_NOT_WIRED`（F2-4 requestAt
 //! HTTP 落地后替换）。
 import 'dart:async';
+import 'dart:io';
+import 'dart:math';
 
 import 'package:flutter/services.dart';
 
@@ -103,6 +105,28 @@ class NullChannels implements VscreenChannelsApi {
 
 /// 装配工厂：[sourceDir] = APK 路径（ApplicationInfo.sourceDir），
 /// [packageName] = 包名（Kotlin channel 供）；[root] = 应用目录（journal）。
+/// fallback boot id（进程启动生成一次，保持一次开机内稳定）。
+final String _fallbackBootId = _uuidV4();
+
+String _uuidV4() {
+  final rand = List<int>.generate(16, (_) => 0); // 占位，下方用 Random 填充
+  final random = _secureishRandom();
+  for (var i = 0; i < 16; i++) {
+    rand[i] = random.nextInt(256);
+  }
+  rand[6] = (rand[6] & 0x0f) | 0x40; // v4
+  rand[8] = (rand[8] & 0x3f) | 0x80; // variant
+  final hex = rand.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+  return '${hex.substring(0, 8)}-${hex.substring(8, 12)}-${hex.substring(12, 16)}-'
+      '${hex.substring(16, 20)}-${hex.substring(20, 32)}';
+}
+
+Random _secureishRandom() {
+  final seed = DateTime.now().microsecondsSinceEpoch ^
+      (DateTime.now().millisecondsSinceEpoch << 20);
+  return Random(seed);
+}
+
 VscreenManager buildVscreenManager({
   required String sourceDir,
   required String packageName,
@@ -144,7 +168,18 @@ VscreenManager buildVscreenManager({
       }
       return null;
     },
-    bootSource: () => 'boot-${DateTime.now().millisecondsSinceEpoch}',
+    // boot 标识契约：UUID 格式（vscreenUuidPattern 校验）+ 一次开机稳定。
+    // 正源 /proc/sys/kernel/random/boot_id（系统 boot id 天生 UUID）；
+    // 读不到时进程启动生成一次（开机会话语义不变）。
+    bootSource: () {
+      try {
+        final bootId = File('/proc/sys/kernel/random/boot_id')
+            .readAsStringSync()
+            .trim();
+        if (bootId.length == 36) return bootId;
+      } catch (_) {}
+      return _fallbackBootId;
+    },
     lowAndroid: lowAndroid,
     sdkInt: sdkInt,
   );
