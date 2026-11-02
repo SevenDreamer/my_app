@@ -10,6 +10,8 @@ import 'package:dsha_core/dsha_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart' show decodeImageFromList;
 
+import '../../core/logging/sentry_bridge.dart';
+
 import 'vscreen_assembly.dart';
 
 class VscreenViewModel extends ChangeNotifier {
@@ -110,10 +112,22 @@ class VscreenViewModel extends ChangeNotifier {
     final ok = outcome['ok'] == true;
     _status = ok ? '虚拟屏运行中' : '启动失败：${outcome['error'] ?? '未知'}';
     notifyListeners();
-    if (!ok) return;
+    if (!ok) {
+      await reportDiagnostics(); // 失败自动上报（排障闭环）
+      return;
+    }
     _poll?.cancel();
     _poll = Timer.periodic(const Duration(milliseconds: 500), (_) => _pullFrame());
     await _pullFrame();
+  }
+
+  /// 诊断上报（自动=boot 失败；手动=页面「上报诊断」按钮）。
+  Future<bool> reportDiagnostics() {
+    return SentryBridge.captureDiagnostics({
+      'phase': 'vscreen-boot',
+      'status': _status,
+      'manager': _manager == null ? 'unassembled' : 'assembled',
+    }, kind: 'vscreen-diagnostics');
   }
 
   Future<void> _pullFrame() async {

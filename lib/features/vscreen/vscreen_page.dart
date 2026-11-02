@@ -62,6 +62,11 @@ class _VscreenPageState extends State<VscreenPage> {
                     onPressed: _boot,
                     child: const Text('启动'),
                   ),
+                  const SizedBox(width: 8),
+                  ShadButton.outline(
+                    onPressed: () => _viewModel.reportDiagnostics(),
+                    child: const Text('上报诊断'),
+                  ),
                 ]),
               ),
               Expanded(
