@@ -558,10 +558,15 @@ class BasicToolsInstaller {
       throw const io.FileSystemException('install-basic-tools.sh 资产未配置');
     }
     final script = source.read('install-basic-tools.sh');
-    // dpkg 中断自愈（官方恢复法 `dpkg --configure -a`；幂等，无中断时空
-    // 操作）：apt 断流死在半截会留「E: dpkg was interrupted」残留，之后
-    // 所有 apt 拒绝执行——真机 stderr 实证坑。
-    final heal = await bootstrap.execRootfsForInstall('dpkg --configure -a');
+    // dpkg 中断自愈（官方恢复法 `dpkg --configure -a`；幂等）：apt 断流
+    // 死在半截会留「E: dpkg was interrupted」残留。真机发现 configure 自身
+    // 写 status-old 报 Permission denied——先取现场（属主/id/可写性）再试
+    // 自愈（删 status-old 让 dpkg 重建），失败信息全留日志定真因。
+    final heal = await bootstrap.execRootfsForInstall(
+        'echo "--- dpkg 自愈现场 ---"; ls -la /var/lib/dpkg/ 2>&1; id; '
+        'ls -la /var/lib/ 2>&1 | head -5; '
+        'rm -f /var/lib/dpkg/status-old 2>&1; '
+        'dpkg --configure -a 2>&1; echo "dpkg-heal-exit:\$?"');
     await InstallProcess.read(heal,
         timeoutMs: 120000,
         cancellable: false,
