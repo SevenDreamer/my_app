@@ -348,3 +348,14 @@ defines，补丁生效后 `String.fromEnvironment('SENTRY_DSN')` 恒为空，
 未上报」实证）。规矩：**热更一律走 `tool/patch.sh <release-version>`**（与
 release.sh 同源加载 `tool/sentry.env` 注入 defines；patch 的 defines 必须与
 目标 release 一致），不要裸跑 `tool/shorebird.sh patch`。
+
+### 33. 正则迭代器批量 async 化炸文件：多行签名/异形结构必误插
+
+- **现象**：用脚本正则给 `perform` 调用链批量加 `await`/`async`，错误数
+  17 → 44 → 70 → 93 不降反升，还产出 `try`/`catch` 语法错（async 被插进
+  块中间）。
+- **根因**：方法签名跨行、箭头/块混排、修饰词顺序差异——行级正则无法
+  识别结构边界，插点全错。
+- **解法**：async 传染类改动**手工逐方法**（每改一个跑 analyze）；脚本只
+  用于「改前定位清单」（列调用点/方法头），不用于写回。炸了立即
+  `git checkout` 止损，不留半损坏文件过夜。
