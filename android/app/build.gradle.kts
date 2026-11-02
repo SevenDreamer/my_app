@@ -34,6 +34,12 @@ android {
         aidl = true
     }
 
+    lint {
+        // ShellService 是 Shizuku UserService（反射实例化，含 Context 构造）；
+        // Instantiatable 对 app 组件的常规要求不适用（lint 提示的官方豁免法）。
+        disable += "Instantiatable"
+    }
+
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.example.my_app"
