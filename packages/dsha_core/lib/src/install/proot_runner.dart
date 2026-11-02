@@ -77,7 +77,10 @@ class ProotRunner {
     required String rootfsPath,
     required String tmpDir,
     required String libDir,
-    bool hardlinkSupported = true,
+    // 原版 RuntimeExecution.install() 的 launch(proot()) 未设 hardlinks →
+    // LaunchSpec 默认 false → baseArgv 走 --link2symlink 分支（真机实测
+    // link 裸跑被 hardlink 保护拒，dpkg 备份必炸）。
+    bool hardlinkSupported = false,
   }) {
     final proot = io.File('$nativeLibDir/libproot.so');
     final loaderName = 'libprootloader.so';

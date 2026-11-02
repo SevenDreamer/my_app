@@ -63,7 +63,7 @@ class DshaSystemViewModel extends ChangeNotifier {
         for (var i = 0; i < s.steps.length; i++) '${i + 1}:${s.steps[i].name}',
       ].join(','),
       'details': s.details.join('\n'),
-      'log': s.log,
+      'log': _headTail(s.log),
       'failure': s.failure,
       'phase': s.phase,
       'outcome': s.outcome.name,
@@ -76,6 +76,15 @@ class DshaSystemViewModel extends ChangeNotifier {
     _reportNote = sent ? '已上报到 Sentry' : 'Sentry 未启用，未上报';
     notifyListeners();
     return sent;
+  }
+
+  /// 上报体量控制：Sentry 单事件有上限，长日志截中间保头尾
+  /// （apt/dpkg 的死亡输出在尾部，头部是步骤脉络——真机截断实证）。
+  static String _headTail(String log, {int head = 2048, int tail = 12288}) {
+    if (log.length <= head + tail) return log;
+    final omitted = log.length - head - tail;
+    return '${log.substring(0, head)}\n[……中间 $omitted 字节省略……]\n'
+        '${log.substring(log.length - tail)}';
   }
 
   /// 准备环境（解析应用目录 + 解包引擎选型 + 就绪查询）；页面打开时调用一次。
