@@ -5,6 +5,8 @@
 //! UNAVAILABLE`，Transport 未接抛 `TRANSPORT_NOT_WIRED`（F2-4 requestAt
 //! HTTP 落地后替换）。
 import 'dart:async';
+
+import 'package:flutter/services.dart';
 import 'dart:io' as io;
 
 import 'package:dsha_core/dsha_core.dart';
@@ -49,6 +51,36 @@ class NullAccessibilityService implements AccessibilityServiceApi {
   Map<String, Object?> typeVirtualUser(
           int display, String text, bool Function() current) =>
       vscreenFailure('ACCESSIBILITY_SERVICE_UNAVAILABLE', false);
+}
+
+/// Manager 装配五参（channel `my_app/runtime` 契约输入）。
+class VscreenRuntimeInputs {
+  const VscreenRuntimeInputs({
+    required this.sourceDir,
+    required this.packageName,
+    required this.root,
+    required this.installation,
+  });
+  final String sourceDir;
+  final String packageName;
+  final io.Directory root;
+
+  /// 安装根标识（journal 身份缝；app 私有数据目录）。
+  final String installation;
+}
+
+/// 从宿主收集装配五参（Android channel；桌面 fallback 走 dataDir）。
+Future<VscreenRuntimeInputs> loadVscreenRuntimeInputs() async {
+  const channel = MethodChannel('my_app/runtime');
+  final sourceDir = await channel.invokeMethod<String>('sourceDir') ?? '';
+  final packageName = await channel.invokeMethod<String>('packageName') ?? '';
+  final dataDir = await channel.invokeMethod<String>('dataDir') ?? '';
+  return VscreenRuntimeInputs(
+    sourceDir: sourceDir,
+    packageName: packageName,
+    root: io.Directory('$dataDir/vscreen_session')..createSync(recursive: true),
+    installation: dataDir,
+  );
 }
 
 class NullTransport implements VscreenTransportApi {

@@ -3,6 +3,8 @@
 //! MVVM：ListenableBuilder 读 [VscreenViewModel] 快照 + 调手势命令；
 //! 预览矩阵（fit/逆映射）与触摸准入走 dsha_core 逻辑层（行为契约逐字）。
 import 'package:flutter/widgets.dart';
+
+import 'vscreen_assembly.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 import '../../design/tokens.dart';
@@ -22,6 +24,16 @@ class _VscreenPageState extends State<VscreenPage> {
   late final VscreenViewModel _viewModel =
       widget.viewModel ?? VscreenViewModel();
 
+  Future<void> _boot() async {
+    final inputs = await loadVscreenRuntimeInputs();
+    await _viewModel.boot(
+      sourceDir: inputs.sourceDir,
+      packageName: inputs.packageName,
+      root: inputs.root,
+      installation: inputs.installation,
+    );
+  }
+
   @override
   void dispose() {
     if (widget.viewModel == null) _viewModel.dispose();
@@ -38,10 +50,19 @@ class _VscreenPageState extends State<VscreenPage> {
             children: [
               Padding(
                 padding: const EdgeInsets.all(16),
-                child: Text(_viewModel.status,
-                    style: AppTypography.bodyMd.copyWith(
-                      color: ShadTheme.of(context).colorScheme.mutedForeground,
-                    )),
+                child: Row(children: [
+                  Expanded(
+                    child: Text(_viewModel.status,
+                        style: AppTypography.bodyMd.copyWith(
+                          color:
+                              ShadTheme.of(context).colorScheme.mutedForeground,
+                        )),
+                  ),
+                  ShadButton(
+                    onPressed: _boot,
+                    child: const Text('启动'),
+                  ),
+                ]),
               ),
               Expanded(
                 child: LayoutBuilder(builder: (context, constraints) {
