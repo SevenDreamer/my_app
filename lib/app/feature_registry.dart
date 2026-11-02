@@ -17,6 +17,7 @@ import '../features/hermes/hermes_home_page.dart';
 import '../features/live2d/live2d_page.dart';
 import '../features/notes/notes_list_page.dart';
 import '../features/robot_eyes/robot_eye_page.dart';
+import '../features/vscreen/vscreen_page.dart';
 
 /// 平台对功能的支持程度
 enum PlatformSupport {
@@ -119,6 +120,17 @@ final List<FeatureEntry> kFeatures = [
     // 运行时本体面向 Android rootfs；桌面为本地引导模式（环境自检可用）
     desktop: PlatformSupport.limited,
     limitedNote: '桌面端为本地引导模式，运行时安装面向 Android',
+    mobile: PlatformSupport.full,
+  ),
+  FeatureEntry(
+    id: 'vscreen',
+    icon: LucideIcons.monitor,
+    title: '虚拟屏',
+    subtitle: '预览 · 触控注入 · 手势缩放',
+    builder: (_) => const VscreenPage(),
+    // 虚拟屏 core（app_process）面向 Android；桌面无 core 进程
+    desktop: PlatformSupport.limited,
+    limitedNote: '虚拟屏 core 面向 Android，桌面无 core 进程',
     mobile: PlatformSupport.full,
   ),
   FeatureEntry(
