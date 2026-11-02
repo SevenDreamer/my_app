@@ -67,14 +67,20 @@ class ShizukuChannel implements VscreenChannel {
     return 'VSCREEN_SHIZUKU_DISPATCHED';
   }
 
+  /// 最近一次执行输出（诊断面：core 启动命令的返回是排障关键）。
+  static String lastExecOutput = '';
+
   /// 异步执行（Dart 无同步 channel——唯一偏移，同 request 惯例）。
   Future<String> startAsync(String command) async {
     try {
-      return await _channel.invokeMethod<String>('shizukuExec',
+      final out = await _channel.invokeMethod<String>('shizukuExec',
               {'command': command}) ??
           'SHIZUKU_EMPTY_RESULT';
+      lastExecOutput = out;
+      return out;
     } catch (e) {
-      return 'SHIZUKU_EXEC_FAILED $e';
+      lastExecOutput = 'SHIZUKU_EXEC_FAILED $e';
+      return lastExecOutput;
     }
   }
 }

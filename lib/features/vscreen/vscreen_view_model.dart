@@ -162,6 +162,7 @@ class VscreenViewModel extends ChangeNotifier {
       'status': _status,
       'manager': _manager == null ? 'unassembled' : 'assembled',
       'logcat': logcat,
+      'execOutput': ShizukuChannel.lastExecOutput,
     }, kind: 'vscreen-diagnostics');
   }
 
