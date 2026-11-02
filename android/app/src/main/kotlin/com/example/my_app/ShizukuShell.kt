@@ -72,8 +72,11 @@ class ShizukuShell private constructor() {
                     return@post
                 }
                 try {
+                    val completed = booleanArrayOf(false)
                     val listener = object : Shizuku.OnRequestPermissionResultListener {
                         override fun onRequestPermissionResult(requestCode: Int, grantResult: Int) {
+                            if (completed[0]) return
+                            completed[0] = true
                             try { Shizuku.removeRequestPermissionResultListener(this) } catch (_: Throwable) {}
                             val granted = grantResult == PackageManager.PERMISSION_GRANTED
                             if (granted) ensureBound()
@@ -82,6 +85,15 @@ class ShizukuShell private constructor() {
                     }
                     Shizuku.addRequestPermissionResultListener(listener)
                     Shizuku.requestPermission(9527)
+                    // 60s 超时（原版契约：授权请求尚未完成按拒绝收场，不留挂起）。
+                    MAIN.postDelayed({
+                        if (!completed[0]) {
+                            completed[0] = true
+                            failure = "授权请求尚未完成，请重试"
+                            try { Shizuku.removeRequestPermissionResultListener(listener) } catch (_: Throwable) {}
+                            onResult(false)
+                        }
+                    }, 60_000)
                 } catch (e: Throwable) {
                     failure = e.message ?: "SHIZUKU_PERMISSION_FAILED"
                     onResult(false)

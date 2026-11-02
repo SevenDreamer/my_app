@@ -111,13 +111,19 @@ class VscreenViewModel extends ChangeNotifier {
     notifyListeners();
     final ready = await ShizukuChannel.refreshReady();
     if (!ready) {
-      _status = 'Shizuku 未就绪，请求授权…';
+      _status = 'Shizuku 请求授权…';
       notifyListeners();
       final granted = await ShizukuChannel.requestPermission();
       final nowReady =
           granted ? await ShizukuChannel.refreshReady() : false;
       if (!nowReady) {
-        _status = 'Shizuku 未授权（状态：${await ShizukuChannel.status()}）';
+        final detail = await ShizukuChannel.status();
+        // 文案契约（原版 userStatus）：授权态与连接态分开，不许把「没绑上」
+        // 说成「未授权」（误导排障）。
+        final permissionOk = detail.contains('permission=true');
+        _status = permissionOk
+            ? 'Shizuku 已授权，设备 Shell 连接未完成（$detail）'
+            : 'Shizuku 未授权（$detail）';
         notifyListeners();
         await reportDiagnostics();
         return;
