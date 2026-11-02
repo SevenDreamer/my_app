@@ -8,6 +8,7 @@ import 'dart:ui' as ui;
 
 import 'package:dsha_core/dsha_core.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/painting.dart' show decodeImageFromList;
 
 import '../../core/logging/sentry_bridge.dart';
@@ -145,11 +146,17 @@ class VscreenViewModel extends ChangeNotifier {
   }
 
   /// 诊断上报（自动=boot 失败；手动=页面「上报诊断」按钮）。
-  Future<bool> reportDiagnostics() {
+  Future<bool> reportDiagnostics() async {
+    String logcat = '';
+    try {
+      const channel = MethodChannel('my_app/runtime');
+      logcat = await channel.invokeMethod<String>('logcatSnapshot') ?? '';
+    } catch (_) {}
     return SentryBridge.captureDiagnostics({
       'phase': 'vscreen-boot',
       'status': _status,
       'manager': _manager == null ? 'unassembled' : 'assembled',
+      'logcat': logcat,
     }, kind: 'vscreen-diagnostics');
   }
 

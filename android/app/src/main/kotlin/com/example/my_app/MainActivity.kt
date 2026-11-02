@@ -36,6 +36,23 @@ class MainActivity : FlutterActivity() {
                     }
                     "startupCrashConsume" ->
                         result.success(com.example.my_app.StartupCrashRecorder.consume(applicationContext))
+                    "logcatSnapshot" -> {
+                        try {
+                            val p = Runtime.getRuntime().exec(arrayOf(
+                                "logcat", "-d", "-t", "300", "-v", "brief"))
+                            val text = p.inputStream.bufferedReader().readText()
+                            p.waitFor(3, java.util.concurrent.TimeUnit.SECONDS)
+                            // 只留 Shizuku/Shell/崩溃相关段（诊断包瘦身）。
+                            val kept = text.lines().filter {
+                                it.contains("Shizuku") || it.contains("ShellService") ||
+                                    it.contains("AndroidRuntime") || it.contains("my_app") ||
+                                    it.contains("FATAL") || it.contains("shizuku")
+                            }.takeLast(60).joinToString("\n")
+                            result.success(kept)
+                        } catch (e: Throwable) {
+                            result.success("LOGCAT_FAILED ${e.message ?: ""}")
+                        }
+                    }
                     "shizukuInit" -> {
                         com.example.my_app.ShizukuShell.init(applicationContext)
                         result.success(true)
