@@ -76,6 +76,15 @@ LaunchSpec.hardlinks 默认 false，link 仿真为 symlink，dpkg 备份才不�
 7. `tool/release.sh` = 发版一键（Shorebird+R2+manifest）；`tool/patch.sh` =
    热更一键；三件套（pubspec/tag/GitHub prerelease）同号
 
+## 六·五、上游基线（跟上游更新时从这里 diff）
+
+- **源**：`https://github.com/DSH-APP/DSHA`（MIT），本地检出 `D:\Projects\dsha-refactor`
+- **基线**：`98bd97a276b0d244398de6b8b4c36b71403486cf`（2026-10-26，github-actions）
+- **版本**：`v0.2.1-rc.2-10-g98bd97a`（= tag v0.2.1-rc.2 后 10 提交；与我们烘的
+  dsh-runtime 0.2.1-rc.2 对版）
+- **跟进法**：`git fetch && git log 98bd97a..origin/main --oneline` 看上游增量，
+  按 `third-party-refactor` 批次法吸收（行为契约逐字、每批双绿 + notices）
+
 ## 七、环境要点
 
 - Flutter `/d/flutter/bin`（export PATH）；Android：`export ANDROID_HOME=D:/AndroidSdk

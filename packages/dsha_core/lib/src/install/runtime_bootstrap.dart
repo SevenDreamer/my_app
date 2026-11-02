@@ -558,19 +558,14 @@ class BasicToolsInstaller {
       throw const io.FileSystemException('install-basic-tools.sh 资产未配置');
     }
     final script = source.read('install-basic-tools.sh');
-    // dpkg 中断自愈 + 权限真因探针。现场已证：目录可写（rm 成功）、
-    // id=root（proot 伪装），但 dpkg 的备份操作（status→status-old 的
-    // rename/link）报 Permission denied——选择性拒绝，位/属主正常。
-    // 探针用 python 精确测两 syscall 的 errno；绕道直接清「interrupted」
-    // 的物理标志（updates/ 残留 + status-new 半成品）并预置 status-old。
+    // dpkg 中断自愈（官方恢复法 + 物理标志清理）：apt 断流死在半截会留
+    // 「E: dpkg was interrupted」残留（updates/ 非空即标志）。L2S 模式下
+    // 硬链走 symlink 仿真；status-old 预置普通副本再避开备份环节一环。
+    // （权限探针已退役：真因已定 = link 被 hardlink 保护拒，L2S 修复。）
     final heal = await bootstrap.execRootfsForInstall(
-        'echo "--- dpkg 权限探针 ---"; '
-        'python3 -c "import os; os.link(\\"/var/lib/dpkg/status\\", \\"/var/lib/dpkg/t1\\")" 2>&1 | tail -1; '
-        'python3 -c "import os; os.rename(\\"/var/lib/dpkg/status\\", \\"/var/lib/dpkg/t2\\")" 2>&1 | tail -1; '
-        'python3 -c "open(\\"/var/lib/dpkg/t3\\", \\"w\\").close(); print(\\"create ok\\")" 2>&1 | tail -1; '
-        'cp /var/lib/dpkg/status /var/lib/dpkg/status-old 2>&1; '
-        'rm -f /var/lib/dpkg/status-new /var/lib/dpkg/t1 /var/lib/dpkg/t2 /var/lib/dpkg/t3 2>&1; '
-        'rm -rf /var/lib/dpkg/updates/* 2>&1; echo "updates cleared"; '
+        'cp /var/lib/dpkg/status /var/lib/dpkg/status-old 2>/dev/null || true; '
+        'rm -f /var/lib/dpkg/status-new 2>/dev/null || true; '
+        'rm -rf /var/lib/dpkg/updates/* 2>/dev/null || true; '
         'dpkg --configure -a 2>&1; echo "dpkg-heal-exit:\$?"');
     await InstallProcess.read(heal,
         timeoutMs: 120000,
