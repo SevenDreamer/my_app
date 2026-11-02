@@ -20,6 +20,7 @@ export 'src/util/shell_quote.dart';
 export 'src/vscreen/a11y_support.dart';
 export 'src/vscreen/accessibility.dart';
 export 'src/vscreen/bootstrap.dart';
+export 'src/vscreen/http_transport.dart';
 export 'src/vscreen/bridge_request.dart';
 export 'src/vscreen/channels.dart';
 export 'src/vscreen/coalescing_poller.dart';

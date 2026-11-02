@@ -2,10 +2,15 @@
 //!
 //! MVVM：View 只读状态/帧 + 调手势命令。Manager 装配（semantics/launcher/
 //! transport 等接缝）随 F2-3/F2-4 落地；未装 Manager 时如实显示未连接。
+import 'dart:async';
+import 'dart:io' as io;
 import 'dart:ui' as ui;
 
 import 'package:dsha_core/dsha_core.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/painting.dart' show decodeImageFromList;
+
+import 'vscreen_assembly.dart';
 
 class VscreenViewModel extends ChangeNotifier {
   /// Manager 装配（semantics/launcher/transport 等接缝）随 F2-3/F2-4 落地；
@@ -14,10 +19,10 @@ class VscreenViewModel extends ChangeNotifier {
     _transform.resetForSize(0, 0);
   }
 
-  final VscreenManager? _manager;
+  VscreenManager? _manager;
   final PreviewTransform _transform = PreviewTransform();
   ui.Image? _frame;
-  final String _status = '未连接虚拟屏服务（Manager 装配随 F2-3/F2-4 落地）';
+  String _status = '未连接虚拟屏服务';
   int _downAt = 0;
   List<double>? _touchStart;
 
@@ -79,7 +84,53 @@ class VscreenViewModel extends ChangeNotifier {
     return previewUpDuration(DateTime.now().millisecondsSinceEpoch - _downAt);
   }
 
-  /// 帧供给（F2-4 Transport 落地后由帧流调用；缺口保帧语义在调用方判断）。
+  Timer? _poll;
+
+  /// 启动虚拟屏（原版流程：start core → 帧轮询预览）。
+  ///
+  /// Manager 未注入时按 [buildVscreenManager] 默认装配（HttpTransport +
+  /// applicationId 包名）自建。失败如实进 status（安全消息码进文案）。
+  Future<void> boot({
+    required String sourceDir,
+    required String packageName,
+    required io.Directory root,
+    required String installation,
+  }) async {
+    _manager ??= buildVscreenManager(
+      sourceDir: sourceDir,
+      packageName: packageName,
+      root: root,
+      installation: installation,
+      applicationId: packageName,
+      transport: HttpTransport(applicationId: packageName),
+    );
+    _status = '启动虚拟屏…';
+    notifyListeners();
+    final outcome = await _manager!.start('portrait');
+    final ok = outcome['ok'] == true;
+    _status = ok ? '虚拟屏运行中' : '启动失败：${outcome['error'] ?? '未知'}';
+    notifyListeners();
+    if (!ok) return;
+    _poll?.cancel();
+    _poll = Timer.periodic(const Duration(milliseconds: 500), (_) => _pullFrame());
+    await _pullFrame();
+  }
+
+  Future<void> _pullFrame() async {
+    final manager = _manager;
+    if (manager == null) return;
+    try {
+      final value = await manager.preview();
+      final bytes = VscreenManager.previewBytes(value);
+      if (bytes == null || bytes.isEmpty) return;
+      final image = await decodeImageFromList(Uint8List.fromList(bytes));
+      offerFrame(image, '${value['generation'] ?? ''}');
+    } catch (_) {
+      // 轮询不停（缺帧保帧）；错误进 status 由 status() 语义面覆盖。
+    }
+  }
+
+  /// 帧供给（帧流调用；缺口保帧语义在调用方判断）。
   void offerFrame(ui.Image image, String generation) {
     _frame?.dispose();
     _frame = image;
@@ -88,6 +139,7 @@ class VscreenViewModel extends ChangeNotifier {
 
   @override
   void dispose() {
+    _poll?.cancel();
     _frame?.dispose();
     super.dispose();
   }
