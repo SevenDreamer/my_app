@@ -25,6 +25,8 @@
     <uses-permission android:name="android.permission.BLUETOOTH_SCAN"
         android:usesPermissionFlags="neverForLocation"/>
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE"/>
     <application
         android:label="my_app"
         android:name="${applicationName}"
@@ -57,6 +59,16 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <!-- DSH 运行时保活服务（原版 HarnessService 契约：常驻通知降回收、
+             Android 8+ 5 秒 startForeground 硬契约）。 -->
+        <service
+            android:name=".RuntimeForegroundService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="runtime keep-alive for virtual screen and install tasks" />
+        </service>
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

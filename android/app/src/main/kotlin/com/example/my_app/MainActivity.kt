@@ -15,6 +15,22 @@ class MainActivity : FlutterActivity() {
                 when (call.method) {
                     "nativeLibraryDir" -> result.success(applicationInfo.nativeLibraryDir)
                     "dataDir" -> result.success(applicationInfo.dataDir)
+                    "sourceDir" -> result.success(applicationInfo.sourceDir)
+                    "packageName" -> result.success(packageName)
+                    "runtimeForegroundStart" -> {
+                        // 前台服务保活（原版 HarnessService：常驻通知降回收；
+                        // Android 8+ 5 秒 startForeground 硬契约在服务内守）。
+                        val intent = android.content.Intent(
+                            this, com.example.my_app.RuntimeForegroundService::class.java
+                        )
+                        androidx.core.content.ContextCompat.startForegroundService(this, intent)
+                        result.success(true)
+                    }
+                    "runtimeForegroundStop" -> {
+                        stopService(android.content.Intent(
+                            this, com.example.my_app.RuntimeForegroundService::class.java))
+                        result.success(true)
+                    }
                     "deviceDns" -> {
                         // 设备 DNS（prepareResolver 来源）：连接管理器的链路 DNS。
                         val cm = getSystemService(android.content.Context.CONNECTIVITY_SERVICE)
