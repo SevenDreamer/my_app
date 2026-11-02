@@ -46,9 +46,13 @@ abstract class VscreenChannel {
   String start(String command);
 
   /// Legacy 文本可以携带有效握手，但永远无法证明启动没有发出。
-  DeviceTransportReceipt startTyped(String command) => DeviceTransportReceipt.unknown(
-      id(), 'VSCREEN_LEGACY_START_UNCONFIRMED', start(command),
-      localExitConfirmed: false);
+  ///
+  /// 唯一签名偏移（同 awaitExit/request 惯例）：Dart 无同步 channel——
+  /// 实现必须拿真实执行输出（core 握手串在里面，VscreenHandshake.started 解析源）。
+  Future<DeviceTransportReceipt> startTyped(String command) async =>
+      DeviceTransportReceipt.unknown(
+          id(), 'VSCREEN_LEGACY_START_UNCONFIRMED', start(command),
+          localExitConfirmed: false);
 }
 
 /// 通道后端缝（原版 RootShell/ShizukuShell/AdbBridge 执行面）。

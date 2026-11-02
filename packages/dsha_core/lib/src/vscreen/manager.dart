@@ -584,7 +584,7 @@ class VscreenManager {
       }
       launchDispatched = true;
       dispatched = true;
-      final receipt = selected.startTyped(command);
+      final receipt = await selected.startTyped(command);
       if (receipt.state == TransportState.notSent &&
           selected.id() == receipt.transport &&
           receipt.localExitConfirmed &&

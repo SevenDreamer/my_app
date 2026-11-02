@@ -55,10 +55,25 @@ class ShizukuChannel implements VscreenChannel {
   }
 
   @override
-  DeviceTransportReceipt startTyped(String command) =>
-      DeviceTransportReceipt.unknown(
-          id(), 'VSCREEN_SHIZUKU_DISPATCHED', start(command),
-          localExitConfirmed: false);
+  Future<DeviceTransportReceipt> startTyped(String command) async {
+    final output = await startAsync(command);
+    // 输出含 core 握手串 = 启动已确认（manager 的 VscreenHandshake.started 解析源）。
+    final confirmed = output.contains('DSHA_VSCREEN') || output.contains(' 1 ');
+    return confirmed
+        ? DeviceTransportReceipt(
+            transport: id(),
+            state: TransportState.accepted,
+            code: 'VSCREEN_SHIZUKU_STARTED',
+            output: output,
+            localExitConfirmed: true,
+            outputComplete: true,
+            exitCode: 0,
+            remoteExitConfirmed: true,
+          )
+        : DeviceTransportReceipt.unknown(
+            id(), 'VSCREEN_LEGACY_START_UNCONFIRMED', output,
+            localExitConfirmed: true);
+  }
 
   @override
   String start(String command) {
