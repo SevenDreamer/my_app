@@ -7,6 +7,8 @@
 import 'dart:async';
 
 import 'package:flutter/services.dart';
+
+import 'shizuku_channel.dart';
 import 'dart:io' as io;
 
 import 'package:dsha_core/dsha_core.dart';
@@ -108,14 +110,14 @@ VscreenManager buildVscreenManager({
   required String installation,
   required String applicationId,
   VscreenTransportApi transport = const NullTransport(),
-  VscreenChannelsApi channels = const NullChannels(),
+  VscreenChannelsApi? channels,
   AccessibilityServiceApi accessibility = const NullAccessibilityService(),
   int sdkInt = 30,
   bool lowAndroid = false,
 }) {
   return VscreenManager(
     clock: _SystemClock(),
-    channels: channels,
+    channels: channels ?? ShizukuChannels(),
     worker: _MicrotaskWorker(),
     transport: transport,
     semantics: VscreenSemanticAdapter(accessibility),

@@ -12,6 +12,7 @@ import 'package:flutter/painting.dart' show decodeImageFromList;
 
 import '../../core/logging/sentry_bridge.dart';
 
+import 'shizuku_channel.dart';
 import 'vscreen_assembly.dart';
 
 class VscreenViewModel extends ChangeNotifier {
@@ -106,6 +107,22 @@ class VscreenViewModel extends ChangeNotifier {
       applicationId: packageName,
       transport: HttpTransport(applicationId: packageName),
     );
+    _status = '检查 Shizuku 通道…';
+    notifyListeners();
+    final ready = await ShizukuChannel.refreshReady();
+    if (!ready) {
+      _status = 'Shizuku 未就绪，请求授权…';
+      notifyListeners();
+      final granted = await ShizukuChannel.requestPermission();
+      final nowReady =
+          granted ? await ShizukuChannel.refreshReady() : false;
+      if (!nowReady) {
+        _status = 'Shizuku 未授权（状态：${await ShizukuChannel.status()}）';
+        notifyListeners();
+        await reportDiagnostics();
+        return;
+      }
+    }
     _status = '启动虚拟屏…';
     notifyListeners();
     final outcome = await _manager!.start('portrait');
