@@ -1,5 +1,7 @@
 package com.example.my_app
 
+import java.lang.ref.WeakReference
+
 import android.content.Intent
 import androidx.annotation.NonNull
 import io.flutter.embedding.android.FlutterActivity
@@ -7,6 +9,37 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
+
+    companion object {
+        /** 应用在屏（resumed）——dsh-go 融合契约（icons/launch/pet 等域引用）。
+         *  属性可写范围限本类维护（private set 语义）。 */
+        @Volatile
+        @JvmStatic
+        var inForeground = false
+            private set
+
+        /** 当前 Activity 弱引用（需要 Activity 的能力插件取用）。 */
+        @Volatile
+        @JvmStatic
+        var current: WeakReference<MainActivity>? = null
+            private set
+    }
+
+    override fun onCreate(savedInstanceState: android.os.Bundle?) {
+        super.onCreate(savedInstanceState)
+        current = WeakReference(this)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        inForeground = true
+    }
+
+    override fun onPause() {
+        inForeground = false
+        super.onPause()
+    }
+
     override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
         // 启动崩溃兜底最先装（ContentProvider 期崩溃的补报机制）。
         com.example.my_app.StartupCrashRecorder.install(applicationContext)

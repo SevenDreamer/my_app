@@ -2,6 +2,8 @@ allprojects {
     repositories {
         google()
         mavenCentral()
+        // dsh-go 融合：libadb-android（com.github.* 坐标）在 JitPack
+        maven { url = uri("https://jitpack.io") }
     }
 }
 

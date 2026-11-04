@@ -119,6 +119,14 @@ dependencies {
     // Shizuku UserService（DSHA 契约：standard 13.1.5）
     implementation("dev.rikka.shizuku:api:13.1.5")
     implementation("dev.rikka.shizuku:provider:13.1.5")
+    // dsh-go 融合（批次 3）：xz 解包 / libadb 配对 / TLS / 证书（原 gradle 同款）
+    implementation("org.tukaani:xz:1.10")
+    implementation("com.github.MuntashirAkon:libadb-android:3.1.1")
+    implementation("org.conscrypt:conscrypt-android:2.8.0")
+    implementation("org.bouncycastle:bcpkix-jdk15to18:1.81") {
+        // bcutil 1.81 的类已并入 bcprov 1.85.2（重复类冲突）——排除旧传递件
+        exclude(group = "org.bouncycastle", module = "bcutil-jdk15to18")
+    }
     // DSHA 原版第三方（全量搬码闭包依赖）
     implementation("com.google.code.gson:gson:2.13.1")
     implementation("org.yaml:snakeyaml:2.4")
