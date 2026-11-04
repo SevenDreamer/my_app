@@ -1,7 +1,11 @@
-//! DSH 对话 ViewModel（MVVM：View 只读快照 + 调命令；dsh_api 协议层注入）。
+//! DSH 对话 ViewModel（MVVM：View 只读快照 + 调命令；dsh_client 协议层注入）。
+//!
+//! 协议层已切换 dsh-go 真件 `dsh_client`（AGPL 派生，批次 2）：
+//! token→cookie 登录（[DshClient.connect]）、会话列表（[DshClient.listSessions]）、
+//! 排队发信（[DshClient.prompt]）、打字机流（[DshClient.watch] 强类型事件）。
 import 'dart:async';
 
-import 'package:dsh_api/dsh_api.dart';
+import 'package:dsh_client/dsh_client.dart';
 import 'package:flutter/foundation.dart';
 
 import 'dsh_web_launcher.dart';
@@ -45,82 +49,85 @@ class DshChatViewModel extends ChangeNotifier {
     }
   }
 
-  /// 连接（launch token → 登录 → 拉会话）。
+  /// 连接（launch token → 登录换 cookie → mux ready → 拉会话）。
   Future<void> connect(String baseUrl, String launchToken) async {
-    _client ??= DshClient(baseUrl);
     _status = '连接中…';
     notifyListeners();
     try {
-      await _client!.login(launchToken);
-      final sessions = await _client!.sessions.list();
-      _sessionId = sessions.isNotEmpty ? sessions.first.id : null;
+      _client = await DshClient.connect(
+        baseUri: Uri.parse(baseUrl),
+        token: launchToken,
+      );
+      final sessions = await _client!.listSessions();
+      _sessionId = sessions.isNotEmpty ? sessions.first.sessionId : null;
       _status = '已连接';
-    } on DshApiException catch (e) {
-      _status = '连接失败：${e.code}';
     } catch (e) {
       _status = '连接失败：$e';
     }
     notifyListeners();
   }
 
-  StreamSubscription<Object?>? _follow;
+  StreamSubscription<DshEvent>? _watch;
 
-  /// 打开会话跟随流（mux session/follow——流式回执打字机效果）。
-  Future<void> _openFollow() async {
+  /// 打开会话跟随流（watch()：强类型事件 + 断线重连/快照重同步由封装承担）。
+  void _openWatch() {
     final client = _client;
     final sessionId = _sessionId;
     if (client == null || sessionId == null) return;
-    await client.mux.connect();
-    final stream = await client.mux.open('session/follow',
-        payload: {'args': {'session': sessionId}});
-    _follow?.cancel();
-    _follow = stream.items.listen(_onFollowItem,
-        onError: (_) {}, onDone: () {});
-    // 流终态：pending 消息收尾。
-    stream.done.then((error) {
-      if (_messages.isNotEmpty && _messages.last.pending) {
-        _messages[_messages.length - 1] = DshChatMessage(
-            role: 'assistant',
-            text: error != null ? '接收中断：${error.code}' : _messages.last.text);
-        notifyListeners();
-      }
-    });
+    _watch?.cancel();
+    _watch = client.watch(sessionId).listen(
+      _onEvent,
+      onError: (Object e) {
+        _settlePending('接收中断：$e');
+      },
+      onDone: () {
+        _settlePending(null);
+      },
+    );
   }
 
-  /// 跟随流增量（帧形态：text 增量 / message 完成 / done）。
-  void _onFollowItem(Object? item) {
-    if (item is! Map) return;
-    final frame = item.cast<String, Object?>();
-    final pendingIndex = _messages.lastIndexWhere((m) => m.pending);
-    switch (frame['type']) {
-      case 'text': // 增量文本（打字机）
-        final delta = '${frame['text'] ?? ''}';
-        if (pendingIndex >= 0) {
-          final prev = _messages[pendingIndex];
-          _messages[pendingIndex] =
-              DshChatMessage(role: 'assistant', text: prev.text + delta);
-        } else {
-          _messages.add(DshChatMessage(role: 'assistant', text: delta));
+  /// 会话事件（打字机：AssistantChunkEvent 增量 → AssistantStreamEnded 收尾）。
+  void _onEvent(DshEvent event) {
+    switch (event) {
+      case AssistantChunkEvent(:final chunk):
+        if (chunk is TextDeltaChunk) {
+          _appendDelta(chunk.text);
         }
-      case 'message': // 轮次完成
-        if (pendingIndex >= 0) {
-          final prev = _messages[pendingIndex];
-          _messages[pendingIndex] = DshChatMessage(
-              role: 'assistant', text: '${frame['text'] ?? prev.text}');
-        }
-        _sending = false;
-      case 'done':
-        if (pendingIndex >= 0) {
-          final prev = _messages[pendingIndex];
-          _messages[pendingIndex] =
-              DshChatMessage(role: 'assistant', text: prev.text);
-        }
-        _sending = false;
+      case AssistantStreamEnded(:final committed):
+        _settlePending(committed ? null : '（本轮未提交）');
+      default:
+        // 快照/同步/连接态等事件不改对话面（V1 不回填历史）
+        break;
     }
     notifyListeners();
   }
 
-  /// 发消息（排队语义；流式回执经 mux follow 流）。
+  void _appendDelta(String delta) {
+    if (delta.isEmpty) return;
+    final pendingIndex = _messages.lastIndexWhere((m) => m.pending);
+    if (pendingIndex >= 0) {
+      final prev = _messages[pendingIndex];
+      _messages[pendingIndex] =
+          DshChatMessage(role: 'assistant', text: prev.text + delta);
+    } else {
+      _messages.add(DshChatMessage(role: 'assistant', text: delta));
+    }
+    notifyListeners();
+  }
+
+  /// pending 消息收尾（error 为 null 保持现状文案，空文本显示省略号）。
+  void _settlePending(String? error) {
+    final i = _messages.lastIndexWhere((m) => m.pending);
+    if (i >= 0) {
+      final prev = _messages[i];
+      _messages[i] = DshChatMessage(
+          role: 'assistant', text: error ?? (prev.text.isEmpty ? '…' : prev.text));
+    }
+    _sending = false;
+    notifyListeners();
+  }
+
+  /// 发消息（排队语义 prompt；流式回执经 watch 事件流）。
   Future<void> send(String text) async {
     final client = _client;
     final sessionId = _sessionId;
@@ -129,23 +136,18 @@ class DshChatViewModel extends ChangeNotifier {
     _messages.add(const DshChatMessage(role: 'assistant', text: '', pending: true));
     _sending = true;
     notifyListeners();
-    await _openFollow();
+    _openWatch();
     try {
-      await client.messages.send(sessionId, text);
-    } on DshApiException catch (e) {
-      final i = _messages.lastIndexWhere((m) => m.pending);
-      if (i >= 0) {
-        _messages[i] = DshChatMessage(role: 'assistant', text: '发送失败：${e.code}');
-      }
-      _sending = false;
-      notifyListeners();
+      await client.prompt(sessionId, text);
+    } catch (e) {
+      _settlePending('发送失败：$e');
     }
   }
 
   @override
   void dispose() {
-    _follow?.cancel();
-    _client?.dispose();
+    _watch?.cancel();
+    _client?.close();
     super.dispose();
   }
 }

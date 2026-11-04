@@ -28,8 +28,6 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
-  dsh_api:
-    path: packages/dsh_api
   flutter:
     sdk: flutter
 
@@ -83,6 +81,11 @@ dependencies:
     path: packages/hermes_gateway
   dsha_core:
     path: packages/dsha_core
+  # dsh-go 融合（批次 2 协议层，AGPL 派生——NOTICES 已登记）
+  dsh_client:
+    path: packages/dsh_client
+  dsh_remote:
+    path: packages/dsh_remote
   archive: ^4.5.2
   crypto: ^3.0.8
   markdown_widget: ^2.3.2
