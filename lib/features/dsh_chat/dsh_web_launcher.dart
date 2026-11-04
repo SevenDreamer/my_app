@@ -43,7 +43,7 @@ class DshWebLauncher {
   /// 执行缝（默认走 Shizuku 通道的容器执行；测试可注入）。
   final Future<String> Function(String command)? exec;
 
-  final _status = DshWebStatus();
+  final _status = const DshWebStatus();
   final _controller = StreamController<DshWebStatus>.broadcast();
   Process? _process;
   int _port = 0;
@@ -87,7 +87,7 @@ class DshWebLauncher {
   /// 停止。
   Future<void> stop() async {
     if (_status.phase != DshWebPhase.running) return;
-    _emit(DshWebStatus(phase: DshWebPhase.stopping));
+    _emit(const DshWebStatus(phase: DshWebPhase.stopping));
     final p = _process;
     _process = null;
     p?.kill();
