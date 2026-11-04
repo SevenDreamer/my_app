@@ -99,6 +99,11 @@ class _DshChatPageState extends State<DshChatPage> {
                   onPressed: _viewModel.sending ? null : _send,
                   child: const Text('发送'),
                 ),
+                const SizedBox(width: 8),
+                ShadButton.outline(
+                  onPressed: () => _viewModel.startEngine(),
+                  child: const Text('启动引擎'),
+                ),
               ]),
             ),
           ]);

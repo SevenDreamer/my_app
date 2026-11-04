@@ -4,6 +4,8 @@ import 'dart:async';
 import 'package:dsh_api/dsh_api.dart';
 import 'package:flutter/foundation.dart';
 
+import 'dsh_web_launcher.dart';
+
 /// 一条聊天消息（角色/文本/状态）。
 class DshChatMessage {
   const DshChatMessage({required this.role, required this.text, this.pending = false});
@@ -24,6 +26,24 @@ class DshChatViewModel extends ChangeNotifier {
   List<DshChatMessage> get messages => List.unmodifiable(_messages);
   String get status => _status;
   bool get sending => _sending;
+
+  DshWebLauncher? _launcher;
+
+  /// 启动本机引擎（dsh web：起容器进程 → 扫 token → 自动连接）。
+  Future<void> startEngine() async {
+    _launcher ??= DshWebLauncher();
+    _status = '启动 DSH 引擎…';
+    notifyListeners();
+    final status = await _launcher!.start();
+    if (status.phase == DshWebPhase.running &&
+        status.baseUrl != null &&
+        status.token != null) {
+      await connect(status.baseUrl!, status.token!);
+    } else {
+      _status = '引擎启动失败：${status.error ?? status.phase.name}';
+      notifyListeners();
+    }
+  }
 
   /// 连接（launch token → 登录 → 拉会话）。
   Future<void> connect(String baseUrl, String launchToken) async {
