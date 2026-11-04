@@ -134,3 +134,9 @@ LaunchSpec.hardlinks 默认 false，link 仿真为 symlink，dpkg 备份才不�
 - 收敛实证：单调降可达（189→52），但正确终法=恢复支撑件闭包。
 - DSH 客户端线（dsh_api + launcher + 对话页）已全链代码就绪（ca70c29/d6bad9b），
   发版被本编译长尾卡着。
+
+### 收敛终态（2026-11-04 终）：~400 件在库，175 错集中在
+capabilities/bridge 件引用 core 类（真耦合）。盲循环（剪/拷）震荡证明：
+**需引用图工具精确算闭包**（GitNexus 索引 dsha-refactor 已有 42,901 节点——
+用它算「vs 链根集的传递闭包」一次性拷齐，不再盲试）。黑名单定稿：
+ui/ + 终端件（termux 无源）+ Kotlin 真身优先。
