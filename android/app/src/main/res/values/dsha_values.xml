@@ -1,0 +1,541 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="alpha_static_loader">使用 proroot 静态加载器</string>
+    <string name="alpha_no_seccomp">禁用 proot seccomp 加速</string>
+    <string name="welcome_eyebrow0">DeepSeek Harness · 安卓</string>
+    <string name="welcome_eyebrow1">01 / 适合你的工作方式</string>
+    <string name="welcome_eyebrow2">02 / 数据与选择由你掌握</string>
+    <string name="computer_use_title">屏幕操作</string>
+    <string name="ui_lan_unencrypted">局域网使用 HTTP，流量未加密。请只在可信网络使用，并只向可信设备分享连接链接。</string>
+    <string name="ui_brand_dsh" translatable="false">DSH</string>
+    <string name="ui_brand_github" translatable="false">GitHub</string>
+    <string name="ui_brand_shizuku" translatable="false">Shizuku</string>
+    <string name="ui_terminal_pty" translatable="false">PTY</string>
+    <string name="ui_terminal_ubuntu_pty" translatable="false">Ubuntu · PTY</string>
+    <string name="ui_terminal_prompt" translatable="false"># </string>
+    <string name="ui_font_smaller" translatable="false">A−</string>
+    <string name="ui_font_larger" translatable="false">A+</string>
+    <string name="ui_status_dot" translatable="false">●</string>
+    <string name="ui_status_unavailable" translatable="false">—</string>
+    <string name="ui_welcome_counter">%1$d / %2$d</string>
+    <string name="ui_welcome_initial_counter">1 / 7</string>
+    <string name="ui_language_title">语言 / Language</string>
+    <string name="ui_adb_host_label">设备地址（留空自动发现）</string>
+    <string name="ui_adb_port_label">配对端口（留空自动发现）</string>
+    <string name="ui_adb_code_label">配对码（6 位数字）</string>
+    <plurals name="plugin_count">
+        <item quantity="one">共 %d 个插件</item>
+        <item quantity="other">共 %d 个插件</item>
+    </plurals>
+    <string name="build190_restore_port_drafts">恢复旧端口草稿</string>
+    <string name="build190_auto_port">自动分配 Web 端口（推荐）</string>
+    <color name="primary">#1E50D0</color>
+    <color name="primary_dark">#1D4EC7</color>
+    <color name="accent_on">#FFFFFF</color>
+    <color name="raised">#EDF0F5</color>
+    <color name="text_secondary">#5C6A80</color>
+    <color name="text_muted">#5B6578</color>
+    <color name="ok">#207348</color>
+    <color name="warn">#825900</color>
+    <color name="err">#AD3D45</color>
+    <color name="preview">#F2F4F8</color>
+    <color name="terminal_surface">#0A0D12</color>
+    <color name="terminal_outline">#263041</color>
+    <color name="logo_top">#E9F0FF</color>
+    <color name="ripple">#1A3D6FD4</color>
+    <color name="primary_ripple">#1F000000</color>
+    <color name="error_on">#FFFFFF</color>
+    <color name="disabled">#E9ECF2</color>
+    <color name="err_bg">#14C45A5A</color>
+    <style name="Animation.DSHA.Dialog" parent="">
+        <item name="android:windowEnterAnimation">@anim/dialog_enter</item>
+        <item name="android:windowExitAnimation">@anim/page_exit</item>
+    </style>
+    <style name="Widget.DSHA.DialogButton" parent="Widget.Material3.Button.TextButton.Dialog">
+        <item name="android:background">@drawable/bg_dialog_button</item>
+        <item name="backgroundTint">@null</item><item name="android:backgroundTint">@null</item>
+        <item name="android:textColor">@color/action_text</item>
+        <item name="android:textAllCaps">false</item><item name="android:includeFontPadding">false</item>
+        <item name="android:gravity">center</item><item name="android:minHeight">48dp</item>
+        <item name="android:paddingLeft">20dp</item><item name="android:paddingRight">20dp</item>
+        <item name="android:paddingTop">12dp</item><item name="android:paddingBottom">12dp</item>
+    </style>
+    <style name="TextAppearance.DSHA.DialogTitle" parent="MaterialAlertDialog.Material3.Title.Text">
+        <item name="android:textColor">@color/text</item><item name="android:textStyle">bold</item>
+        <item name="android:textSize">22sp</item>
+    </style>
+    <style name="TextAppearance.DSHA.DialogBody" parent="MaterialAlertDialog.Material3.Body.Text">
+        <item name="android:textColor">@color/text_secondary</item><item name="android:textSize">15sp</item>
+    </style>
+    <dimen name="page_pad">16dp</dimen>
+    <dimen name="card_pad">16dp</dimen>
+    <dimen name="gap_section">16dp</dimen>
+    <dimen name="gap_control">10dp</dimen>
+    <dimen name="gap_tight">8dp</dimen>
+    <dimen name="gap_hair">4dp</dimen>
+    <dimen name="radius_card">18dp</dimen>
+    <dimen name="radius_control">13dp</dimen>
+    <dimen name="radius_small">10dp</dimen>
+    <dimen name="radius_pill">999dp</dimen>
+    <dimen name="text_page_title">22sp</dimen>
+    <dimen name="text_title">17sp</dimen>
+    <dimen name="text_body">15sp</dimen>
+    <dimen name="text_label">13sp</dimen>
+    <dimen name="text_caption">12sp</dimen>
+    <dimen name="btn_height">48dp</dimen>
+    <dimen name="touch_min">44dp</dimen>
+    <dimen name="stroke">1dp</dimen>
+    <string name="dns_auto">自动兼容（推荐）</string>
+    <string name="dns_ipv4">IPv4 DNS 兼容</string>
+    <string name="dns_native">原生双栈解析</string>
+    <item type="drawable" name="bg_polished_card">@drawable/bg_card</item>
+    <item type="drawable" name="bg_polished_primary">@drawable/bg_btn_primary</item>
+    <item type="color" name="polished_primary_text">@color/button_primary_text</item>
+    <item name="overlay_preview_button" type="id" />
+    <item type="id" name="settings_language" />
+    <color name="dsha_launcher_background">#A7D1FF</color>
+    <string name="permission_mode_title">DSH 权限策略</string>
+    <string name="permission_mode_full">完整访问（当前默认）</string>
+    <string name="permission_mode_workspace">工作区写入</string>
+    <string name="permission_mode_readonly">只读</string>
+    <string name="permission_mode_scope">下次启动生效。这是 DSH 的运行策略，不隔离插件与应用本身。</string>
+    <string name="picture_in_picture_title">系统画中画设置</string>
+    <string name="picture_in_picture_enable">开启对话画中画</string>
+    <string name="picture_in_picture_opted_out">已关闭，默认不显示小窗；开启上方开关后才会在返回桌面时进入画中画。</string>
+    <string name="picture_in_picture_allowed">系统已允许；切到桌面或其他应用时保留对话小窗。</string>
+    <string name="picture_in_picture_disabled">系统已关闭；切到后台时不显示小窗。点此更改。</string>
+    <string name="picture_in_picture_landscape">切换横版</string>
+    <string name="picture_in_picture_portrait">切换竖版</string>
+    <string name="picture_in_picture_unsupported">当前设备不支持系统画中画，需要 Android 8.0+ 及设备支持。</string>
+    <string name="picture_in_picture_settings_unavailable">无法打开系统画中画设置。</string>
+    <string name="plugin_sort_title">插件排序</string>
+    <string name="plugin_sort_az">名称 A–Z</string>
+    <string name="plugin_sort_za">名称 Z–A</string>
+    <string name="plugin_sort_enabled">已启用优先</string>
+    <string name="plugin_sort_updates">可更新优先</string>
+    <string name="device_open_access">管理文件访问权限</string>
+    <string name="about_tagline">DeepSeek Harness 安卓启动器</string>
+    <string name="about_community">QQ 交流群</string>
+    <string name="about_close_button">关闭</string>
+    <string name="device_checking">正在读取授权状态…</string>
+    <string name="app_name" translatable="false">DSHA</string>
+    <string name="accessibility_desc">两个用途：① 自动读取系统「无线调试」的配对码，省掉手抄（配对码两分钟就失效）；② 让 AI 助手能读屏、点按、输入、按键、截屏（截屏需 Android 11+），从而在没有 ADB 和 Shizuku 的情况下也能操作手机。
+
+
+
+DSHA 不做任何后台屏幕记录：读屏只发生在助手明确请求的那一刻，读屏文字和 MCP 截图返回本次对话；普通截图按请求保存到应用私有截图目录。DSHA 不会单独自动上传截图，模型/插件对返回结果的处理由当前配置决定；配对码只在你点过「自动读配对码」后的两分钟内读取。</string>
+    <style name="PluginAction" parent="DshaText.Label">
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="android:minWidth">48dp</item>
+        <item name="android:gravity">center</item>
+        <item name="android:paddingLeft">12dp</item>
+        <item name="android:paddingRight">12dp</item>
+        <item name="android:paddingTop">10dp</item>
+        <item name="android:paddingBottom">10dp</item>
+        <item name="android:background">@drawable/bg_btn</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <item name="android:textColor">@color/text</item>
+    </style>
+    <style name="DshaText.Title" parent="">
+        <item name="android:textSize">@dimen/text_title</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/text</item>
+    </style>
+    <style name="DshaText.Body" parent="">
+        <item name="android:textSize">@dimen/text_body</item>
+        <item name="android:textColor">@color/text</item>
+        <item name="android:lineSpacingExtra">2dp</item>
+    </style>
+    <style name="DshaText.Label" parent="">
+        <item name="android:textSize">@dimen/text_label</item>
+        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:lineSpacingExtra">2dp</item>
+    </style>
+    <style name="DshaText.Caption" parent="">
+        <item name="android:textSize">@dimen/text_caption</item>
+        <item name="android:textColor">@color/text_muted</item>
+        <item name="android:lineSpacingExtra">2dp</item>
+    </style>
+    <style name="Widget.DSHA.Button" parent="Widget.Material3.Button.TextButton">
+        <item name="android:gravity">center</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:background">@drawable/bg_btn</item>
+        <item name="backgroundTint">@null</item>
+        <item name="android:backgroundTint">@null</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textColor">@color/button_text</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="android:minWidth">48dp</item>
+        <item name="android:paddingLeft">16dp</item>
+        <item name="android:paddingRight">16dp</item>
+        <item name="android:paddingTop">12dp</item>
+        <item name="android:paddingBottom">12dp</item>
+        <item name="android:singleLine">false</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="rippleColor">@color/ripple</item>
+    </style>
+    <style name="Widget.DSHA.PlatformButton" parent="android:style/Widget.Material.Button">
+        <item name="android:gravity">center</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:background">@drawable/bg_btn</item>
+        <item name="android:backgroundTint">@null</item>
+        <item name="android:textColor">@color/button_text</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="android:paddingLeft">16dp</item>
+        <item name="android:paddingRight">16dp</item>
+        <item name="android:paddingTop">12dp</item>
+        <item name="android:paddingBottom">12dp</item>
+    </style>
+    <style name="Widget.DSHA.PrimaryButton" parent="Widget.DSHA.Button">
+        <item name="android:background">@drawable/bg_btn_primary</item>
+        <item name="android:textColor">@color/button_primary_text</item>
+    </style>
+    <style name="Widget.DSHA.RadioButton" parent="Widget.Material3.CompoundButton.RadioButton">
+        <item name="android:textColor">@color/button_text</item>
+    </style>
+    <style name="Widget.DSHA.CheckBox" parent="Widget.Material3.CompoundButton.CheckBox">
+        <item name="android:textColor">@color/button_text</item>
+    </style>
+    <style name="Widget.DSHA.Switch" parent="Widget.Material3.CompoundButton.MaterialSwitch">
+        <item name="android:textColor">@color/button_text</item>
+    </style>
+    <style name="DshaText.PageTitle" parent="DshaText.Title">
+        <item name="android:textSize">@dimen/text_page_title</item>
+    </style>
+    <style name="Widget.DSHA.TextButton" parent="Widget.DSHA.Button">
+        <item name="android:background">@drawable/bg_action_plain</item>
+        <item name="android:textColor">@color/action_text</item>
+        <item name="android:paddingTop">8dp</item>
+        <item name="android:paddingBottom">8dp</item>
+    </style>
+    <style name="Widget.DSHA.ToolbarAction" parent="PluginAction">
+        <item name="android:background">@drawable/bg_action_plain</item>
+        <item name="android:minWidth">44dp</item>
+        <item name="android:minHeight">44dp</item>
+        <item name="android:paddingLeft">8dp</item>
+        <item name="android:paddingRight">8dp</item>
+        <item name="android:paddingTop">6dp</item>
+        <item name="android:paddingBottom">6dp</item>
+        <item name="android:textColor">@color/button_text</item>
+    </style>
+    <style name="Theme.DeepseekHarness" parent="Theme.DSHA.Base">
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+    <style name="Theme.DSHA.Base" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorOnPrimary">@color/accent_on</item>
+        <item name="colorPrimaryContainer">@color/raised</item>
+        <item name="colorOnPrimaryContainer">@color/primary</item>
+        <item name="colorSecondary">@color/primary_dark</item>
+        
+        <item name="colorSecondaryContainer">@color/ripple</item>
+        <item name="colorOnSecondaryContainer">@color/primary</item>
+        
+        <item name="colorSurface">@color/card</item>
+        <item name="colorSurfaceContainerLowest">@color/surface</item>
+        <item name="colorSurfaceContainerLow">@color/card</item>
+        <item name="colorSurfaceContainer">@color/card</item>
+        <item name="colorSurfaceContainerHigh">@color/card</item>
+        <item name="colorSurfaceContainerHighest">@color/raised</item>
+        <item name="colorOnSurface">@color/text</item>
+        <item name="colorSurfaceVariant">@color/raised</item>
+        <item name="colorOnSurfaceVariant">@color/text_secondary</item>
+        <item name="colorOutline">@color/line</item>
+        <item name="colorOutlineVariant">@color/line</item>
+        <item name="colorError">@color/err</item>
+        <item name="colorOnError">@color/error_on</item>
+        <item name="colorControlHighlight">@color/ripple</item>
+
+        <item name="android:colorBackground">@color/surface</item>
+        <item name="android:windowBackground">@color/surface</item>
+        <item name="android:statusBarColor">@color/surface</item>
+        <item name="android:navigationBarColor">@color/surface</item>
+        <item name="android:textColorPrimary">@color/text</item>
+        <item name="android:textColorSecondary">@color/text_secondary</item>
+        <item name="android:textColorHint">@color/text_muted</item>
+
+        
+        <item name="alertDialogTheme">@style/Dialog.DSHA.Alert</item>
+        <item name="materialAlertDialogTheme">@style/Dialog.DSHA.Material</item>
+
+        
+        <item name="materialButtonStyle">@style/Widget.DSHA.Button</item>
+        <item name="buttonStyle">@style/Widget.DSHA.Button</item>
+        <item name="android:buttonStyle">@style/Widget.DSHA.PlatformButton</item>
+        <item name="android:colorAccent">@color/primary</item>
+        <item name="colorControlNormal">@color/text_secondary</item>
+        <item name="colorControlActivated">@color/primary</item>
+        <item name="radioButtonStyle">@style/Widget.DSHA.RadioButton</item>
+        <item name="checkboxStyle">@style/Widget.DSHA.CheckBox</item>
+        <item name="materialSwitchStyle">@style/Widget.DSHA.Switch</item>
+    </style>
+    <style name="Dialog.DSHA.Alert" parent="Theme.Material3.DayNight.Dialog.Alert">
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorSurface">@color/card</item>
+        <item name="colorSurfaceContainerLowest">@color/surface</item>
+        <item name="colorSurfaceContainerLow">@color/card</item>
+        <item name="colorSurfaceContainer">@color/card</item>
+        <item name="colorSurfaceContainerHigh">@color/card</item>
+        <item name="colorSurfaceContainerHighest">@color/raised</item>
+        <item name="colorOnSurface">@color/text</item>
+        <item name="android:textColorPrimary">@color/text</item>
+        <item name="android:textColorSecondary">@color/text_secondary</item>
+        <item name="android:colorAccent">@color/primary</item>
+        <item name="android:textColorHint">@color/text_muted</item>
+        <item name="shapeAppearanceOverlay">@style/Shape.DSHA.Dialog</item>
+    </style>
+    <style name="Dialog.DSHA.Material" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="elevationOverlayEnabled">false</item>
+        <item name="android:backgroundDimAmount">0.22</item>
+        <item name="buttonBarPositiveButtonStyle">@style/Widget.DSHA.DialogButton</item>
+        <item name="buttonBarNegativeButtonStyle">@style/Widget.DSHA.DialogButton</item>
+        <item name="buttonBarNeutralButtonStyle">@style/Widget.DSHA.DialogButton</item>
+        <item name="materialAlertDialogTitleTextStyle">@style/TextAppearance.DSHA.DialogTitle</item>
+        <item name="materialAlertDialogBodyTextStyle">@style/TextAppearance.DSHA.DialogBody</item>
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorSurface">@color/card</item>
+        <item name="colorSurfaceContainerLowest">@color/surface</item>
+        <item name="colorSurfaceContainerLow">@color/card</item>
+        <item name="colorSurfaceContainer">@color/card</item>
+        <item name="colorSurfaceContainerHigh">@color/card</item>
+        <item name="colorSurfaceContainerHighest">@color/raised</item>
+        <item name="colorOnSurface">@color/text</item>
+        <item name="android:colorAccent">@color/primary</item>
+        <item name="android:textColorHint">@color/text_muted</item>
+        <item name="shapeAppearanceOverlay">@style/Shape.DSHA.Dialog</item>
+    </style>
+    <style name="Shape.DSHA.Dialog" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">24dp</item>
+    </style>
+    <string name="ui2_stopped">DSH 未运行</string>
+    <string name="ui2_launch_hint">随时开始你的下一项任务。</string>
+    <string name="ui2_start">▶  启动 DSHA</string>
+    <string name="ui2_restart">↻  重启</string>
+    <string name="ui2_stop">□  停止</string>
+    <string name="ui2_port">实际 Web 端口</string>
+    <string name="ui2_environment">运行环境</string>
+    <string name="ui2_address">访问地址</string>
+    <string name="ui2_address_sub">查看本机与局域网地址</string>
+    <string name="ui2_logs">启动日志</string>
+    <string name="ui2_shortcuts">快捷入口</string>
+    <string name="ui2_settings">设置</string>
+    <string name="ui2_settings_hint">让工作台按你的习惯运行。</string>
+    <string name="ui2_workspace">工作台</string>
+    <string name="ui2_experience">使用体验</string>
+    <string name="ui2_overlay">悬浮条</string>
+    <string name="ui2_overlay_sub">显示内容、透明度与停留时间</string>
+    <string name="ui2_support">支持</string>
+    <string name="ui2_updates">版本更新</string>
+    <string name="ui2_diagnostics">自检与诊断</string>
+    <string name="ui2_diagnostics_sub">运行状态、错误记录与日志导出</string>
+    <string name="ui2_about">关于 DSHA</string>
+    <string name="ui2_about_sub">版本、开源许可与反馈</string>
+    <string name="ui2_community">社区插件生态</string>
+    <string name="ui2_community_sub">发现社区插件，查看介绍与安装来源</string>
+    <string name="ui2_from_link">从链接安装</string>
+    <string name="ui2_plugin_link">仓库或下载链接</string>
+    <string name="ui2_installed">已安装插件</string>
+    <string name="ui2_import">导入插件包</string>
+    <string name="ui2_import_sub">从设备选择 ZIP 插件包</string>
+    <string name="ui2_export">导出插件</string>
+    <string name="ui2_export_sub">保存已安装插件的副本</string>
+    <string name="ui2_local_plugins">本地插件</string>
+    <string name="ui2_welcome_title0">你的 AI 工作台，\n就在手机里。</string>
+    <string name="ui2_welcome_lead0">写代码、处理文件、使用工具。\n把完整的工作环境，随身带走。</string>
+    <string name="ui2_offline_badge">离线部署  ·  无需 ROOT  ·  %1$s</string>
+    <string name="ui2_welcome_title1">从一个想法，\n到实际完成。</string>
+    <string name="ui2_welcome_lead1">对话、文件与工具，在同一个工作空间。</string>
+    <string name="ui2_w1_0">对话与任务</string>
+    <string name="ui2_ws1_0">让模型理解问题，协作完成工作。</string>
+    <string name="ui2_w1_1">完整的终端</string>
+    <string name="ui2_ws1_1">保留熟悉的 Ubuntu 命令与多会话。</string>
+    <string name="ui2_w1_2">插件与设备能力</string>
+    <string name="ui2_ws1_2">按需安装插件，连接手机能力。</string>
+    <string name="ui2_welcome_title2">权限由你决定，\n数据有处可寻。</string>
+    <string name="ui2_welcome_lead2">开始使用不需要授予设备控制权限。</string>
+    <string name="ui2_w2_0">对话与文件</string>
+    <string name="ui2_ws2_0">保存在本机，可手动导出。</string>
+    <string name="ui2_w2_1">模型与凭据</string>
+    <string name="ui2_ws2_1">模型与 API Key 在 Web UI 中配置；原有本机凭据保留。</string>
+    <string name="ui2_w2_2">设备操作</string>
+    <string name="ui2_ws2_2">Root、Shizuku、ADB 与短信单独授权。</string>
+    <string name="ui2_online_notice">使用在线模型时，消息及你选择的附件会发送到所配置的模型服务。</string>
+    <string name="ui2_meet">认识 DSHA</string>
+    <string name="ui2_skip">跳过介绍</string>
+    <string name="ui2_updates_sub">稳定版与预览版更新</string>
+    <string name="ui2_install_environment">安装与环境</string>
+    <string name="ui2_runtime_config">运行配置</string>
+    <string name="ui2_resolve">解析安装</string>
+    <string name="ui2_data_title">数据与备份</string>
+    <string name="ui2_data_sub">导出、恢复与文件共享。</string>
+    <string name="ui2_data_ops">备份与恢复</string>
+    <string name="ui2_maintenance">维护与恢复</string>
+    <string name="ui2_component1">Ubuntu 环境</string>
+    <string name="ui2_component_hint">查看检查结果与修复选项</string>
+    <string name="ui2_component2">离线基础工具</string>
+    <string name="ui2_component3">Node.js 24</string>
+    <string name="ui2_component4">pnpm</string>
+    <string name="ui2_component5">DeepSeek Harness</string>
+    <string name="ui2_component6">启动与环境检查</string>
+    <string name="ui2_environment_page">安装与环境</string>
+    <string name="ui2_environment_sub">按组件检查状态，修复需要处理的部分。</string>
+    <string name="ui2_environment_state">环境状态</string>
+    <string name="ui2_base">Ubuntu 基础环境</string>
+    <string name="ui2_managed">受管运行时</string>
+    <string name="ui2_app_version">应用版本</string>
+    <string name="ui2_six_steps">六个安装步骤</string>
+    <string name="ui2_check_all">检查全部组件</string>
+    <string name="ui2_managed_update">更新受管运行时</string>
+    <string name="ui2_managed_sub">只更新随包组件，保留个人数据</string>
+    <string name="ui2_repair_parts">按需修复组件</string>
+    <string name="ui2_repair_parts_sub">检查缺失部分，保留可用组件</string>
+    <string name="ui2_environment_recovery">环境修复与恢复</string>
+    <string name="ui2_environment_recovery_sub">查看启动依赖与中断维护</string>
+    <string name="ui2_installation_log">检查与安装日志</string>
+    <string name="ui2_config_sub">模型和 API Key 在 Web UI 中配置。这里的端口与运行方式在下次启动生效。</string>
+    <string name="ui2_network_runtime">运行与网络</string>
+    <string name="ui2_port_preferred">首选 Web 端口</string>
+    <string name="ui2_port_hint">端口占用时保留首选设置，自动使用可用端口。</string>
+    <string name="ui2_dns">DNS 解析策略</string>
+    <string name="ui2_display">显示与启动</string>
+    <string name="ui2_floating">悬浮条</string>
+    <string name="ui2_floating_settings">悬浮条外观与行为</string>
+    <string name="ui2_floating_settings_sub">单独编辑样式、内容与预览</string>
+    <string name="ui2_runtime_compat">运行时兼容选项</string>
+    <string name="ui2_device_grants">设备能力授权</string>
+    <string name="ui2_grants_sub">按需开启。普通对话和终端不依赖设备控制授权。</string>
+    <string name="ui2_device_channels">设备执行通道</string>
+    <string name="ui2_system_permissions">系统权限</string>
+    <string name="ui2_sensitive">独立敏感能力</string>
+    <string name="ui2_updates_intro">查看应用与运行组件的版本信息。</string>
+    <string name="ui2_update_channel">更新通道</string>
+    <string name="ui2_management">管理</string>
+    <string name="ui2_rollback">兼容运行时回退</string>
+    <string name="ui2_rollback_sub">通过隔离试运行后再切换</string>
+    <string name="ui2_diagnostics_intro">检查组件、存储与服务，生成脱敏报告。</string>
+    <string name="ui2_error_logs">错误日志</string>
+    <string name="ui2_troubleshooting">排查与修复</string>
+    <string name="ui2_reproduction">补充复现步骤</string>
+    <string name="ui2_adb">ADB 无线配对</string>
+    <string name="ui2_adb_intro">在系统无线调试中取得配对码，再连接当前设备。</string>
+    <string name="ui2_connection">连接状态</string>
+    <string name="ui2_backup_restore">备份与恢复</string>
+    <string name="ui2_backup_restore_sub">导出、导入和自动备份</string>
+    <string name="ui2_storage_files">存储与文件</string>
+    <string name="ui2_storage_files_sub">空间占用、缓存清理和文件共享</string>
+    <string name="ui2_recovery_tools">环境修复与数据救援</string>
+    <style name="Ui2.Nav" parent="">
+        <item name="android:textSize">11sp</item>
+        <item name="android:includeFontPadding">false</item>
+    </style>
+    <color name="ui2_log_text">#BBCBDD</color>
+    <string name="ui134_current">当前应用</string>
+    <string name="ui134_code">版本码</string>
+    <string name="ui134_edition">当前版本类型</string>
+    <string name="ui134_candidate">查看候选版本</string>
+    <string name="ui134_candidate_sub">更新记录、大小与安装方式</string>
+    <string name="ui134_changelog">本版本更新记录</string>
+    <string name="ui134_changelog_sub">0.2.0-rc2 · 插件安装后自动启用</string>
+    <string name="ui134_check_ready">准备检查</string>
+    <string name="ui134_results">检查结果</string>
+    <string name="ui134_start_records">启动记录</string>
+    <string name="ui134_recent_startups">最近五次启动</string>
+    <string name="ui134_recent_startups_sub">阶段、实际错误与退出码</string>
+    <string name="ui134_startup_recovery">启动故障处理</string>
+    <string name="ui134_startup_recovery_sub">查看问题与恢复方式</string>
+    <string name="ui134_disconnect">断开 ADB 连接</string>
+    <string name="ui134_root_hint">已 Root 的手机：开启开关，在 Magisk / KernelSU 等管理器允许 DSHA，再点验证。未 Root 可用下方通道。</string>
+    <string name="ui134_shizuku_hint">先在 Shizuku 管理器启动服务，再返回授权。手机重启后通常需要重新启动服务。</string>
+    <string name="ui134_adb_hint">Android 11+：在同一 Wi-Fi 下配对无线调试。无需 Root；网络变化后可验证或重新配对。</string>
+    <string name="ui134_screen_setup">设置屏幕操作 · 两步完成</string>
+    <string name="ui_m0001" formatted="false">"下载更新"</string>
+    <string name="ui_m0002" formatted="false">"保存配置"</string>
+    <string name="ui_m0003" formatted="false">"取消检查"</string>
+    <string name="ui_m0005" formatted="false">"启动"</string>
+    <string name="ui_m0006" formatted="false">"备份并重建环境"</string>
+    <string name="ui_m0007" formatted="false">"安全启动"</string>
+    <string name="ui_m0010" formatted="false">"开始配对"</string>
+    <string name="ui_m0011" formatted="false">"恢复选项"</string>
+    <string name="ui_m0012" formatted="false">"手动地址与端口"</string>
+    <string name="ui_m0013" formatted="false">"打开插件管理"</string>
+    <string name="ui_m0015" formatted="false">"授权 Shizuku"</string>
+    <string name="ui_m0016" formatted="false">"插件"</string>
+    <string name="ui_m0017" formatted="false">"未检查"</string>
+    <string name="ui_m0018" formatted="false">"检查更新"</string>
+    <string name="ui_m0020" formatted="false">"白天"</string>
+    <string name="ui_m0021" formatted="false">"终端"</string>
+    <string name="ui_m0023" formatted="false">"设置"</string>
+    <string name="ui_m0024" formatted="false">"输入命令，回车执行"</string>
+    <string name="ui_m0025" formatted="false">"还没有日志。"</string>
+    <string name="ui_m0026" formatted="false">"配对与端口说明"</string>
+    <string name="ui_m0030" formatted="false">"ADB 已关闭。不用无线调试就保持关闭。"</string>
+    <string name="ui_m0031" formatted="false">"ADB 无线配对"</string>
+    <string name="ui_m0039" formatted="false">"Shizuku 未授权"</string>
+    <string name="ui_m0046" formatted="false">"下载日志"</string>
+    <string name="ui_m0047" formatted="false">"下载错误日志"</string>
+    <string name="ui_m0050" formatted="false">"中止"</string>
+    <string name="ui_m0053" formatted="false">"传感器与手电"</string>
+    <string name="ui_m0054" formatted="false">"使用 proroot 运行时"</string>
+    <string name="ui_m0055" formatted="false">"使用兼容浏览内核"</string>
+    <string name="ui_m0057" formatted="false">"使用桌面版网页布局"</string>
+    <string name="ui_m0060" formatted="false">"修复工具"</string>
+    <string name="ui_m0062" formatted="false">"允许 Root Shell"</string>
+    <string name="ui_m0063" formatted="false">"允许局域网访问"</string>
+    <string name="ui_m0066" formatted="false">"允许读取位置"</string>
+    <string name="ui_m0067" formatted="false">"关于"</string>
+    <string name="ui_m0078" formatted="false">"取消当前任务"</string>
+    <string name="ui_m0079" formatted="false">"取消当前操作"</string>
+    <string name="ui_m0080" formatted="false">"另存为"</string>
+    <string name="ui_m0081" formatted="false">"只看自己装的"</string>
+    <string name="ui_m0084" formatted="false">"后台断连时，可允许 DSHA 后台运行并减少电池限制。厂商仍可能暂停后台；恢复前先确认无线调试已开启，再点「验证已有连接」。"</string>
+    <string name="ui_m0089" formatted="false">"启动时检查更新"</string>
+    <string name="ui_m0090" formatted="false">"启用 ADB 设备通道（默认关闭）"</string>
+    <string name="ui_m0094" formatted="false">"在浏览器查看发布页"</string>
+    <string name="ui_m0095" formatted="false">"在系统浏览器中打开"</string>
+    <string name="ui_m0102" formatted="false">"复制"</string>
+    <string name="ui_m0103" formatted="false">"复制反馈"</string>
+    <string name="ui_m0104" formatted="false">"安全模式：恢复此前启用的第三方插件"</string>
+    <string name="ui_m0106" formatted="false">"安装插件"</string>
+    <string name="ui_m0107" formatted="false">"安装更新"</string>
+    <string name="ui_m0109" formatted="false">"导出报告"</string>
+    <string name="ui_m0118" formatted="false">"强制使用内置 Gecko，适合系统网页白屏或不兼容时；关闭后由 App 自动选择可用内核。保存后重新进入对话生效。"</string>
+    <string name="ui_m0121" formatted="false">"悬浮显示 AI 输出"</string>
+    <string name="ui_m0125" formatted="false">"打开 Shizuku 管理器"</string>
+    <string name="ui_m0126" formatted="false">"打开数据与备份"</string>
+    <string name="ui_m0128" formatted="false">"打开无线调试设置"</string>
+    <string name="ui_m0133" formatted="false">"插件市场"</string>
+    <string name="ui_m0134" formatted="false">"插件操作状态，点按查看完整信息"</string>
+    <string name="ui_m0135" formatted="false">"插件管理"</string>
+    <string name="ui_m0137" formatted="false">"插件链接或 npm 包名"</string>
+    <string name="ui_m0138" formatted="false">"搜索插件名称或描述"</string>
+    <string name="ui_m0142" formatted="false">"新建终端"</string>
+    <string name="ui_m0145" formatted="false">"暂无终端\n点击「新建」打开一个终端"</string>
+    <string name="ui_m0146" formatted="false">"更多"</string>
+    <string name="ui_m0158" formatted="false">"检测已安装插件"</string>
+    <string name="ui_m0159" formatted="false">"检测插件"</string>
+    <string name="ui_m0164" formatted="false">"清理"</string>
+    <string name="ui_m0170" formatted="false">"申请授权并验证 root"</string>
+    <string name="ui_m0171" formatted="false">"短信读取"</string>
+    <string name="ui_m0173" formatted="false">"稳定版"</string>
+    <string name="ui_m0177" formatted="false">"简易"</string>
+    <string name="ui_m0178" formatted="false">"简易终端"</string>
+    <string name="ui_m0179" formatted="false">"粘贴链接"</string>
+    <string name="ui_m0181" formatted="false">"自动读取本次配对码"</string>
+    <string name="ui_m0182" formatted="false">"补充复现步骤，不要填写密钥或私人对话"</string>
+    <string name="ui_m0185" formatted="false">"解析链接"</string>
+    <string name="ui_m0191" formatted="false">"设置电池优化"</string>
+    <string name="ui_m0201" formatted="false">"返回上一页"</string>
+    <string name="ui_m0202" formatted="false">"返回启动页处理插件 / 安全启动"</string>
+    <string name="ui_m0209" formatted="false">"重新诊断"</string>
+    <string name="ui_m0211" formatted="false">"重置配置，保留对话"</string>
+    <string name="ui_m0212" formatted="false">"重试"</string>
+    <string name="ui_m0215" formatted="false">"预览版"</string>
+    <string name="ui_m0217" formatted="false">"验证已有连接"</string>
+    <string name="ui_m0218" formatted="false">"＋ 新建"</string>
+    <string name="edition_description">标准版 · Android 11+ · 系统 WebView</string>
+</resources>

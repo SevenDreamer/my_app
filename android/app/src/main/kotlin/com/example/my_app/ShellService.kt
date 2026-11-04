@@ -76,6 +76,25 @@ class ShellService : IShellService.Stub {
         }
     }
 
+
+    // 只供原生授权后的 root 子进程调用；Binder exec 不能选择此分支（原版契约）。
+    fun execAuthorizedSms(command: String, user: Int): String {
+        val plan = com.example.my_app.util.DeviceShellPolicy.inspect(command)
+        if (plan.kind != com.example.my_app.util.DeviceShellPolicy.Kind.SENSITIVE_READ) {
+            return com.example.my_app.util.UiText.text("[POLICY_BLOCKED] 不是受支持的短信查询\n[EXIT=126]")
+        }
+        return try {
+            val process = ProcessBuilder(com.example.my_app.util.SmsQuery.forUser(plan.argv, user))
+                .redirectErrorStream(true)
+                .start()
+            val text = process.inputStream.bufferedReader().readText()
+            process.waitFor()
+            text
+        } catch (e: Throwable) {
+            "SHELL_EXEC_FAILED ${e.message ?: ""}"
+        }
+    }
+
     override fun destroy() {
         // UserService lifecycle end (contract: one-shot destroy).
     }

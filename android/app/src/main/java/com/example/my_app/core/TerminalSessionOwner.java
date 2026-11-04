@@ -1,4 +1,4 @@
-package com.example.my_app;
+package com.example.my_app.core;
 
 // 终端会话属主 stub（终端功能后置；会话语义中性）。
 public final class TerminalSessionOwner {

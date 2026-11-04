@@ -23,6 +23,7 @@ class ShizukuShell private constructor() {
         @Volatile private var failure = ""
         private var listening = false
 
+        @JvmStatic
         fun init(ctx: Context?) {
             if (ctx != null) context = ctx.applicationContext
             synchronized(LOCK) {
@@ -42,14 +43,17 @@ class ShizukuShell private constructor() {
             }
         }
 
+        @JvmStatic
         fun isAvailable(): Boolean = try {
             Shizuku.pingBinder()
         } catch (e: Throwable) { false }
 
+        @JvmStatic
         fun hasPermission(): Boolean = try {
             isAvailable() && Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED
         } catch (e: Throwable) { false }
 
+        @JvmStatic
         fun isReady(): Boolean {
             val current = service ?: return false
             return hasPermission() && try {
@@ -57,6 +61,7 @@ class ShizukuShell private constructor() {
             } catch (e: Throwable) { false }
         }
 
+        @JvmStatic
         fun status(): String {
             val bound = isReady()
             val binding = connection != null && service == null
@@ -64,6 +69,7 @@ class ShizukuShell private constructor() {
                 if (failure.isEmpty()) "" else ",error=$failure"
         }
 
+        @JvmStatic
         fun requestPermission(onResult: (granted: Boolean) -> Unit) {
             MAIN.post {
                 if (hasPermission()) {
@@ -101,8 +107,12 @@ class ShizukuShell private constructor() {
             }
         }
 
-        fun ensureBound() {
-            init(context)
+        /// 原版 ensureBound(Context) 契约：带参可显式供 Context（@JvmOverloads
+        /// 兼容无参旧调用）。
+        @JvmStatic
+        @JvmOverloads
+        fun ensureBound(ctx: Context? = null) {
+            init(ctx ?: context)
             if (Looper.myLooper() != Looper.getMainLooper()) {
                 MAIN.post { ensureBound() }
                 return
@@ -159,7 +169,49 @@ class ShizukuShell private constructor() {
             }
         }
 
+        /// Shizuku 管理器安装检测（原版 isInstalled 契约）。
+        @JvmStatic
+        fun isInstalled(ctx: Context): Boolean {
+            return isAvailable() || com.example.my_app.ShizukuManagerCompat.manager(ctx) != null
+        }
+
+        /// 用户可读状态文案（原版 userStatus 契约，文案逐字保留）。
+        @JvmStatic
+        fun userStatus(ctx: Context): String {
+            if (!isAvailable()) {
+                return if (isInstalled(ctx)) {
+                    com.example.my_app.util.UiText.text(
+                        "管理器已安装，服务尚未连接。点击授权重新连接；若仍未连接，请启动管理器服务，并检查隐藏模式是否允许 DSHA。")
+                } else {
+                    com.example.my_app.util.UiText.text("尚未安装 Shizuku。安装并启动后可在这里授权。")
+                }
+            }
+            if (!hasPermission()) {
+                return com.example.my_app.util.UiText.text("服务已连接，尚未授权 DSHA。点击下方授权。")
+            }
+            if (isReady()) {
+                return com.example.my_app.util.UiText.text("已授权 · 设备 Shell 已连接，可直接使用，无需 ADB 配对")
+            }
+            if (failure.isNotEmpty()) {
+                return com.example.my_app.util.UiText.format("已授权，连接失败：%s。点击下方重试。", failure)
+            }
+            return com.example.my_app.util.UiText.text("已授权，正在连接设备 Shell…")
+        }
+
+        /// 通用 Binder exec（原版 ShizukuShell.exec 契约）。
+        @JvmStatic
+        fun exec(command: String): String {
+            val current = service
+                ?: return "[SHIZUKU_SERVICE_NOT_READY] ${status()}\n[EXIT=124]"
+            return try {
+                current.exec(command)
+            } catch (e: Throwable) {
+                "SHIZUKU_EXEC_FAILED ${e.message ?: ""}"
+            }
+        }
+
         /// 虚拟屏命令执行（原版 execVirtualScreen 通道）。
+        @JvmStatic
         fun execVirtualScreen(command: String): String {
             val current = service
                 ?: return "SHIZUKU_NOT_READY ${status()}"
@@ -167,6 +219,33 @@ class ShizukuShell private constructor() {
                 current.execVirtualScreen(command)
             } catch (e: Throwable) {
                 "SHIZUKU_EXEC_FAILED ${e.message ?: ""}"
+            }
+        }
+
+        /// 类型化虚拟屏命令（原版 execVirtualScreenTyped 契约：就绪判定 +
+        /// DeviceTransportResult 类型化结果，语义逐字保留）。
+        @JvmStatic
+        fun execVirtualScreenTyped(command: String): com.example.my_app.device.DeviceTransportResult {
+            val current = service
+                ?: return com.example.my_app.device.DeviceTransportResult.notSent(
+                    "shizuku",
+                    "SHIZUKU_SERVICE_NOT_READY",
+                    "[SHIZUKU_SERVICE_NOT_READY] ${status()}\n[EXIT=124]",
+                )
+            return try {
+                com.example.my_app.device.DeviceTransportResult.fromLegacy(
+                    "shizuku",
+                    current.execVirtualScreen(command),
+                    com.example.my_app.device.DeviceTransportIdentity.unknown(),
+                )
+            } catch (error: Throwable) {
+                com.example.my_app.device.DeviceTransportResult.unknown(
+                    "shizuku",
+                    "SHIZUKU_EXECUTION_UNKNOWN",
+                    "[EXECUTION_UNKNOWN] VSCREEN_RESULT_UNKNOWN\n[EXIT=125]",
+                    false,
+                    com.example.my_app.device.DeviceTransportIdentity.unknown(),
+                )
             }
         }
     }
