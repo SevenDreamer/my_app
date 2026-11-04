@@ -211,14 +211,16 @@ class ShizukuShell private constructor() {
         }
 
         /// 虚拟屏命令执行（原版 execVirtualScreen 通道）。
+        /// 错误分支补 [EXIT=码] 尾标（原版逐字契约：not-ready=124 / 未确认=125）——
+        /// Dart 握手与完整性判定（endsWith("[EXIT=0]")）只认带尾标的输出。
         @JvmStatic
         fun execVirtualScreen(command: String): String {
             val current = service
-                ?: return "SHIZUKU_NOT_READY ${status()}"
+                ?: return "SHIZUKU_NOT_READY ${status()}\n[EXIT=124]"
             return try {
                 current.execVirtualScreen(command)
             } catch (e: Throwable) {
-                "SHIZUKU_EXEC_FAILED ${e.message ?: ""}"
+                "SHIZUKU_EXEC_FAILED ${e.message ?: ""}\n[EXIT=125]"
             }
         }
 

@@ -35,17 +35,45 @@ class ShellService : IShellService.Stub {
         return com.example.my_app.DeviceShellExecutor.executeVirtualScreen(
             command ?: "",
             { argv ->
+                // 原版 executeArgv 契约：argv[0] 补 /system/bin 前缀 + 显式 PATH；
+                // 输出 = 进程全量 + [EXIT=码] 尾标——Dart 握手 VscreenHandshake.started
+                // 硬性要求 [EXIT=0]，缺尾标则每次启动必判结果未知（MY-APP-5/6 真因）。
                 try {
-                    val p = ProcessBuilder(argv)
+                    val resolved = java.util.ArrayList(argv)
+                    if (!resolved[0].startsWith("/")) resolved[0] = "/system/bin/" + resolved[0]
+                    val process = ProcessBuilder(resolved)
                         .redirectErrorStream(true)
+                        .apply { environment()["PATH"] = "/system/bin:/system/xbin:/sbin:/vendor/bin" }
                         .start()
-                    android.util.Log.i("ShellService", "run: exec >> $argv")
-                    val reader = p.inputStream.bufferedReader()
-                    val first = reader.readLine() ?: ""
-                    android.util.Log.i("ShellService", "run: done >> '$first'")
-                    first
+                    android.util.Log.i("ShellService", "run: exec >> $resolved")
+                    // --launch/--probe-exit 均为一次性命令（成功/失败都退出，launch 内置
+                    // 8s 上限）；独立读线程防管道写满死锁，waitFor 30s 兜底（原版期限）。
+                    val output = StringBuilder()
+                    val pump =
+                        Thread {
+                                try {
+                                    process.inputStream.bufferedReader().useLines { lines ->
+                                        lines.forEach { output.append(it).append('\n') }
+                                    }
+                                } catch (_: Throwable) {
+                                }
+                            }
+                            .apply {
+                                isDaemon = true
+                                start()
+                            }
+                    val finished = process.waitFor(30, java.util.concurrent.TimeUnit.SECONDS)
+                    if (!finished) process.destroyForcibly()
+                    pump.join(2000)
+                    android.util.Log.i(
+                        "ShellService",
+                        "run: done >> exit=${if (finished) process.exitValue() else "timeout"}",
+                    )
+                    output.toString() +
+                        (if (finished) "\n[EXIT=${process.exitValue()}]"
+                        else "\n[EXIT=timeout]")
                 } catch (e: Throwable) {
-                    "SHELL_EXEC_FAILED ${e.message ?: ""}"
+                    "SHELL_EXEC_FAILED ${e.message ?: ""}\n[EXIT=125]"
                 }
             },
             identity
