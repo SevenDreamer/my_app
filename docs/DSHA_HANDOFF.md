@@ -1,4 +1,8 @@
 # DSHA 重构线 · 会话交接文档（HANDOFF）
+> ⚠️ **2026-11-04 更正**：本文「只学设计不抄码」「DSHA 线继续推进」等共识已被
+> 用户拍板取代（dsh-go 全量融合、直接搬码、AGPL 传染、DSHA 线冻结）——
+> 一切以 `docs/DSHGO_MERGE_PLAN.md` 为准，本文仅作历史/设计参考。
+
 
 > 交接时点：2026-10-30 · 当前版本 **1.3.0-dev.26+70**（Patch 3 已挂）
 > 本文给接手的 Hermes：读完即可继续 F1 线。总台账见 `docs/DSHA_REFACTOR_PLAN.md`，

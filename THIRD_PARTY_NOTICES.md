@@ -1,7 +1,22 @@
 # Third-Party Notices
 
-本仓库包含以下第三方开源组件的派生代码。MIT 许可要求保留版权声明与许可文本，
-逐份声明如下。
+本仓库以 AGPL-3.0 发布，且包含以下第三方开源组件的派生代码。各许可要求
+保留版权声明与许可文本，逐份声明如下。
+
+---
+
+## dsh-go
+
+- 来源：<https://github.com/ccch1mneyyy/dsh-go>
+- 许可：AGPL-3.0 License（其 `sdk/plugin-kit` 与 `examples/` 为 MIT）
+- 版权：Copyright (c) 2026 ccch1mneyyy（DSH-TUI）
+- 状态：融合计划（`docs/DSHGO_MERGE_PLAN.md`）将引入其派生代码；届时逐文件
+  保留原版权与许可头，并在此登记派生文件清单。
+- ⚠️ **品牌与美术素材条款**（其 `ASSETS.md`）：品牌图形、吉祥物（Deepy/鲸娘）、
+  鲸鱼图（含 DeepSeek 官方图标，商标归 DeepSeek 所有）**不在 AGPL-3.0 授权内**，
+  版权归 ccch1mneyyy（DSH-TUI），其条款要求衍生作品再发布时更换名称与素材。
+  当前使用决策（知情自担）与替换预案见 `docs/DSHGO_MERGE_PLAN.md` §2。
+- AGPL-3.0 全文见 [LICENSE](LICENSE)。
 
 ---
 

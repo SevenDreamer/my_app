@@ -53,7 +53,7 @@
 
 | 批次 | 内容 | 依赖 | 状态 |
 |---|---|---|---|
-| **0** | **搬码收尾**：GitNexus（dsha-refactor 42,901 节点）算 vs 链根集传递闭包 → 一次性拷齐支撑件 → 编译归零 → 发版解封。⚠️ 过渡投资：此批成果（453 Java）终将随批次 3–7 被 dsh-go 形态替代 | — | ⬜ |
+| **0** | **搬码收尾**：GitNexus（dsha-refactor 42,901 节点）算 vs 链根集传递闭包 → 一次性拷齐支撑件 → 编译归零 → 发版解封。⚠️ 过渡投资：此批成果（453 Java）终将随批次 3–7 被 dsh-go 形态替代 | — | ✅ 2026-11-04 编译归零（v1.3.0-dev.41+85 发版）：闭包拷齐 ~57 件 + res 全量合并 + UiMessages 生成物 + flavor 源集（standard/low）补缺 + Kotlin 真身契约补全（@JvmStatic/userStatus/execAuthorizedSms/ensureBound）；ui/ 实为支撑件库（黑名单瓦解为 ui/MainActivity+终端空壳桩），termux/PtySession 终端链维持不搬 |
 | **1** | **融合基座**：AGPL 转换（LICENSE/README/NOTICES/仓库公开）+ 快照基线锁定（b4f2d24 + upstream remote + 标签）+ Riverpod 依赖引入 + AGENTS.md 铁律修订（允许双状态管理过渡期）+ 旧共识文档加更正 | 0 | ⬜ |
 | **2** | **协议层**：dsh_client + dsh_remote 落位（保无 Flutter 依赖特性）；dsh_api/dsh_chat 接线切换；`packages/dsh_api` 退役 | 1 | ⬜ |
 | **3** | **运行时域**：Kotlin runtime/ 全搬 + runtime/ 烘层 + tooling/ 分包链；proot 落点改 nativeLibraryDir（决策 10）；**F1 链退役**（dsha_core install/、rust/dsha_runtime、assets/dsha 277MB 烘层、features/dsha_system） | 1 | ⬜ |
