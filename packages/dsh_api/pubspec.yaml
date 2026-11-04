@@ -1,0 +1,7 @@
+name: dsh_api
+description: DSH Web API 纯 Dart 客户端（连接/多路复用/协议层）
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
