@@ -17,6 +17,7 @@ import '../features/hermes/hermes_home_page.dart';
 import '../features/live2d/live2d_page.dart';
 import '../features/notes/notes_list_page.dart';
 import '../features/robot_eyes/robot_eye_page.dart';
+import '../features/dsh_chat/dsh_chat_page.dart';
 import '../features/vscreen/vscreen_page.dart';
 
 /// 平台对功能的支持程度
@@ -120,6 +121,16 @@ final List<FeatureEntry> kFeatures = [
     // 运行时本体面向 Android rootfs；桌面为本地引导模式（环境自检可用）
     desktop: PlatformSupport.limited,
     limitedNote: '桌面端为本地引导模式，运行时安装面向 Android',
+    mobile: PlatformSupport.full,
+  ),
+  FeatureEntry(
+    id: 'dsh_chat',
+    icon: LucideIcons.messageCircle,
+    title: 'DSH 对话',
+    subtitle: 'DeepSeek Harness · 会话 · 命令 · 流式',
+    builder: (_) => const DshChatPage(),
+    // 对话走 dsh web 协议（本机容器/远程），两端皆可
+    desktop: PlatformSupport.full,
     mobile: PlatformSupport.full,
   ),
   FeatureEntry(
