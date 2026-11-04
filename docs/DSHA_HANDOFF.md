@@ -122,3 +122,15 @@ LaunchSpec.hardlinks 默认 false，link 仿真为 symlink，dpkg 备份才不�
   要不要？②backup 引用处：剪枝 stub 还是补回被引类？
 - Kotlin 真身（ShizukuShell/ShellService/MainActivity/StartupCrashRecorder/
   RuntimeForegroundService）优先于同名 Java（循环搬运会拉回重名，须删）。
+
+## 九、搬码收尾状态（2026-11-04 深夜）
+
+- **重置基线**：500 件全量重拷（ui/剪、终端件剪、Kotlin 真身优先）+ vscreen/ 27 件保护。
+- **剩 171 错** = vscreen 件引用被删的支撑件（ConfigStore/DiagnosticRepository/
+  EnvironmentAccess/RuntimeExecution/InstallPipeline/BasicToolsInstaller 等 core/util/runtime
+  件——「删重灾」收敛时误删）。
+- **下轮收尾**（一轮）：从原版**恢复支撑件**（vs 引用闭包，非删 vs）→ 编译归零 → 发版。
+  切忌再「删重灾」删进 vs/ 保护目录（本轮教训：VirtualScreenChannels 等被误删已恢复）。
+- 收敛实证：单调降可达（189→52），但正确终法=恢复支撑件闭包。
+- DSH 客户端线（dsh_api + launcher + 对话页）已全链代码就绪（ca70c29/d6bad9b），
+  发版被本编译长尾卡着。
