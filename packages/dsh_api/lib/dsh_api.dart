@@ -8,7 +8,10 @@
 //! 无 Flutter 依赖（可单测）。
 library;
 
+export 'src/client.dart';
 export 'src/connection.dart';
+export 'src/messages_api.dart';
+export 'src/sessions_api.dart';
 export 'src/mux.dart';
 export 'src/errors.dart';
 export 'src/models.dart';
