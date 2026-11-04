@@ -10,12 +10,19 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 
 import 'design/theme.dart';
 import 'app/home_page.dart';
+import 'app/update/background_check.dart';
 import 'app/update/boot_gate.dart';
+import 'app/update/update_notifier.dart';
 import 'core/logging/sentry_bridge.dart';
 
 Future<void> main() async {
   // Sentry 崩溃聚合（DSN 空 = 禁用直启）；框架异常由 SDK 全局挂钩收集。
   await SentryBridge.init(appRunner: () async {
+    // 更新链底座（系统通知 + 后台巡检）：失败绝不拦启动（更新链铁律）。
+    try {
+      await UpdateNotifier.init();
+      await BackgroundUpdateCheck.register();
+    } catch (_) {}
     // 启动崩溃补报（上轮 ContentProvider 期崩溃本地留痕，本轮上报）。
     try {
       const channel = MethodChannel('my_app/runtime');

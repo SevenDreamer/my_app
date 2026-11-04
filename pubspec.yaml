@@ -65,6 +65,10 @@ dependencies:
   lucide_icons_flutter: ^3.1.25
   # Shorebird 热更状态（当前 Patch 号/检查更新——让热更可见）
   shorebird_code_push: ^2.0.7
+  # 更新/热更/自测系统通知（本地通知，「更新提醒」渠道）
+  flutter_local_notifications: ^22.3.3
+  # 后台更新巡检（WorkManager 周期任务：app 被杀也能检查新版本/热更）
+  workmanager: ^0.10.10
   # Windows WebView2 容器（Live2D 桌面舞台用——与 webview_flutter 同款 player 页）
   webview_windows: ^0.4.0
   # vendor 的 Live2D 资产服务需要（mime 类型表）

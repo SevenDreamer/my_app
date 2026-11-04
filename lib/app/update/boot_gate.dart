@@ -10,6 +10,7 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import '../../design/tokens.dart';
 import '../../design/widgets/app_scaffold.dart';
 import '../../design/widgets/app_spinner.dart';
+import '../selftest/self_test_prompt.dart';
 import 'boot_gate_controller.dart';
 
 class BootGate extends StatefulWidget {
@@ -36,7 +37,10 @@ class _BootGateState extends State<BootGate> {
     return ListenableBuilder(
       listenable: _controller,
       builder: (context, _) {
-        if (_controller.done) return widget.child;
+        if (_controller.done) {
+          // 放行后挂自动测试入口（更新后首启/通知点击时机到了才弹，不拦主页）
+          return SelfTestPrompt(child: widget.child);
+        }
         return AppScaffold(body: _GateBody(controller: _controller));
       },
     );

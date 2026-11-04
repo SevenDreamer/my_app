@@ -17,7 +17,10 @@
 #
 # manifest 格式（脚本自动生成，App 端 ManifestUpdateSource 解析）：
 #   {"version": "...", "notes": "...", "page": "下载页",
-#    "apks": {"arm64-v8a": "url", "universal": "url"}}
+#    "apks": {"arm64-v8a": "url", "universal": "url"},
+#    "patch": {"release": "version+build", "number": N, "notes": "...", "time": "..."}}
+#   （patch 节由 tool/patch.sh 发热更时刷新，app 后台巡检据此发「热更就绪」通知；
+#     release.sh 发版时不写该节——新 release 自然清空旧 patch 记录）
 set -e
 cd "$(dirname "$0")/.."
 

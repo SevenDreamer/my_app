@@ -171,6 +171,30 @@ class DshaSystemViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// 六步探针「只查不装」（自动测试链路用）：与 [InstallPipeline] 内部
+  /// 探测同一协议（DSHA_CHECK_BEGIN/RESULT），环境未构造返回 null。
+  /// 独立 [InstallTask] 承载输出回调，不与安装任务抢单飞锁。
+  Future<InstallProbeResults?> probeAll() async {
+    final environment = _environment;
+    if (environment == null) return null;
+    final checks = InstallProbe.checks(0);
+    final results = InstallProbeResults(checks);
+    final task = InstallTask();
+    if (!task.start(repair: false, selected: 0)) return null;
+    try {
+      await environment.execute(
+        InstallProbe.script(checks),
+        checks.length * 22000 < 30000 ? 30000 : checks.length * 22000,
+        cancellable: true,
+        task: task,
+        output: results.accept,
+      );
+    } catch (_) {
+      // 进程异常退出：已收集结果仍有效，缺失键按「未收到结果」（≠ 成功）
+    }
+    return results;
+  }
+
   /// 宿主 UID（原版 `android.os.Process.myUid()`；从 /proc/self/status
   /// 取真值——Android 与 Linux 桌面都可读；读不到用 10000 兜底）。
   static int _selfUid() {

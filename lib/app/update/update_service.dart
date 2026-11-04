@@ -24,6 +24,7 @@ class UpdateInfo {
     required this.notes,
     required this.url,
     required this.apks,
+    this.patch,
   });
 
   /// 纯版本号（如 1.3.0-dev.5）
@@ -38,11 +39,51 @@ class UpdateInfo {
   /// Android 安装包：ABI → 下载 URL（可含 'universal' 兜底项）
   final Map<String, String> apks;
 
+  /// 热更 patch 发布信息（manifest `patch` 节；无 patch 发布时为 null）
+  final PatchInfo? patch;
+
   /// 按设备 ABI 解析安装包 URL：精确匹配 → universal → 首个
   String? resolveApk(String? abi) {
     if (apks.isEmpty) return null;
     if (abi != null && apks.containsKey(abi)) return apks[abi];
     return apks['universal'] ?? apks.values.first;
+  }
+}
+
+/// 热更 patch 发布信息（manifest `patch` 节；tool/patch.sh 发布时刷新）
+class PatchInfo {
+  const PatchInfo({
+    required this.release,
+    required this.number,
+    this.notes = '',
+    this.time = '',
+  });
+
+  /// 目标 release（version+build 全号，如 1.3.0-dev.26+70）——只对同号设备有意义
+  final String release;
+
+  /// Shorebird Patch 序号（Patch N）
+  final int number;
+
+  /// 更新说明（tool/patch.sh 的第二参数，可空）
+  final String notes;
+
+  /// 发布时间（UTC ISO8601，脚本打点）
+  final String time;
+
+  /// 解析 manifest `patch` 节；缺失/非法返回 null（一律按「无 patch」处理）
+  static PatchInfo? tryParse(Object? raw) {
+    if (raw is! Map) return null;
+    final release = raw['release'];
+    final number = raw['number'];
+    if (release is! String || release.isEmpty) return null;
+    if (number is! int) return null;
+    return PatchInfo(
+      release: release,
+      number: number,
+      notes: (raw['notes'] as String?) ?? '',
+      time: (raw['time'] as String?) ?? '',
+    );
   }
 }
 
@@ -84,6 +125,7 @@ class ManifestUpdateSource implements UpdateSource {
       notes: (j['notes'] as String?) ?? '',
       url: (j['page'] as String?) ?? '',
       apks: apks,
+      patch: PatchInfo.tryParse(j['patch']),
     );
   }
 }

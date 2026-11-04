@@ -12,6 +12,7 @@ import '../design/widgets/app_scaffold.dart';
 import '../design/widgets/app_setting_row.dart';
 import 'about_page.dart';
 import 'error_log_page.dart';
+import 'selftest/self_test_dialog.dart';
 
 import 'update/download_qr.dart';
 
@@ -61,6 +62,12 @@ class _ProfilePageState extends State<ProfilePage> {
                           FadeTransition(opacity: animation, child: child),
                     ),
                   ),
+                ),
+                // 自动测试手动入口（图标复用已有字形——PITFALLS #27 护 patch）
+                AppSettingRow(
+                  icon: LucideIcons.check,
+                  title: '自动测试',
+                  onTap: () => showSelfTestDialog(context),
                 ),
                 if (_isDesktop)
                   AppSettingRow(
