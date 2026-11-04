@@ -8,7 +8,10 @@
 //! 无 Flutter 依赖（可单测）。
 library;
 
+export 'src/agents_api.dart';
 export 'src/client.dart';
+export 'src/files_api.dart';
+export 'src/goals_api.dart';
 export 'src/connection.dart';
 export 'src/messages_api.dart';
 export 'src/sessions_api.dart';
