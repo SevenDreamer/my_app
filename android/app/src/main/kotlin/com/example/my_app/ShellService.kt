@@ -24,8 +24,16 @@ class ShellService : IShellService.Stub {
             // core 是常驻进程（不退出、输出流不关）——原版契约：读到首个
             // 有效行（core 握手行）即返回，不等 EOF（否则 readText 死等，
             // MY-APP-5 execOutput 恒空实证）。
+            android.util.Log.i("ShellService", "run: exec >> $command")
             val reader = process.inputStream.bufferedReader()
-            val first = reader.readLine() ?: ""
+            var first = ""
+            // 读首个非空行（core 握手行）；空行跳过（不等 EOF，core 常驻）。
+            while (first.isEmpty()) {
+                val line = reader.readLine() ?: break
+                android.util.Log.i("ShellService", "run: line >> $line")
+                first = line
+            }
+            android.util.Log.i("ShellService", "run: done >> '$first'")
             first
         } catch (e: Throwable) {
             "SHELL_EXEC_FAILED ${e.message ?: ""}"
