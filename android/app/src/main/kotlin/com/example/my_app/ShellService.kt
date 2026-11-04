@@ -21,9 +21,12 @@ class ShellService : IShellService.Stub {
             val process = ProcessBuilder("sh", "-c", command)
                 .redirectErrorStream(true)
                 .start()
-            val output = process.inputStream.bufferedReader().readText()
-            process.waitFor(30, java.util.concurrent.TimeUnit.SECONDS)
-            output
+            // core 是常驻进程（不退出、输出流不关）——原版契约：读到首个
+            // 有效行（core 握手行）即返回，不等 EOF（否则 readText 死等，
+            // MY-APP-5 execOutput 恒空实证）。
+            val reader = process.inputStream.bufferedReader()
+            val first = reader.readLine() ?: ""
+            first
         } catch (e: Throwable) {
             "SHELL_EXEC_FAILED ${e.message ?: ""}"
         }
