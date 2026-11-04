@@ -11,7 +11,6 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 
 import '../features/component_gallery/component_gallery_page.dart';
 import '../features/device_link/device_link_page.dart';
-import '../features/dsha_system/dsha_system_page.dart';
 import '../features/gamepad/gamepad_home_page.dart';
 import '../features/hermes/hermes_home_page.dart';
 import '../features/live2d/live2d_page.dart';
@@ -110,17 +109,6 @@ final List<FeatureEntry> kFeatures = [
     builder: (_) => const HermesHomePage(),
     // Remote gateway 模式：连 PC/Mac/远程 gateway（协议见 docs/HERMES_GATEWAY_PROTOCOL.md）
     desktop: PlatformSupport.full,
-    mobile: PlatformSupport.full,
-  ),
-  FeatureEntry(
-    id: 'dsha_system',
-    icon: LucideIcons.server,
-    title: 'DSH 系统',
-    subtitle: '离线运行时 · 安装与修复 · 环境自检',
-    builder: (_) => const DshaSystemPage(),
-    // 运行时本体面向 Android rootfs；桌面为本地引导模式（环境自检可用）
-    desktop: PlatformSupport.limited,
-    limitedNote: '桌面端为本地引导模式，运行时安装面向 Android',
     mobile: PlatformSupport.full,
   ),
   FeatureEntry(

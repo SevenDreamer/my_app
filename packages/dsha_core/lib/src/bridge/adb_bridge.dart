@@ -15,7 +15,7 @@
 //! [EndpointDiscovery] 接线缝注入，接线轮由 Android 实现提供。
 import 'dart:io' as io;
 
-import '../install/sensitive_data.dart' as sensitive;
+import '../util/sensitive_data.dart' as sensitive;
 import '../util/shell_quote.dart';
 
 /// 一次容器内命令的结果（原版 `AdbVirtualScreenStart.HelperResult`）。

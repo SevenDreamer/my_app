@@ -17,7 +17,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
-import '../install/sensitive_data.dart' show registerKnownSecret;
+import '../util/sensitive_data.dart' show registerKnownSecret;
 import 'bootstrap.dart';
 import 'bridge_request.dart';
 import 'channels.dart';

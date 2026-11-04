@@ -1,4 +1,4 @@
-//! 一键自动测试（更新后验收链）：启动冒烟 + 更新链自检 + DSH 六步探针
+//! 一键自动测试（更新后验收链）：启动冒烟 + 更新链自检 + DSH 运行时自检
 //!
 //! 语义：每步独立、互不阻塞；结果三态（通过 / 失败 / 跳过——如 DSH 环境
 //! 未安装、平台不支持热更）。任一步失败 → 自动 Sentry 上报（kind:
@@ -7,13 +7,12 @@
 import 'dart:convert';
 import 'dart:io' as io;
 
-import 'package:dsha_core/dsha_core.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shorebird_code_push/shorebird_code_push.dart';
 
 import '../../core/logging/sentry_bridge.dart';
-import '../../features/dsha_system/dsha_system_view_model.dart';
 import '../update/apk_installer.dart';
 import '../update/update_service.dart';
 
@@ -86,7 +85,7 @@ class SelfTestRunner {
     await step('manifest', '更新链 · manifest', () async => _manifest());
     await step('apk', '更新链 · 安装包', () async => _apk());
     await step('patch', '更新链 · 热更通道', () async => _patch());
-    await step('dsh', 'DSH 六步探针', () async => _dsh());
+    await step('dsh', 'DSH 运行时', () async => _dsh());
 
     final report = SelfTestReport(version: version, results: results);
     if (report.passed) {
@@ -190,45 +189,46 @@ class SelfTestRunner {
     );
   }
 
-  /// DSH 六步探针：环境已安装则逐项实测；未安装如实跳过
+  /// DSH 运行时自检（F1 六步退役后的等价物）：dsh/runtime 通道 getStatus（7 态）。
+  /// notInstalled=跳过（未安装）；error=失败；其余（installed/starting/running/
+  /// stopping）=运行时链在。
   static Future<SelfTestStepResult> _dsh() async {
-    final vm = DshaSystemViewModel();
-    SelfTestStepResult result;
     try {
-      await vm.prepare();
-      if (!vm.ready) {
-        result = const SelfTestStepResult(
+      const channel = MethodChannel('dsh/runtime');
+      final status = await channel
+          .invokeMethod<Map<Object?, Object?>>('getStatus')
+          .timeout(const Duration(seconds: 8));
+      final phase = '${status?['phase'] ?? ''}';
+      final error = '${status?['error'] ?? ''}';
+      if (phase == 'notInstalled') {
+        return const SelfTestStepResult(
           id: 'dsh',
-          label: 'DSH 六步探针',
+          label: 'DSH 运行时',
           outcome: SelfTestOutcome.skipped,
-          detail: 'DSH 环境未安装，跳过六步探针',
+          detail: '运行时未安装，跳过',
         );
-      } else {
-        final probe = await vm.probeAll();
-        if (probe == null) {
-          result = const SelfTestStepResult(
-            id: 'dsh',
-            label: 'DSH 六步探针',
-            outcome: SelfTestOutcome.failed,
-            detail: '探针未能启动',
-          );
-        } else {
-          final allOk = [2, 3, 4, 5, 6].every(probe.okStep);
-          result = SelfTestStepResult(
-            id: 'dsh',
-            label: 'DSH 六步探针',
-            outcome:
-                allOk ? SelfTestOutcome.passed : SelfTestOutcome.failed,
-            detail: [
-              for (final step in [2, 3, 4, 5, 6])
-                '${InstallTask.names[step - 1]}：${probe.detail(step)}',
-            ].join('；'),
-          );
-        }
       }
-    } finally {
-      vm.dispose();
+      final ok = phase != 'error' && error.isEmpty;
+      return SelfTestStepResult(
+        id: 'dsh',
+        label: 'DSH 运行时',
+        outcome: ok ? SelfTestOutcome.passed : SelfTestOutcome.failed,
+        detail: 'phase=$phase${error.isEmpty ? '' : ' / error=$error'}',
+      );
+    } on MissingPluginException {
+      return const SelfTestStepResult(
+        id: 'dsh',
+        label: 'DSH 运行时',
+        outcome: SelfTestOutcome.skipped,
+        detail: '当前平台无运行时通道',
+      );
+    } catch (e) {
+      return SelfTestStepResult(
+        id: 'dsh',
+        label: 'DSH 运行时',
+        outcome: SelfTestOutcome.failed,
+        detail: '$e',
+      );
     }
-    return result;
   }
 }

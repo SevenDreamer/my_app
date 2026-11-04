@@ -6,7 +6,7 @@ library;
 
 import 'dart:io';
 
-import '../install/sensitive_data.dart' show redact;
+import '../util/sensitive_data.dart' show redact;
 
 /// 稳定码 + 根因摘要（原版 `VirtualScreenFailures`）。
 abstract final class VscreenFailures {
