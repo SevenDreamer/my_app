@@ -14,7 +14,36 @@ class ShellService : IShellService.Stub {
 
     override fun exec(cmd: String?): String = run(cmd ?: "")
 
-    override fun execVirtualScreen(command: String?): String = run(command ?: "")
+    override fun execVirtualScreen(command: String?): String {
+        // 契约（原版 DeviceShellExecutor.executeVirtualScreen）：uid 校验 +
+        // SelfPackageIdentity 校验 + DeviceShellPolicy argv 策略——不得退化成
+        // 任意 shell（channels.dart 契约注释）。Runner = argv 数组执行。
+        val ctx = packageContext
+        val identity = com.example.my_app.util.SelfPackageIdentity.launch(
+            ctx?.packageName ?: "",
+            android.os.Process.myUid(),
+            ctx?.applicationInfo?.sourceDir ?: "",
+            ctx?.applicationInfo?.sourceDir ?: ""
+        ) ?: return "[POLICY_BLOCKED] SELF_PACKAGE_UNVERIFIED\n[EXIT=126]"
+        return com.example.my_app.DeviceShellExecutor.executeVirtualScreen(
+            command ?: "",
+            { argv ->
+                try {
+                    val p = ProcessBuilder(argv)
+                        .redirectErrorStream(true)
+                        .start()
+                    android.util.Log.i("ShellService", "run: exec >> $argv")
+                    val reader = p.inputStream.bufferedReader()
+                    val first = reader.readLine() ?: ""
+                    android.util.Log.i("ShellService", "run: done >> '$first'")
+                    first
+                } catch (e: Throwable) {
+                    "SHELL_EXEC_FAILED ${e.message ?: ""}"
+                }
+            },
+            identity
+        )
+    }
 
     private fun run(command: String): String {
         return try {
