@@ -32,6 +32,8 @@ android {
     buildFeatures {
         // Shizuku UserService 的 IShellService AIDL 接口
         aidl = true
+        // DSHA 搬码件 import BuildConfig（AGP 8+ 默认关）
+        buildConfig = true
     }
 
     lint {
@@ -41,6 +43,9 @@ android {
     }
 
     defaultConfig {
+        // DSHA 搬码件的 BuildConfig 字段（原版 build.gradle 契约）
+        buildConfigField("String", "BUNDLED_PNPM_VERSION", "\"10.34.5\"")
+        buildConfigField("boolean", "LOW_ANDROID", "false")
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.example.my_app"
         // You can update the following values to match your application needs.
@@ -114,4 +119,13 @@ dependencies {
     // Shizuku UserService（DSHA 契约：standard 13.1.5）
     implementation("dev.rikka.shizuku:api:13.1.5")
     implementation("dev.rikka.shizuku:provider:13.1.5")
+    // DSHA 原版第三方（全量搬码闭包依赖）
+    implementation("com.google.code.gson:gson:2.13.1")
+    implementation("org.yaml:snakeyaml:2.4")
+    implementation("org.bouncycastle:bcprov-jdk15to18:1.85.2")
+    implementation("androidx.appcompat:appcompat:1.6.1")
+    implementation("androidx.webkit:webkit:1.15.0")
+    implementation("com.google.android.material:material:1.11.0")
+    // 终终端 termux terminal-view：公共仓无此件（Maven Central/JitPack 均无、原版
+    // 无 vendor）——终端件（PtySession 等）暂剪，库源解决后恢复。
 }

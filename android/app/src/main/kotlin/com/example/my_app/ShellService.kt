@@ -10,7 +10,14 @@ class ShellService : IShellService.Stub {
     @androidx.annotation.Keep
     constructor(context: Context) : super() { packageContext = context }
 
+    // RootShell 入口用（原版契约：SelfPackageIdentity 构造重载）。
+    @androidx.annotation.Keep
+    constructor(identity: com.example.my_app.util.SelfPackageIdentity) : super() {
+        launchIdentity = identity
+    }
+
     private var packageContext: Context? = null
+    private var launchIdentity: com.example.my_app.util.SelfPackageIdentity? = null
 
     override fun exec(cmd: String?): String = run(cmd ?: "")
 
