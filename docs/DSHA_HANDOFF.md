@@ -108,3 +108,17 @@ LaunchSpec.hardlinks 默认 false，link 仿真为 symlink，dpkg 备份才不�
 - Sentry：org `comqike` 项目 `my-app`；诊断 issue **MY-APP-3**（dsha-diagnostics）；
   ANR 事件看 MY-APP-2；DSN 在 `tool/sentry.env`（gitignored）
 - Shorebird app-id `7a0c80c7-33d1-4c23-9f4a-94686b28ea30`；patch 走 stable 通道
+
+## 八、全量搬码批次（进行中，2026-11-04）
+
+- **已搬**：vscreen 链 + 依赖闭包 **~150 件 Java**（vscreen/bridge/capabilities/screen/
+  device/diagnostics/util/runtime 部分）+ 第三方库（gson/snakeyaml/bcprov/
+  appcompat/webkit/material）已入 gradle。编译收敛曾达 192→1（验证路径可行）。
+- **豁免域已剪**（159 件）：backup/Plugin/Web/Dsh/Lan/Update/Skill/Builtin/Recovery/
+  Gecko/Browser/Agent/Cold/Trial/Automatic/Pty/Terminal —— 后置规划 + termux 依赖。
+- **剩 185 错 = 深耦合长尾**：vs 链引用被剪件的 3-5 处（AdbBridge:401→backup、
+  ProotBootstrap→runtime.Xxx、AdbWheelPaths→backup）——需逐处剪枝适配或补回真依赖。
+- **决策点（问用户）**：①终端功能（PtySession 等，需 termux terminal-view 依赖）
+  要不要？②backup 引用处：剪枝 stub 还是补回被引类？
+- Kotlin 真身（ShizukuShell/ShellService/MainActivity/StartupCrashRecorder/
+  RuntimeForegroundService）优先于同名 Java（循环搬运会拉回重名，须删）。
