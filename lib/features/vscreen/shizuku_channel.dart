@@ -4,6 +4,7 @@
 //! start(command) 走 `shizukuExec` channel → ShellService.execVirtualScreen
 //! （shell uid 执行面）。结果未知语义由上层（channels.dart 注释）约束。
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 
 import 'package:dsha_core/dsha_core.dart';
 import 'package:flutter/services.dart';
@@ -87,13 +88,17 @@ class ShizukuChannel implements VscreenChannel {
 
   /// 异步执行（Dart 无同步 channel——唯一偏移，同 request 惯例）。
   Future<String> startAsync(String command) async {
+    // Dart 侧埋点（logcat flutter tag）：invokeMethod 进/出/返回全留痕。
+    debugPrint('[ShizukuChannel] exec >> $command');
     try {
       final out = await _channel.invokeMethod<String>('shizukuExec',
               {'command': command}) ??
           'SHIZUKU_EMPTY_RESULT';
+      debugPrint('[ShizukuChannel] exec << ${out.length} chars');
       lastExecOutput = out;
       return out;
     } catch (e) {
+      debugPrint('[ShizukuChannel] exec !! $e');
       lastExecOutput = 'SHIZUKU_EXEC_FAILED $e';
       return lastExecOutput;
     }

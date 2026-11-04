@@ -28,6 +28,7 @@ class VscreenViewModel extends ChangeNotifier {
   ui.Image? _frame;
   String _status = '未连接虚拟屏服务';
   bool _booting = false;
+  Map<String, Object?> _lastOutcome = const {};
 
   /// 启动进行中（View 据此显示进度/禁用按钮——不许干等无反馈）。
   bool get booting => _booting;
@@ -166,6 +167,7 @@ class VscreenViewModel extends ChangeNotifier {
     final outcome = await _manager!.start('portrait');
     final ok = outcome['ok'] == true;
     final error = outcome['error'] ?? '';
+    _lastOutcome = outcome;
     // 三态契约：125 结果未知不是终错——命令已发出，可再点启动重试/确认。
     _status = ok
         ? '虚拟屏运行中'
@@ -197,6 +199,7 @@ class VscreenViewModel extends ChangeNotifier {
       'manager': _manager == null ? 'unassembled' : 'assembled',
       'logcat': logcat,
       'execOutput': ShizukuChannel.lastExecOutput,
+      'outcome': _lastOutcome.toString(),
     }, kind: 'vscreen-diagnostics');
   }
 
