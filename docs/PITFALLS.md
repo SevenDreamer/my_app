@@ -359,3 +359,40 @@ release.sh 同源加载 `tool/sentry.env` 注入 defines；patch 的 defines 必
 - **解法**：async 传染类改动**手工逐方法**（每改一个跑 analyze）；脚本只
   用于「改前定位清单」（列调用点/方法头），不用于写回。炸了立即
   `git checkout` 止损，不留半损坏文件过夜。
+
+## 六、dsh-go 融合（2026-11 批次 0–4 实证）
+
+### 34. Kotlin FlutterPlugin 不注册进引擎 = MissingPluginException，且兜底文案误导
+dsh-go 的 23 个 FlutterPlugin（RuntimePlugin/PhonePlugin/PetOverlayPlugin…）依赖
+`engine.plugins.add` 注册（其 MainActivity 真身干这事）。my_app 的 MainActivity 只
+手写过自己的 MethodChannel，缺注册时 Dart 侧一切 `dsh/runtime` 调用抛
+MissingPluginException，而 onboarding 的 `humanizeRuntimeError(null)` 兜底显示成
+「解压时出错」（`shellRuntimeExtractFailed` 是 error 为空的默认文案）——**报错文案
+指错方向**，真线索在 Sentry 的 MissingPluginException。融合任何带 FlutterPlugin 的
+代码，先数插件注册清单。
+
+### 35. 嵌套 Navigator 下 `Overlay.of(rootOverlay: true)` 的 Consumer 插层会逃出 ProviderScope
+dsh-go 的 ChatAlertHost/BackgroundNetHost 把 Consumer 层插到 root overlay——上游
+root 即自家 Navigator（ProviderScope 照着）；嵌入 my_app 后 root 是 my_app 的
+Navigator，插层落在 ProviderScope **之外** → `No ProviderScope found` → release 白屏
+（堆栈在 `ProviderScope.containerOf`）。修法：ProviderScope 提升到 `runApp` 根
+（对齐上游 `runApp(ProviderScope(child: DshApp()))` 等价形态），**且不得再有内层
+scope**（否则插层与页面用两个 container，状态分裂）。
+
+### 36. 融合代码抬高 Dart 语言特性门槛：SDK 下限与 .fvmrc 解绑
+dsh-go 用 null-aware-elements/wildcard `_`（Dart 3.7-3.8+），pubspec `>=3.3` 时 analyze
+报 400+ `experiment_not_enabled`/`duplicate_definition`（后者实为 wildcard 未启用）。
+对齐其 `^3.13.5`（恰合工具链 D:\flutter 3.13.5）后归零。注意 **.fvmrc 3.41.9（Dart
+3.11）不再满足此下限**——AGENTS.md"特性按 pubspec 与 .fvmrc 较低者"的旧规则对融合层失效。
+
+### 37. 图标字体/资产漏搬 = 按钮"显示不出来"
+dsh-go 的 `assets/`（3.9MB）含 **DshIcons 图标字体** + JetBrainsMono + 全部 UI 图片，
+其图标全靠字体字形。落位时只搬 dart 不搬资产+pubspec fonts/assets 声明 → 所有按钮
+图标隐形、UI 图片空白。融合带自定义字体的代码，pubspec 的 fonts 段与 assets 清单
+必须同批搬。
+
+### 38. 退役代码的 proot jniLibs 会与新运行时撞包
+F1 退役时 `android/app/src/main/jniLibs/` 的 proot 全家桶（libproot.so/libtalloc.so/
+libprootloader.so…）漏删，与 dsh-go 的 Termux 版（libproot.so/libtalloc.so **同名**）
+共存——Gradle 两来源同名 .so 打包进哪个不确定，错版本 = 运行时安装/启动失败。规则：
+换运行时时旧 jniLibs 必须整体清退，打包后 `unzip -l` 验证 `.so` 单一来源。
