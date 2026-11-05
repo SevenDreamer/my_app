@@ -1080,14 +1080,14 @@ class _TablePreviewState extends ConsumerState<_TablePreview> {
       final stat = await source?.stat(widget.artifact.path);
       _bytes = stat?.bytes;
       if ((stat?.bytes ?? 0) > _workbookBytes) {
-        throw DshRemoteException('workspace-file/too-large', 'workbook', {});
+        throw const DshRemoteException('workspace-file/too-large', 'workbook', {});
       }
     }
     final file = await files.materialize(widget.sessionId, await _absolute(ref, widget.sessionId, widget.artifact));
     final size = await file.length();
     _bytes = size;
     if (size > _workbookBytes) {
-      throw DshRemoteException('workspace-file/too-large', 'workbook', {});
+      throw const DshRemoteException('workspace-file/too-large', 'workbook', {});
     }
     final bytes = await file.readAsBytes();
     return compute(_readWorkbook, bytes);
@@ -1227,7 +1227,7 @@ class _PdfPreviewState extends ConsumerState<_PdfPreview> {
           final stat = await ref.read(workspaceSourceProvider(widget.sessionId))?.stat(widget.artifact.path);
           _bytes = stat?.bytes;
           if ((stat?.bytes ?? 0) > _remotePdfBytes) {
-            throw DshRemoteException('workspace-file/too-large', 'pdf', {});
+            throw const DshRemoteException('workspace-file/too-large', 'pdf', {});
           }
         }
         file = await files.materialize(widget.sessionId, await _absolute(ref, widget.sessionId, widget.artifact));
@@ -1324,7 +1324,7 @@ class _ImagePreviewState extends ConsumerState<_ImagePreview> {
         final stat = await ref.read(workspaceSourceProvider(widget.sessionId))?.stat(widget.artifact.path);
         _bytes = stat?.bytes;
         if ((stat?.bytes ?? 0) > _remoteImageBytes) {
-          throw DshRemoteException('workspace-file/too-large', 'image', {});
+          throw const DshRemoteException('workspace-file/too-large', 'image', {});
         }
       }
       final file = await files.materialize(widget.sessionId, await _absolute(ref, widget.sessionId, widget.artifact));

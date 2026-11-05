@@ -232,7 +232,7 @@ class _WorkspaceBrowserState extends ConsumerState<WorkspaceBrowser> with Single
           child: EmptyView(
             icon: AppIcons.disconnected,
             title: l10n.commonEngineUnreachable,
-            padding: EdgeInsets.fromLTRB(32, 48, 32, 24),
+            padding: const EdgeInsets.fromLTRB(32, 48, 32, 24),
           ),
         )
       else if (_searching)
@@ -574,9 +574,9 @@ class _FolderSliver extends ConsumerWidget {
     if (entries.isEmpty) {
       return SliverToBoxAdapter(
         child: EmptyView(
-          art: FeatureTile(FeatureKind.files, size: FeatureTile.empty),
+          art: const FeatureTile(FeatureKind.files, size: FeatureTile.empty),
           title: l10n.botsEmptyFolder,
-          padding: EdgeInsets.fromLTRB(32, 36, 32, 24),
+          padding: const EdgeInsets.fromLTRB(32, 36, 32, 24),
         ),
       );
     }
@@ -785,7 +785,7 @@ class _SearchSliver extends ConsumerWidget {
         child: EmptyView(
           icon: AppIcons.noResults,
           title: l10n.botsNoResults,
-          padding: EdgeInsets.fromLTRB(32, 36, 32, 24),
+          padding: const EdgeInsets.fromLTRB(32, 36, 32, 24),
         ),
       );
     }

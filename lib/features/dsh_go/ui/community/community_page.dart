@@ -45,7 +45,7 @@ class CommunityPage extends ConsumerWidget {
     } else if (feed.isEmpty) {
       children.add(
         EmptyView(
-          art: FeatureTile(FeatureKind.community, size: FeatureTile.empty),
+          art: const FeatureTile(FeatureKind.community, size: FeatureTile.empty),
           title: l10n.botsCommunityEmpty,
         ),
       );

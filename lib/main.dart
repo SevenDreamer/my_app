@@ -5,6 +5,7 @@
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
@@ -34,7 +35,10 @@ Future<void> main() async {
         }, kind: 'startup-crash');
       }
     } catch (_) {}
-    runApp(const MyApp());
+    // dsh-go 融合层（批次 4）：全局 Riverpod 根——其 Widget 有经 rootOverlay
+    // 插到 my_app Navigator 层的 Consumer 层（ChatAlertHost/BackgroundNetHost），
+    // ProviderScope 必须在全树之上（等价上游 runApp(ProviderScope(child: DshApp()))）。
+    runApp(const ProviderScope(child: MyApp()));
     SentryBridge.maybeScheduleTestError();
   });
 }

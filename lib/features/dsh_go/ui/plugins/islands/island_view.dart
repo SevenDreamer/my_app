@@ -101,7 +101,7 @@ class _IslandViewState extends ConsumerState<IslandView> {
   bool _readyReported = false;
 
   static final _gestures = <Factory<OneSequenceGestureRecognizer>>{
-    Factory<OneSequenceGestureRecognizer>(EagerGestureRecognizer.new),
+    const Factory<OneSequenceGestureRecognizer>(EagerGestureRecognizer.new),
   };
 
   IslandTheme _theme(BuildContext context) =>

@@ -145,7 +145,7 @@ class _NotConnected extends StatelessWidget {
       icon: AppIcons.disconnected,
       title: l10n.commonEngineUnreachable,
       message: l10n.pluginsOfflineDescription,
-      padding: EdgeInsets.fromLTRB(32, 24, 32, 8),
+      padding: const EdgeInsets.fromLTRB(32, 24, 32, 8),
     );
   }
 }

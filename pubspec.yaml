@@ -110,6 +110,11 @@ dependencies:
   crypto: ^3.0.8
   markdown_widget: ^2.3.2
   sentry_flutter: ^10.2.0
+  # 批次 4 收尾：lib/ 内直引但此前只在传递依赖里（depend_on_referenced_packages）。
+  # 版本取 pubspec.lock 已解析版本，pub get 解析结果不变。
+  intl: ^0.20.3
+  webview_flutter: ^4.14.1
+  webview_flutter_android: ^4.14.1
 
 # 根治 :jni/NDK 依赖（PITFALLS #20）：path_provider_android 2.3.0 起引入
 # jni（C 桥接模块，需 NDK+CMake）；钉住 2.2.23（最后一个纯 Kotlin 版），

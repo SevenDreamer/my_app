@@ -9,7 +9,6 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'app.dart';
 import 'diagnostics/app_error_log.dart';
@@ -47,7 +46,9 @@ class _DshGoHostState extends State<DshGoHost> {
         if (snapshot.connectionState != ConnectionState.done) {
           return const Center(child: CircularProgressIndicator());
         }
-        return const ProviderScope(child: DshApp());
+        // ProviderScope 已提升至 my_app 根（main.dart），此处直接进上游壳
+        //——内层再包一层会与 rootOverlay 插层（ChatAlertHost 等）状态分裂。
+        return const DshApp();
       },
     );
   }

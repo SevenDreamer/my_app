@@ -19,7 +19,7 @@ class DshChatMessage {
 }
 
 class DshChatViewModel extends ChangeNotifier {
-  DshChatViewModel({DshClient? client}) : _client = client;
+  DshChatViewModel({this._client});
 
   DshClient? _client;
   final List<DshChatMessage> _messages = [];

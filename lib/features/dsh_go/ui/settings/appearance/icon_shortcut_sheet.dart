@@ -347,7 +347,7 @@ class _IconShortcutSheetState extends ConsumerState<IconShortcutSheet> {
                         : TextButton.icon(
                             key: const ValueKey('shortcut-pick'),
                             onPressed: () => unawaited(_pick()),
-                            icon: Icon(AppIcons.addImage, size: 20),
+                            icon: const Icon(AppIcons.addImage, size: 20),
                             label: Text(context.l10n.iconShortcutPick),
                           ),
                   ),

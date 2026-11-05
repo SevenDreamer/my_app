@@ -309,7 +309,7 @@ class _DshUiInputViewState extends State<DshUiInputView> {
             errorMaxLines: 3,
             contentPadding: const EdgeInsets.all(12),
             constraints: const BoxConstraints(minHeight: 48),
-            border: OutlineInputBorder(borderRadius: AppShape.radiusMd),
+            border: const OutlineInputBorder(borderRadius: AppShape.radiusMd),
             enabledBorder: OutlineInputBorder(
               borderRadius: AppShape.radiusMd,
               borderSide: BorderSide(color: tones.line),

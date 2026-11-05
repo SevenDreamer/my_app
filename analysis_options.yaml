@@ -5,6 +5,7 @@ analyzer:
   exclude:
     - parked/**   # 停放区（暂停的功能代码，不参与 analyze/编译）
     - packages/** # vendor 依赖副本（自带风格，不参与本仓 lint）
+    - '**/*.g.dart' # 生成物（上游工具产出、本仓不手改——不参与 lint）
     - build/**
     - android/**
     - ios/**

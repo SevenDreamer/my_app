@@ -19,7 +19,7 @@ import 'vscreen_assembly.dart';
 class VscreenViewModel extends ChangeNotifier {
   /// Manager 装配（semantics/launcher/transport 等接缝）随 F2-3/F2-4 落地；
   /// 本批只交预览几何/输入门骨架，未装 Manager 时如实显示未连接。
-  VscreenViewModel({VscreenManager? manager}) : _manager = manager {
+  VscreenViewModel({this._manager}) {
     _transform.resetForSize(0, 0);
   }
 

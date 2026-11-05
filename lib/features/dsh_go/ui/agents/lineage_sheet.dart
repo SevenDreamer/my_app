@@ -50,7 +50,7 @@ class LineageSheet extends ConsumerWidget {
               padding: EdgeInsets.only(bottom: bottom + 16),
               child: nodes.isEmpty
                   ? EmptyView(
-                      art: FeatureTile(FeatureKind.subagents, size: FeatureTile.compact),
+                      art: const FeatureTile(FeatureKind.subagents, size: FeatureTile.compact),
                       title: l10n.botsNoSubagents,
                       compact: true,
                     )

@@ -579,7 +579,7 @@ class _ShareFilePageState extends State<ShareFilePage> {
           segments: [
             PillSegment(ConversationFormat.file, l10n.viewShareChatFile),
             PillSegment(ConversationFormat.page, l10n.viewShareWebPage),
-            PillSegment(ConversationFormat.markdown, 'Markdown'),
+            const PillSegment(ConversationFormat.markdown, 'Markdown'),
           ],
           selected: format,
           onChanged: model.work == null ? (f) => model.format = f : null,

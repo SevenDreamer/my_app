@@ -84,7 +84,7 @@ class _TeamPageState extends ConsumerState<TeamPage> {
       return AppPage.list(
         title: l10n.botsAgentTeam,
         children: [
-          EmptyView(icon: AppIcons.team, title: l10n.botsOpenChatFirst, padding: EdgeInsets.fromLTRB(32, 40, 32, 24)),
+          EmptyView(icon: AppIcons.team, title: l10n.botsOpenChatFirst, padding: const EdgeInsets.fromLTRB(32, 40, 32, 24)),
         ],
       );
     }
@@ -396,7 +396,7 @@ class _TasksTab extends StatelessWidget {
         icon: AppIcons.todo,
         title: l10n.botsNoTasks,
         compact: true,
-        padding: EdgeInsets.fromLTRB(32, 24, 32, 24),
+        padding: const EdgeInsets.fromLTRB(32, 24, 32, 24),
       );
     }
     final groups = [
@@ -588,7 +588,7 @@ class _MessagesTab extends ConsumerWidget {
         icon: AppIcons.conversations,
         title: l10n.botsNoMemberMessages,
         compact: true,
-        padding: EdgeInsets.fromLTRB(32, 24, 32, 24),
+        padding: const EdgeInsets.fromLTRB(32, 24, 32, 24),
       );
     }
     final names = {for (final m in members) m.member.id: m.member.name};

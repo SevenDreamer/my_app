@@ -130,7 +130,7 @@ class _PhoneActionLogPageState extends ConsumerState<PhoneActionLogPage> {
             icon: AppIcons.history,
             title: l10n.phoneActionLogEmpty,
             message: l10n.phoneActionLogEmptyHint,
-            padding: EdgeInsets.fromLTRB(32, 40, 32, 24),
+            padding: const EdgeInsets.fromLTRB(32, 40, 32, 24),
           )
         else
           ListPageCard(

@@ -290,7 +290,7 @@ class _ScheduleTaskSheetListState extends ConsumerState<ScheduleTaskSheetList> w
               children: [
                 if (tasks.isEmpty)
                   EmptyView(
-                    art: FeatureTile(FeatureKind.automation, size: FeatureTile.compact),
+                    art: const FeatureTile(FeatureKind.automation, size: FeatureTile.compact),
                     title: l10n.viewScheduleNone,
                     compact: true,
                   )

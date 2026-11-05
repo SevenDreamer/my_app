@@ -169,7 +169,7 @@ class _TerminalPageState extends ConsumerState<TerminalPage> {
     } else if (!state.supported) {
       body = Center(
         child: EmptyView(
-          art: FeatureTile(FeatureKind.terminal, size: FeatureTile.empty),
+          art: const FeatureTile(FeatureKind.terminal, size: FeatureTile.empty),
           title: l10n.botsTerminalUnsupported,
           message: l10n.botsTerminalSupportedHosts,
         ),

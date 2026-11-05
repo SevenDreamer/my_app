@@ -77,7 +77,7 @@ class BotChatHeader extends StatelessWidget {
     final theme = Theme.of(context);
     final dsh = DshColors.of(context);
     final top = MediaQuery.paddingOf(context).top;
-    final faceInset = (key44 - faceSize) / 2;
+    const faceInset = (key44 - faceSize) / 2;
     return Stack(
       clipBehavior: Clip.none,
       children: [
@@ -121,7 +121,7 @@ class BotChatHeader extends StatelessWidget {
                           child: ConstrainedBox(
                             constraints: const BoxConstraints(minHeight: key44),
                             child: Padding(
-                              padding: EdgeInsets.only(left: faceInset, right: 16),
+                              padding: const EdgeInsets.only(left: faceInset, right: 16),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [

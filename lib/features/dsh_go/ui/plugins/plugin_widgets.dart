@@ -229,7 +229,7 @@ class PluginInstallProgress extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 8),
-        ClipRRect(borderRadius: AppShape.radiusXs, child: const LinearProgressIndicator(minHeight: 4)),
+        const ClipRRect(borderRadius: AppShape.radiusXs, child: LinearProgressIndicator(minHeight: 4)),
         const SizedBox(height: 8),
         Text(
           job.phase == PluginInstallPhase.applying ? l10n.pluginsLoadingCannotCancel : l10n.pluginsInstallDuration,

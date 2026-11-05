@@ -114,9 +114,9 @@ class _PlusRoot extends ConsumerWidget {
     final sessionId = this.sessionId;
     final phoneOn = ref.watch(phoneProvider.select((s) => s.status.enabled));
     final tiles = [
-      (AttachChoice(AttachSource.gallery), AppIcons.gallery, l10n.chatGallery, 0),
-      (AttachChoice(AttachSource.camera), AppIcons.camera, l10n.chatTakePhoto, 2),
-      if (files) (AttachChoice(AttachSource.files), AppIcons.files, l10n.chatFile, 4),
+      (const AttachChoice(AttachSource.gallery), AppIcons.gallery, l10n.chatGallery, 0),
+      (const AttachChoice(AttachSource.camera), AppIcons.camera, l10n.chatTakePhoto, 2),
+      if (files) (const AttachChoice(AttachSource.files), AppIcons.files, l10n.chatFile, 4),
       if (generate) (const GenerateChoice(), AppIcons.generateMedia, l10n.mediaGenerateTile, 6),
     ];
     return Column(

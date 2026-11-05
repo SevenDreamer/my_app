@@ -339,7 +339,7 @@ class _ShareImportSheetState extends ConsumerState<ShareImportSheet> {
       ImportStepState.done => Icon(AppIcons.success, size: ShareCheck.size, color: colors.success),
       ImportStepState.failed => Icon(AppIcons.stepFailed, size: ShareCheck.size, color: colors.danger),
       ImportStepState.skipped => Icon(AppIcons.stepSkipped, size: ShareCheck.size, color: colors.textTertiary),
-      ImportStepState.pending => ShareCheck(value: true, enabled: false),
+      ImportStepState.pending => const ShareCheck(value: true, enabled: false),
       null => c.actionable ? ShareCheck(value: on, enabled: c.toggleable && _phase == _Phase.ready) : null,
     };
     return ListPageRow(

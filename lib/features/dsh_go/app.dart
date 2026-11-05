@@ -147,7 +147,7 @@ class _DshAppState extends ConsumerState<DshApp> with WidgetsBindingObserver {
       themeMode: themeMode,
       // Palette and light / dark changes cross-fade the whole app (AppMotion).
       themeAnimationStyle: _settled && !reduced
-          ? AnimationStyle(duration: AppMotion.standard, curve: AppMotion.std)
+          ? const AnimationStyle(duration: AppMotion.standard, curve: AppMotion.std)
           : AnimationStyle.noAnimation,
       // zh_CN, not bare zh: otherwise CJK falls back to Japanese glyph shapes
       // on non-Chinese system locales. English keeps Chinese glyphs through
