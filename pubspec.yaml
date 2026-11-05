@@ -19,7 +19,9 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.3.0-dev.42+86
 
 environment:
-  sdk: '>=3.3.0 <4.0.0'
+  # 3.13.5：dsh-go 融合层的语言特性门槛（null-aware-elements/wildcard 等），
+  # 与工具链 D:\flutter 3.47.7（Dart 3.13.5）一致；.fvmrc 3.41.9 已不满足此下限。
+  sdk: ^3.13.5
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -71,8 +73,8 @@ dependencies:
   workmanager: ^0.10.10
   # Windows WebView2 容器（Live2D 桌面舞台用——与 webview_flutter 同款 player 页）
   webview_windows: ^0.4.0
-  # vendor 的 Live2D 资产服务需要（mime 类型表）
-  mime: ^1.0.6
+  # vendor 的 Live2D 资产服务需要（mime 类型表）——2.x：share_plus 13 的传递约束
+  mime: ^2.0.0
   flutter_p2p_connection: ^3.0.3
   permission_handler: ^11.4.0
   hid_gamepad:
@@ -86,6 +88,24 @@ dependencies:
     path: packages/dsh_client
   dsh_remote:
     path: packages/dsh_remote
+  # dsh-go Flutter 层依赖（批次 4 对话域，已逐包验证 pub.dev）
+  shared_preferences: ^2.5.6
+  gpt_markdown: ^1.4.0
+  val_latex_flutter: ^0.1.3
+  re_highlight: ^0.0.3
+  scrollable_positioned_list: ^0.3.8
+  share_plus: ^13.3.1
+  connectivity_plus: ^7.3.2
+  image_picker: ^1.2.4
+  file_picker: ^13.1.0
+  cryptography: ^2.9.0
+  timezone: ^0.11.2
+  yaml: ^3.1.4
+  xterm: ^4.0.0
+  html: ^0.15.6
+  pointycastle: ^4.0.0
+  flutter_webrtc: ^1.6.3
+  dartssh2: ^4.1.0
   archive: ^4.5.2
   crypto: ^3.0.8
   markdown_widget: ^2.3.2
@@ -95,6 +115,8 @@ dependencies:
 # jni（C 桥接模块，需 NDK+CMake）；钉住 2.2.23（最后一个纯 Kotlin 版），
 # :jni 模块消失，CI 免装 NDK/CMake。上游解决后移除本覆盖。
 dependency_overrides:
+  # mime 2.x 统一（share_plus 13 要 2.x、live2d 钉 1.x；lookupMimeType API 2.x 兼容）
+  mime: ^2.0.0
   path_provider_android: 2.2.23
   # flutter_p2p_connection 用 vendor 补丁副本（Android 12 权限检查 bug，
   # 差异见 packages/flutter_p2p_connection/PATCHES.md）；上游修复后移除
