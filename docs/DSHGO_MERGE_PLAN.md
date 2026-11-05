@@ -58,9 +58,9 @@
 | **2** | **协议层**：dsh_client + dsh_remote 落位（保无 Flutter 依赖特性）；dsh_api/dsh_chat 接线切换；`packages/dsh_api` 退役 | 1 | ✅ 2026-11-04：两包搬入（AGPL 派生+LICENSE+attribution，tests 全量）；DshChatViewModel 切真件（connect/listSessions/prompt/watch 强类型事件流）；dsh_api 退役；analyze+构建双绿 |
 | **3** | **运行时域**：Kotlin runtime/ 全搬 + runtime/ 烘层 + tooling/ 分包链；proot 落点改 nativeLibraryDir（决策 10）；**F1 链退役**（dsha_core install/、rust/dsha_runtime、assets/dsha 277MB 烘层、features/dsha_system） | 1 | ✅ 2026-11-05（v1.3.0-dev.42+86）：Kotlin 178 件（25 域）+ runtime/ 烘制规格 + tooling/ + res 合并 + manifest 合并（权限+14/组件+18）；WSL 烘制 rootfs 151MB（r15-dsh0.2.1-rc.4，ELF 审计零警告，proot pin bump 5.1.107.102）；abi flavor 分包（APK 182MB，减重 95MB）；F1 链退役 + 自测换七态等价物；nativeLibraryDir 零改动达成（DirectLaunch 高 targetSdk 自动降级 proot）。⚠️ 余项：x64 flavor 资产待烘、shorebird flavor app_id 已迁移 |
 | **4** | **对话域**：chat/commands/composer 全功能（排队/插话/待办/斜杠命令/模型/文件）+ state/ 相关模块 | 2,3 | ✅ 2026-11-05：Flutter 层全量落位（app/lib 764 dart + l10n → features/dsh_go/ 镜像；决策 7 第一阶段照搬不改）——对话全功能随整壳自带（排队/插话/待办/斜杠命令/模型/文件/state 40+ 模块）；DshGoHost 点亮（registry「DSH」项挂上游整壳）；依赖 +17 验证入、mime 2.x overrides、SDK 下限 ^3.13.5；analyze 0 error + 构建双绿。**批次 5-7 的域随整壳已落位，剩接线/点亮/验证** |
-| **5** | **插件市场域**：market 面板 + plugins/seams 槽位系统（声明式渲染隔离）+ plugin_kit | 2 | ⬜ |
-| **6** | **遥控域**：remote/ + DSH Remote（SSH/隧道）+ share 件；与 device_link/gamepad 的入口边界在此批厘清 | 2,3 | ⬜ |
-| **7** | **桌宠/手机操控/论坛域**：pets + phone（a11y/background Kotlin）+ forum + voice/wallpaper/media 体验件（美术按决策 8） | 3 | ⬜ |
+| **5** | **插件市场域**：market 面板 + plugins/seams 槽位系统（声明式渲染隔离）+ plugin_kit | 2 | 🔍（随整壳落位；接线审计 31 Dart 通道/资产引用全绿，待细测） |
+| **6** | **遥控域**：remote/ + DSH Remote（SSH/隧道）+ share 件；与 device_link/gamepad 的入口边界在此批厘清 | 2,3 | 🔍（随整壳落位；remote/{relay,ssh} + share 插件接线绿；入口边界待厘清：registry 里 device_link/gamepad/vscreen 归宿） |
+| **7** | **桌宠/手机操控/论坛域**：pets + phone（a11y/background Kotlin）+ forum + voice/wallpaper/media 体验件（美术按决策 8） | 3 | 🔍（随整壳落位；PetOverlayPlugin/PhonePlugin 等 Kotlin 面 + 资产全绿，待细测后台保活/a11y 权限链） |
 | **8** | **统一改造**：Riverpod→ChangeNotifier MVVM、UI→shadcn/DESIGN.md tokens、图标→Lucide、i18n 中文优先收编（可拆多轮） | 4–7 逐域后 | ⬜ |
 
 **每批门槛**：`flutter analyze` + `dart analyze`（packages）双绿 + 真机冒烟 + notices 同步；

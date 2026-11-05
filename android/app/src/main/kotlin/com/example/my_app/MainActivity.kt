@@ -40,6 +40,34 @@ class MainActivity : FlutterActivity() {
         super.onPause()
     }
 
+    /** 设置 › 性能 › 刷新率（Dart 侧持存储值）；Flutter 出帧时 auto 跟随最快。 */
+    private var refreshMode = "auto"
+    private var framesActive = true
+    private var appChannel: MethodChannel? = null
+
+    private fun applyRefreshRate() {
+        @Suppress("DEPRECATION")
+        val display = windowManager.defaultDisplay
+        val now = display.mode
+        val fastest = display.supportedModes
+            .filter { it.physicalWidth == now.physicalWidth && it.physicalHeight == now.physicalHeight }
+            .maxByOrNull { it.refreshRate }
+        val want = when (refreshMode) {
+            "max" -> fastest
+            "system" -> null
+            else -> if (framesActive) fastest else null
+        }
+        val target = want?.modeId ?: 0
+        if (window.attributes.preferredDisplayModeId == target) return
+        window.attributes = window.attributes.apply { preferredDisplayModeId = target }
+    }
+
+    override fun cleanUpFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
+        appChannel?.setMethodCallHandler(null)
+        appChannel = null
+        super.cleanUpFlutterEngine(flutterEngine)
+    }
+
     override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
         // 启动崩溃兜底最先装（ContentProvider 期崩溃的补报机制）。
         com.example.my_app.StartupCrashRecorder.install(applicationContext)
@@ -70,6 +98,35 @@ class MainActivity : FlutterActivity() {
             add(com.example.my_app.launch.LaunchClipPlugin())
             add(com.example.my_app.icons.PictureShortcutPlugin())
             add(com.example.my_app.usage.UsagePlugin())
+        }
+        // dsh-go 上游 MainActivity 真身的手写通道（refreshRate/bringToFront/
+        // getTimeZoneId；其 popSystemNavigator「返回回桌面」语义不搬——保持
+        // my_app 壳的返回行为）。
+        appChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "dsh/app")
+        appChannel!!.setMethodCallHandler { call, result ->
+            when (call.method) {
+                "getTimeZoneId" -> result.success(java.util.TimeZone.getDefault().id)
+                "setRefreshRateMode" -> {
+                    when (call.argument<String>("mode")) {
+                        "auto", "max", "system" -> refreshMode = call.argument<String>("mode")!!
+                    }
+                    applyRefreshRate()
+                    result.success(null)
+                }
+                "setFrameActive" -> {
+                    framesActive = call.argument<Boolean>("active") ?: framesActive
+                    applyRefreshRate()
+                    result.success(null)
+                }
+                "bringToFront" -> {
+                    startActivity(
+                        Intent(this, MainActivity::class.java)
+                            .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP),
+                    )
+                    result.success(null)
+                }
+                else -> result.notImplemented()
+            }
         }
         // Runtime channel: nativeLibraryDir is the only exec-allowed dir on
         // Android 10+ (W^X) — proot ships as jniLibs and runs from there.
