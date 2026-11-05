@@ -44,6 +44,33 @@ class MainActivity : FlutterActivity() {
         // 启动崩溃兜底最先装（ContentProvider 期崩溃的补报机制）。
         com.example.my_app.StartupCrashRecorder.install(applicationContext)
         super.configureFlutterEngine(flutterEngine)
+        // dsh-go 融合层（批次 4）：其 FlutterPlugin 全量注册（runtime 事件流/
+        // 桌宠/手机操控/图标/分享等通道在此挂载；缺注册 = MissingPluginException）。
+        with(flutterEngine.plugins) {
+            add(com.example.my_app.runtime.RuntimePlugin())
+            add(com.example.my_app.phone.PhonePlugin())
+            add(com.example.my_app.notify.NotifyPlugin())
+            add(com.example.my_app.files.FilesPlugin())
+            add(com.example.my_app.links.LinksPlugin())
+            add(com.example.my_app.update.UpdatePlugin())
+            add(com.example.my_app.voice.VoicePlugin())
+            add(com.example.my_app.share.SharePlugin())
+            add(com.example.my_app.shortcuts.ShortcutsPlugin())
+            add(com.example.my_app.diagnostics.DiagnosticsPlugin())
+            add(com.example.my_app.media.MediaPlugin())
+            add(com.example.my_app.icons.LauncherIconPlugin())
+            add(com.example.my_app.theme.DynamicColorPlugin())
+            add(com.example.my_app.performance.PerformancePlugin())
+            add(com.example.my_app.pet.PetOverlayPlugin())
+            add(com.example.my_app.islands.IslandsPlugin())
+            add(com.example.my_app.nativemedia.NativeMediaPlugin())
+            add(com.example.my_app.nativefiles.NativeFilesPlugin())
+            add(com.example.my_app.web.WebFilesPlugin())
+            add(com.example.my_app.launch.LaunchPlugin())
+            add(com.example.my_app.launch.LaunchClipPlugin())
+            add(com.example.my_app.icons.PictureShortcutPlugin())
+            add(com.example.my_app.usage.UsagePlugin())
+        }
         // Runtime channel: nativeLibraryDir is the only exec-allowed dir on
         // Android 10+ (W^X) — proot ships as jniLibs and runs from there.
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "my_app/runtime")
