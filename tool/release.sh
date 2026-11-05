@@ -63,9 +63,9 @@ SENTRY_DEFINES=""
 if [ -n "${SENTRY_DSN:-}" ]; then
   SENTRY_DEFINES="--dart-define=SENTRY_DSN=$SENTRY_DSN --dart-define=SENTRY_ENV=production --dart-define=SENTRY_RELEASE=my_app@$VER"
 fi
-tool/shorebird.sh release android --artifact=apk --target-platform=android-arm64 $SENTRY_DEFINES
+tool/shorebird.sh release android --artifact=apk --target-platform=android-arm64 --flavor arm64 $SENTRY_DEFINES
 
-APK=build/app/outputs/flutter-apk/app-release.apk
+APK=build/app/outputs/flutter-apk/app-arm64-release.apk
 ASSET="my_app-v$NAME-android-arm64-v8a.apk"
 
 # 2) 上传安装包（curl aws-sigv4 直传；wrangler 的 r2 object 默认本地模式，勿用。

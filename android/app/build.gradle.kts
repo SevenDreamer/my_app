@@ -61,6 +61,31 @@ android {
         versionName = flutter.versionName
     }
 
+    // ---- dsh-go 融合（批次 3）：abi 分包 flavor（资产/jniLibs 按 ABI 注入） ----
+    // 资产由 runtime/build-runtime.sh（WSL）烘制产出 runtime/out/<abi>/。
+    val runtimeOut = rootProject.projectDir.resolve("../runtime/out")
+    flavorDimensions += "abi"
+    productFlavors {
+        create("arm64") {
+            dimension = "abi"
+            ndk { abiFilters += "arm64-v8a" }
+        }
+        create("x64") {
+            dimension = "abi"
+            ndk { abiFilters += "x86_64" }
+        }
+    }
+    sourceSets {
+        getByName("arm64") {
+            assets.srcDir(File(runtimeOut, "arm64-v8a/assets"))
+            jniLibs.srcDir(File(runtimeOut, "arm64-v8a/jniLibs"))
+        }
+        getByName("x64") {
+            assets.srcDir(File(runtimeOut, "x86_64/assets"))
+            jniLibs.srcDir(File(runtimeOut, "x86_64/jniLibs"))
+        }
+    }
+
     // 签名四字段完整性校验：任一缺失则视为无签名（降级 debug，避免 as String 空炸）
     val signingComplete = hasKeystore &&
         listOf("keyAlias", "keyPassword", "storeFile", "storePassword")
@@ -83,7 +108,17 @@ android {
             // nativeLibraryDir 执行）：.so 解压到 lib 目录，不用
             // extractNativeLibs=false 的 APK 直载模式。
             useLegacyPackaging = true
+            // Termux 二进制字节保真（哈希在 runtime manifest 里，strip 会破坏）
+            keepDebugSymbols += listOf(
+                "**/libproot.so", "**/libproot-loader.so",
+                "**/libtalloc.so", "**/libandroid-shmem.so",
+            )
         }
+    }
+
+    androidResources {
+        // rootfs 资产（.tar.xz 等）不可二次压缩（慢且 xz 不可压）
+        noCompress += listOf("gz", "xz", "zst", "tar")
     }
 
     buildTypes {

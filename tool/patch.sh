@@ -25,7 +25,7 @@ if [ -n "${SENTRY_DSN:-}" ]; then
   SENTRY_DEFINES="--dart-define=SENTRY_DSN=$SENTRY_DSN --dart-define=SENTRY_ENV=production --dart-define=SENTRY_RELEASE=my_app@$REL"
 fi
 
-tool/shorebird.sh patch android --release-version="$REL" $SENTRY_DEFINES
+tool/shorebird.sh patch android --flavor arm64 --release-version="$REL" $SENTRY_DEFINES
 
 # ---- 刷新 R2 manifest 的 patch 节（app 后台巡检据此发「热更就绪」通知） ----
 # 凭据缺失/解析失败只跳过刷新（警告退出），不影响 patch 本身已发布。
