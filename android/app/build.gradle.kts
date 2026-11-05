@@ -158,14 +158,11 @@ dependencies {
     implementation("org.tukaani:xz:1.10")
     implementation("com.github.MuntashirAkon:libadb-android:3.1.1")
     implementation("org.conscrypt:conscrypt-android:2.8.0")
-    implementation("org.bouncycastle:bcpkix-jdk15to18:1.81") {
-        // bcutil 1.81 的类已并入 bcprov 1.85.2（重复类冲突）——排除旧传递件
-        exclude(group = "org.bouncycastle", module = "bcutil-jdk15to18")
-    }
+    implementation("org.bouncycastle:bcpkix-jdk15to18:1.81")
     // DSHA 原版第三方（全量搬码闭包依赖）
     implementation("com.google.code.gson:gson:2.13.1")
     implementation("org.yaml:snakeyaml:2.4")
-    implementation("org.bouncycastle:bcprov-jdk15to18:1.85.2")
+    implementation("org.bouncycastle:bcprov-jdk15to18:1.81")
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("androidx.webkit:webkit:1.15.0")
     implementation("com.google.android.material:material:1.11.0")
