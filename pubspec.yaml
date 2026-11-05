@@ -151,6 +151,37 @@ flutter:
     # 打过 Cubism Core 6 renderOrders 兼容补丁的 Core 运行时（见 docs/PITFALLS.md #27）
     - assets/live2d/
     - shorebird.yaml
+    # ---- dsh-go 融合层资产（批次 4 补齐：图标字体/桌宠/引擎/社区等） ----
+    - assets/fonts/
+    - assets/licenses/webrtc-150.7871.04.md
+    - assets/web/
+    - assets/whale/
+    - assets/engine/auth/
+    - assets/community/
+    - assets/tiles/glassy/
+    - assets/pets/deepy-whale/
+    - assets/pets/whale-girl/
+    - assets/star/
+    - assets/islands/
+    - assets/skills/dsh-go-ui/
+    - assets/skills/dsh-go-plugin/
+    - assets/skills/dsh-go-guide/
+    - assets/skills/dsh-go-support/
+
+  # dsh-go 融合层字体（DshIcons=其图标字体，按钮图标依赖；JetBrainsMono=终端/代码）
+  fonts:
+    - family: DshIcons
+      fonts:
+        - asset: assets/fonts/DshIcons.ttf
+    - family: JetBrainsMono
+      fonts:
+        - asset: assets/fonts/JetBrainsMono-Regular.ttf
+        - asset: assets/fonts/JetBrainsMono-Italic.ttf
+          style: italic
+        - asset: assets/fonts/JetBrainsMono-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/JetBrainsMono-Bold.ttf
+          weight: 700
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
