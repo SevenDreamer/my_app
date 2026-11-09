@@ -25,7 +25,8 @@ data class RuntimeManifest(
         const val ASSET_DIR = "runtime"
 
         fun load(context: Context): RuntimeManifest {
-            val text = context.assets.open("$ASSET_DIR/manifest.json").bufferedReader().use { it.readText() }
+            // 镜像源解析（2026-11-09）：assets 优先 → R2 下载（APK 不再内置）
+            val text = RuntimeImageSource.manifestText(context)
             val json = JSONObject(text)
             val launch = json.optJSONObject("launch") ?: JSONObject()
             val argvJson = launch.optJSONArray("argv")

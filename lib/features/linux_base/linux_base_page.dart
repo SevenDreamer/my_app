@@ -55,6 +55,41 @@ class _LinuxBasePageState extends State<LinuxBasePage> {
                   padding: const EdgeInsets.only(bottom: AppSpacing.md),
                   child: Text(_vm.message!, style: AppTypography.bodyMd),
                 ),
+              // 未安装/异常态：安装引导卡（P0「安装重建」入口，2026-11-09 补）
+              if (!_vm.installing &&
+                  (_vm.phase == 'notInstalled' || _vm.phase == 'error'))
+                Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                  child: AppSection(
+                    title: '创建底座系统',
+                    children: [
+                      AppListTile(
+                        icon: LucideIcons.download,
+                        title: _vm.phase == 'error' ? '重新安装系统' : '安装系统',
+                        subtitle: '从内置镜像解包 Ubuntu rootfs（约几分钟，占 800 MB）',
+                        onTap: _vm.busy ? null : _vm.installSystem,
+                        showDivider: false,
+                      ),
+                    ],
+                  ),
+                ),
+              if (_vm.installing)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '安装中：${_vm.installProgress?.step ?? '准备'}…',
+                        style: AppTypography.bodyMd,
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      LinearProgressIndicator(
+                        value: _vm.installProgress?.ratio,
+                      ),
+                    ],
+                  ),
+                ),
               AppSection(
                 title: '系统状态',
                 trailing: ShadButton.outline(
@@ -116,6 +151,18 @@ class _LinuxBasePageState extends State<LinuxBasePage> {
                     title: '停止系统',
                     subtitle: '回滚前/省电时停止',
                     onTap: _vm.busy ? null : _vm.stopSystem,
+                  ),
+                  AppListTile(
+                    icon: LucideIcons.download,
+                    title: '重新安装系统',
+                    subtitle: '清掉重装（下载镜像解包，约几分钟）',
+                    onTap: _vm.busy ? null : _vm.reinstallSystem,
+                  ),
+                  AppListTile(
+                    icon: LucideIcons.trash2,
+                    title: '重置系统',
+                    subtitle: '清空系统回未安装态（快照保留，可回滚）',
+                    onTap: _vm.busy ? null : _vm.resetSystem,
                   ),
                   AppListTile(
                     icon: LucideIcons.terminal,
@@ -186,7 +233,7 @@ class _LinuxBasePageState extends State<LinuxBasePage> {
   }
 
   String _phaseLabel(String phase) => switch (phase) {
-        'notInstalled' => '未安装',
+        'notInstalled' => '未安装（可安装）',
         'installed' => '已安装（未运行）',
         'starting' => '启动中',
         'running' => '运行中',

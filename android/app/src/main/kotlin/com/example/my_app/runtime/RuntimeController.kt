@@ -177,6 +177,12 @@ class RuntimeController private constructor(private val app: Context) : DshProce
         return if (active) runSafe else safeState == SafeState.ON
     }
 
+    /** 系统被外部重置（resetSystem 删 rootfs）后同步状态机（2026-11-09）。 */
+    fun onSystemReset() {
+        error = null
+        setPhase(Phase.NOT_INSTALLED)
+    }
+
     /** [dropKept]: give up what a reset kept but cannot be put back (see [KeepFailed]). */
     fun install(dropKept: Boolean = false, onDone: (Throwable?) -> Unit) {
         if (phase == Phase.INSTALLING) return onDone(null)

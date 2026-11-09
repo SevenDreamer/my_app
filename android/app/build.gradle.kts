@@ -77,11 +77,11 @@ android {
     }
     sourceSets {
         getByName("arm64") {
-            assets.srcDir(File(runtimeOut, "arm64-v8a/assets"))
+            // rootfs 镜像不上 APK（2026-11-09 镜像上 R2，RuntimeImageSource 按需
+            // 下载）——assets.srcDir 注入保留给将来的小资产；jniLibs（proot）仍内置。
             jniLibs.srcDir(File(runtimeOut, "arm64-v8a/jniLibs"))
         }
         getByName("x64") {
-            assets.srcDir(File(runtimeOut, "x86_64/assets"))
             jniLibs.srcDir(File(runtimeOut, "x86_64/jniLibs"))
         }
     }

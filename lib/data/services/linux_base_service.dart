@@ -7,6 +7,15 @@ import 'dart:async';
 
 import 'package:flutter/services.dart';
 
+/// 安装进度事件（dsh/runtime/events 的 progress 类型）。
+class InstallProgress {
+  const InstallProgress({required this.step, required this.done, required this.total});
+  final String step;
+  final int done;
+  final int total;
+  double get ratio => total <= 0 ? 0 : (done / total).clamp(0, 1);
+}
+
 /// 快照元数据（对应 Kotlin SnapshotManager.Snapshot 的 map 形态）。
 class SnapshotInfo {
   const SnapshotInfo({
@@ -77,6 +86,26 @@ class LinuxBaseService {
 
   Future<bool> snapshotDelete(String name) async =>
       await _methods.invokeMethod<bool>('snapshotDelete', {'name': name}) ?? false;
+
+  /// 安装主系统（从资产解包 rootfs，分钟级；进度经 [events] 流）。
+  Future<void> install({bool dropKept = false}) =>
+      _methods.invokeMethod<void>('install', dropKept ? const {'dropKept': true} : null);
+
+  /// 运行时事件流（status/progress/logs/notice），本域只解析 progress。
+  Stream<InstallProgress> installProgress() {
+    const events = EventChannel('dsh/runtime/events');
+    return events.receiveBroadcastStream().map((raw) {
+      final map = raw as Map<Object?, Object?>;
+      return InstallProgress(
+        step: map['step'] as String? ?? 'extract',
+        done: (map['done'] as num?)?.toInt() ?? 0,
+        total: (map['total'] as num?)?.toInt() ?? 0,
+      );
+    }).where((e) => true);
+  }
+
+  /// 重置系统（清 rootfs 回未安装态；快照保留）。
+  Future<void> resetSystem() => _methods.invokeMethod<void>('resetSystem');
 
   /// 启动/停止主系统（与 DSH 壳共享的引擎命令）。
   Future<void> start() => _methods.invokeMethod<void>('start');

@@ -27,6 +27,10 @@ class LinuxBaseViewModel extends ChangeNotifier {
   SnapshotProgress? progress;
   String? message;
 
+  /// 安装进行中（step/进度比）。
+  bool installing = false;
+  InstallProgress? installProgress;
+
   Timer? _poll;
   bool _disposed = false;
 
@@ -44,6 +48,65 @@ class LinuxBaseViewModel extends ChangeNotifier {
       message = '状态读取失败：$e';
     }
     _notify();
+  }
+
+  /// 强制重新安装（上游 install 对已装当前版本是幂等短路——先重置再装）。
+  Future<void> reinstallSystem() async {
+    SentryBridge.action('linux_base.reinstall');
+    await resetSystem();
+    await installSystem();
+  }
+
+  /// 安装/重建主系统（rootfs 解包，分钟级）：订阅事件流打进度。
+  Future<void> installSystem() async {
+    if (busy) return;
+    SentryBridge.action('linux_base.install');
+    busy = true;
+    installing = true;
+    installProgress = null;
+    message = '正在安装系统（解包 rootfs，约几分钟）…';
+    _notify();
+    final sub = _service.installProgress().listen((e) {
+      installProgress = e;
+      _notify();
+    });
+    try {
+      await _service.install();
+      message = '安装指令已下发，等待完成…';
+    } catch (e) {
+      message = '安装失败：$e';
+    }
+    // 安装是异步任务：事件流跟到 phase 离开 installing 再收（最长 15 分钟兜底）。
+    for (var i = 0; i < 180; i++) {
+      await Future<void>.delayed(const Duration(seconds: 5));
+      final status = await _service.getStatus();
+      final phase = (status['phase'] as String?) ?? '';
+      if (phase != 'installing') break;
+    }
+    await sub.cancel();
+    busy = false;
+    installing = false;
+    installProgress = null;
+    SentryBridge.action('linux_base.install.out', {'result': message});
+    await refresh();
+  }
+
+  /// 重置系统（删 rootfs 回未安装态；快照保留可回滚）。
+  Future<void> resetSystem() async {
+    if (busy) return;
+    SentryBridge.action('linux_base.reset');
+    busy = true;
+    message = '正在重置系统…';
+    _notify();
+    try {
+      await _service.resetSystem();
+      message = '系统已重置（快照保留，可回滚或重新安装）';
+    } catch (e) {
+      message = '重置失败：$e';
+    }
+    SentryBridge.action('linux_base.reset.out', {'result': message});
+    busy = false;
+    await refresh();
   }
 
   Future<void> startSystem() async {

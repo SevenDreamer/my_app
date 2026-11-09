@@ -58,9 +58,10 @@ class RuntimeInstaller(
         checkFreeSpace()
         staging.mkdirs()
 
-        val assetPath = "${RuntimeManifest.ASSET_DIR}/${manifest.rootfsAsset}"
-        val assetBytes = assetLength(assetPath)
-        val total = assetBytes.takeIf { it > 0 } ?: manifest.rootfsBytes
+        // 镜像来源（2026-11-09 镜像上 R2）：assets 优先 → 缓存/下载；下载进度
+        // 同 onProgress 通道（done/total 为镜像字节），随后解包进度接续。
+        val image = RuntimeImageSource.rootfs(context, manifest.rootfsAsset) { done, total -> onProgress(done, total) }
+        val total = image.bytes.takeIf { it > 0 } ?: manifest.rootfsBytes
         var lastReported = 0L
         val progress: (Long) -> Unit = { read ->
             if (read - lastReported >= 512 * 1024 || read == total) {
@@ -71,7 +72,7 @@ class RuntimeInstaller(
         timed("verify") {
             // Parallel readers revisit compressed bytes; hash the asset once, in order.
             val digest = MessageDigest.getInstance("SHA-256")
-            DigestInputStream(context.assets.open(assetPath, AssetManager.ACCESS_STREAMING), digest).use { input ->
+            DigestInputStream(image.openStream(), digest).use { input ->
                 val buffer = ByteArray(1 shl 16)
                 while (input.read(buffer) >= 0) {}
             }
@@ -84,13 +85,14 @@ class RuntimeInstaller(
         }
         timed("extract") {
             val extractor = TarExtractor(staging, progress)
-            if (manifest.rootfsAsset.endsWith(".xz") && assetBytes > 0) {
+            if (manifest.rootfsAsset.endsWith(".xz") && image.fromAssets && image.bytes > 0) {
+                // 并行 xz 仅 assets seekable 源；下载缓存走 raw 流（同效稍慢）
                 val decoded = ParallelXZInputStream.open(
-                    { AssetSeekableInputStream(context.assets.openFd(assetPath)) }, progress,
+                    { AssetSeekableInputStream(context.assets.openFd("${RuntimeManifest.ASSET_DIR}/${manifest.rootfsAsset}")) }, progress,
                 )
                 extractor.extractDecoded(decoded)
             } else {
-                context.assets.open(assetPath, AssetManager.ACCESS_STREAMING).use { raw ->
+                image.openStream().use { raw ->
                     extractor.extract(raw, manifest.rootfsAsset)
                 }
             }

@@ -16,6 +16,7 @@ import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
+import java.io.File
 import io.flutter.plugin.common.PluginRegistry
 
 /** Flutter bridge for the local runtime: MethodChannel `dsh/runtime`, EventChannel `dsh/runtime/events`. */
@@ -70,7 +71,36 @@ class RuntimePlugin :
         activity = null
     }
 
+    /** 桥接 IO 执行器（2026-11-09）：触碰 manifest/文件系统/网络的 handler
+     *  一律下工作线程（MethodChannel 主线程跑网络 = NetworkOnMainThread /
+     *  ANR——镜像上 R2 后实证）。MethodChannel.Result 跨线程回合法。 */
+    private val bridgeIo = java.util.concurrent.Executors.newSingleThreadExecutor {
+        Thread(it, "dsh-bridge")
+    }
+
+    /** 需要下工作线程的方法（触碰 manifest lazy load / 网络 / 大文件）。 */
+    private val heavyMethods = setOf(
+        "getStatus", "install", "baseStats",
+        "snapshotList", "snapshotCreate", "snapshotDelete", "snapshotRestore",
+        "lastKnownGood", "restoreLastKnownGood", "safePreflight", "moveAside",
+        "failureLog", "storageStatus",
+    )
+
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
+        if (call.method in heavyMethods) {
+            bridgeIo.execute {
+                try {
+                    dispatch(call, result)
+                } catch (t: Throwable) {
+                    result.error("bridge_io", t.message ?: t.javaClass.simpleName, null)
+                }
+            }
+        } else {
+            dispatch(call, result)
+        }
+    }
+
+    private fun dispatch(call: MethodCall, result: MethodChannel.Result) {
         when (call.method) {
             "getStatus" -> result.success(controller.status())
             "publishDiagnostics" -> {
@@ -151,6 +181,27 @@ class RuntimePlugin :
             "failureLog" -> result.success(controller.failureLog())
             // ---- Linux 底座 P0：快照/回滚 + 状态采集（docs/LINUX_BASE_PLAN.md §6） ----
             "baseStats" -> result.success(RuntimeStats.collect(appContext))
+            "resetSystem" -> {
+                // 重置系统（2026-11-09）：清 rootfs 回未安装态；快照保留可回滚。
+                Thread {
+                    try {
+                        appContext.startService(
+                            Intent(appContext, DshService::class.java).setAction(DshService.ACTION_STOP),
+                        )
+                        Thread.sleep(600)
+                        val rootfs = SnapshotManager.rootfsOf(appContext)
+                        val retired = File(rootfs.parentFile, "runtime.reset.reset")
+                        if (retired.exists()) retired.deleteRecursively()
+                        if (rootfs.exists()) rootfs.renameTo(retired)
+                        retired.deleteRecursively()
+                        File(rootfs.parentFile, "rootfs.version").delete()
+                        controller.onSystemReset()
+                        result.success(true)
+                    } catch (t: Throwable) {
+                        result.success(false)
+                    }
+                }.start()
+            }
             "snapshotList" -> result.success(
                 SnapshotManager.list(appContext).map {
                     mapOf("name" to it.name, "createdAt" to it.createdAt, "bytes" to it.bytes, "note" to it.note)
