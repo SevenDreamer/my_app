@@ -66,3 +66,35 @@
 3. **P1 首发模板**：**双轨并行**——现有 dsh-go 专用系统照跑（不破坏已验证
    链），同时在新底座容器里琢磨「DSH 当应用装进去」（dsh-go 烘制规格反推
    = 安装器第一模板）；**DSH 模板打头阵、Hermes 模板跟上** ✅
+
+## 六、P0 详细设计（2026-11-06，待批开工）
+
+### 功能清单
+
+| # | 做什么 | 实现什么 | 复用现状 |
+|---|---|---|---|
+| 1 | **registry 独立域「Linux 底座」** | `lib/features/linux_base/`（MVVM + ChangeNotifier，my_app 域铁律）；FeatureEntry(id: linux_base, LucideIcons.box, mobile: full, desktop: limited) | 注册表/平台能力声明惯例 |
+| 2 | **系统总览页** | 一屏：运行态（七态）/ 版本（runtimeVersion）/ CPU·内存·磁盘 / 快照列表 / 操作按钮排 | `dsh/runtime` getStatus；AppSection 卡片 |
+| 3 | **实例管理 = 接管现有主系统** | 启动/停止/安装重建/崩溃修复（按钮化） | DshProcess/DshService/RuntimeInstaller；**LastKnownGood 恢复 + SafeMode moveAside 已有能力接按钮** |
+| 4 | **快照/回滚**（唯一新能力） | 手动快照（rootfs 目录打 tar.xz → filesDir/snapshots/）、列表（保留 2-3 个）、一键回滚、改坏前自动快照；Kotlin `SnapshotManager` + 通道方法（snapshot/restore/list/delete） | TarExtractor/xz 库已有；与 LastKnownGood 并存（LKG=自动「最后已知良好」，快照=显式版） |
+| 5 | **系统状态监测** | 七态 + proot/dsh/node 进程 + CPU/内存（读 /proc）+ rootfs 磁盘占用 + 运行时长；Kotlin stats 采集 → Dart 卡片 | 进程归属（RuntimeProcessOwnership）已有 |
+| 6 | **终端接入（零新码）** | 底座页进终端 | `DshClient TerminalShell`（DSH 引擎 WebSocket 终端，整壳已验证） |
+| 7 | **归属标记** | runtime 链头部注释「Linux 底座引擎，见 LINUX_BASE_PLAN.md」 | — |
+
+### 关键设计点
+
+- **主系统 = 现有 DSH 运行时的 rootfs**（单容器决策 D1）：底座不另建系统，
+  是给这个系统一个通用管理面板；DSH 整壳照常用它（双轨不破）。
+- **快照空间预算**：rootfs 解包约 800MB → 快照保留 2-3 个 + 空间提示；
+  压缩用现成 xz（tar.xz，与 rootfs 发行格式同族）。
+- **终端依赖 DSH 引擎常驻**：P0 阶段主系统=DSH 系统，天然满足；无 DSH
+  的裸 shell 通道（Kotlin 直起 proot sh）留 P2+ 再议。
+
+### P0 不做（防蔓延）
+
+多实例 / 多发行版 / x86-QEMU / agent 安装器（P1）/ 休眠耗电策略（P2）/ ttyd（P3）。
+
+### 风险项
+
+1. 快照打包 800MB 目录耗时（分钟级）——异步任务 + 进度回传（照 RuntimeInstaller 形态）；
+2. `/proc` 状态采集直读（不经 proot）——仅本机进程可见性验证一次即可。
