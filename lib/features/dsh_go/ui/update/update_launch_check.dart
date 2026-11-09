@@ -43,6 +43,10 @@ class _UpdateLaunchCheckState extends ConsumerState<UpdateLaunchCheck> {
 
   Future<void> _run() async {
     if (!mounted) return;
+    // [my_app 融合] 启动自动检查屏蔽（同 update_sheet.dart 注）：更新由
+    // my_app 的 R2 链统一巡检与推送。
+    // ignore: dead_code
+    return;
     final offer = await ref.read(appUpdateProvider.notifier).autoCheckIfDue();
     if (!offer || !mounted) return;
     // Don't cover a page or sheet the person is in, or interrupt typing (raw

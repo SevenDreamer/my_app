@@ -1,3 +1,4 @@
+// [归属] Linux 底座引擎（语义归 docs/LINUX_BASE_PLAN.md；本文件名保持 DSH 语义不改名）。
 package com.example.my_app.runtime
 
 import android.Manifest
@@ -148,6 +149,51 @@ class RuntimePlugin :
                 }
             }
             "failureLog" -> result.success(controller.failureLog())
+            // ---- Linux 底座 P0：快照/回滚 + 状态采集（docs/LINUX_BASE_PLAN.md §6） ----
+            "baseStats" -> result.success(RuntimeStats.collect(appContext))
+            "snapshotList" -> result.success(
+                SnapshotManager.list(appContext).map {
+                    mapOf("name" to it.name, "createdAt" to it.createdAt, "bytes" to it.bytes, "note" to it.note)
+                },
+            )
+            "snapshotProgress" -> {
+                val p = SnapshotManager.progress
+                result.success(if (p == null) null else mapOf("done" to p.first, "total" to p.second))
+            }
+            "snapshotCreate" -> {
+                val note = call.argument<String>("note")
+                Thread {
+                    try {
+                        val name = SnapshotManager.create(appContext, note)
+                        val snap = SnapshotManager.list(appContext).firstOrNull { it.name == name }
+                        result.success(mapOf("name" to name, "bytes" to (snap?.bytes ?: -1L), "error" to null))
+                    } catch (t: Throwable) {
+                        result.success(mapOf("name" to null, "bytes" to -1L, "error" to (t.message ?: t.javaClass.simpleName)))
+                    }
+                }.start()
+            }
+            "snapshotDelete" -> {
+                val name = call.argument<String>("name") ?: return result.error("bad_arg", "name required", null)
+                Thread {
+                    result.success(SnapshotManager.delete(appContext, name))
+                }.start()
+            }
+            "snapshotRestore" -> {
+                val name = call.argument<String>("name") ?: return result.error("bad_arg", "name required", null)
+                Thread {
+                    try {
+                        // 回滚前停系统（runtime.reset 语义沿用：旧 rootfs 挪退役目录）
+                        appContext.startService(
+                            Intent(appContext, DshService::class.java).setAction(DshService.ACTION_STOP),
+                        )
+                        Thread.sleep(800) // 给前台服务收尾留时隙
+                        SnapshotManager.restore(appContext, name)
+                        result.success(mapOf("ok" to true, "error" to null))
+                    } catch (t: Throwable) {
+                        result.success(mapOf("ok" to false, "error" to (t.message ?: t.javaClass.simpleName)))
+                    }
+                }.start()
+            }
             "batteryExempt" -> {
                 val pm = appContext.getSystemService(Context.POWER_SERVICE) as PowerManager
                 result.success(pm.isIgnoringBatteryOptimizations(appContext.packageName))

@@ -17,6 +17,7 @@ import '../features/live2d/live2d_page.dart';
 import '../features/notes/notes_list_page.dart';
 import '../features/robot_eyes/robot_eye_page.dart';
 import '../features/dsh_go/dsh_go_host.dart';
+import '../features/linux_base/linux_base_page.dart';
 import '../features/vscreen/vscreen_page.dart';
 
 /// 平台对功能的支持程度
@@ -109,6 +110,17 @@ final List<FeatureEntry> kFeatures = [
     builder: (_) => const HermesHomePage(),
     // Remote gateway 模式：连 PC/Mac/远程 gateway（协议见 docs/HERMES_GATEWAY_PROTOCOL.md）
     desktop: PlatformSupport.full,
+    mobile: PlatformSupport.full,
+  ),
+  FeatureEntry(
+    id: 'linux_base',
+    icon: LucideIcons.box,
+    title: 'Linux 底座',
+    subtitle: '系统 · 快照回滚 · 状态监测',
+    builder: (_) => const LinuxBasePage(),
+    // 底座引擎（proot 容器）与运行时链面向 Android；桌面无 proot 落点
+    desktop: PlatformSupport.limited,
+    limitedNote: '容器引擎面向 Android',
     mobile: PlatformSupport.full,
   ),
   FeatureEntry(

@@ -1,3 +1,4 @@
+// [归属] Linux 底座引擎（语义归 docs/LINUX_BASE_PLAN.md；本文件名保持 DSH 语义不改名）。
 package com.example.my_app.runtime
 
 import android.content.Context

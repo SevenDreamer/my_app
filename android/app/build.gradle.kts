@@ -156,6 +156,8 @@ dependencies {
     implementation("dev.rikka.shizuku:provider:13.1.5")
     // dsh-go 融合（批次 3）：xz 解包 / libadb 配对 / TLS / 证书（原 gradle 同款）
     implementation("org.tukaani:xz:1.10")
+    // Linux 底座 P0：快照 tar 打包（SnapshotManager）
+    implementation("org.apache.commons:commons-compress:1.27.1")
     implementation("com.github.MuntashirAkon:libadb-android:3.1.1")
     implementation("org.conscrypt:conscrypt-android:2.8.0")
     implementation("org.bouncycastle:bcpkix-jdk15to18:1.81")

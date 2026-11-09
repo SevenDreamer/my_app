@@ -27,6 +27,10 @@ Future<void> showUpdateSheet(BuildContext context) =>
 /// Looks for an update on request (设置 → 关于): opens the sheet when there is
 /// one, otherwise says so in a snack bar.
 Future<void> checkForUpdates(BuildContext context, WidgetRef ref) async {
+  // [my_app 融合] 上游 GitHub 自更新器屏蔽——更新分发统一走 my_app 的 R2
+  // manifest 链（「我」页·检查更新）；此处拉上游 release 会误装裸 app。
+  // ignore: dead_code
+  return;
   final controller = ref.read(appUpdateProvider.notifier);
   if (ref.read(appUpdateProvider).hasUpdate) return showUpdateSheet(context);
   final messenger = ScaffoldMessenger.maybeOf(context);
