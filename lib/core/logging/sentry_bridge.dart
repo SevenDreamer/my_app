@@ -59,22 +59,29 @@ class SentryBridge {
     ));
   }
 
-  /// 用户操作埋点（2026-11-06）：走 Sentry Logs 产品（平时可查，不等出错），
-  /// 与 breadcrumb 双写（出错事件自带动作轨迹）。data 值自动转 SentryAttribute。
+  /// 用户操作埋点（2026-11-06）：三通道双写——Sentry Logs（平时可查）+
+  /// breadcrumb（出错事件自带轨迹）+ captureMessage（event 通道必到，
+  /// 固定 fingerprint 聚合为单 issue，事件序列可回溯操作时间线）。
+  /// data 值自动转 SentryAttribute，经 redact 脱敏。
   static void action(String name, [Map<String, Object?>? data]) {
     if (!enabled) return;
-    final attrs = <String, SentryAttribute>{
+    final safe = <String, Object?>{
       if (data != null)
-        for (final e in data.entries)
-          e.key: switch (e.value) {
-            final int v => SentryAttribute.int(v),
-            final bool v => SentryAttribute.bool(v),
-            final double v => SentryAttribute.double(v),
-            _ => SentryAttribute.string(redact('${e.value}')),
-          },
+        for (final e in data.entries) e.key: redact('${e.value}'),
+    };
+    final attrs = <String, SentryAttribute>{
+      for (final e in safe.entries) e.key: SentryAttribute.string(e.value ?? ''),
     };
     Sentry.logger.info('action:$name', attributes: attrs);
     breadcrumb('action', name);
+    Sentry.captureMessage(
+      'ua:$name',
+      level: SentryLevel.info,
+      withScope: (scope) {
+        scope.fingerprint = ['user-action'];
+        if (safe.isNotEmpty) scope.setExtra('data', safe);
+      },
+    );
   }
 
   /// 手动上报（业务层捕获的异常）。
