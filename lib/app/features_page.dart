@@ -4,6 +4,7 @@
 //! 按当前平台能力过滤展示：不支持的隐藏，受限的标注说明。
 import 'package:flutter/widgets.dart';
 
+import '../core/logging/sentry_bridge.dart';
 import '../design/tokens.dart';
 import '../design/widgets/app_header.dart';
 import '../design/widgets/app_scaffold.dart';
@@ -65,6 +66,8 @@ class _FeatureTile extends StatelessWidget {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () {
+        // 操作埋点：功能入口点击（Sentry Logs，docs 见 SentryBridge.action）
+        SentryBridge.action('open_feature', {'id': feature.id});
         Navigator.of(context).push(
           PageRouteBuilder<void>(
             pageBuilder: (routeContext, _, __) => feature.builder(routeContext),

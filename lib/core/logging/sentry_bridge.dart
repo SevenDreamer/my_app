@@ -59,6 +59,24 @@ class SentryBridge {
     ));
   }
 
+  /// 用户操作埋点（2026-11-06）：走 Sentry Logs 产品（平时可查，不等出错），
+  /// 与 breadcrumb 双写（出错事件自带动作轨迹）。data 值自动转 SentryAttribute。
+  static void action(String name, [Map<String, Object?>? data]) {
+    if (!enabled) return;
+    final attrs = <String, SentryAttribute>{
+      if (data != null)
+        for (final e in data.entries)
+          e.key: switch (e.value) {
+            final int v => SentryAttribute.int(v),
+            final bool v => SentryAttribute.bool(v),
+            final double v => SentryAttribute.double(v),
+            _ => SentryAttribute.string(redact('${e.value}')),
+          },
+    };
+    Sentry.logger.info('action:$name', attributes: attrs);
+    breadcrumb('action', name);
+  }
+
   /// 手动上报（业务层捕获的异常）。
   static Future<void> capture(Object error, StackTrace stack,
       {String? context}) {

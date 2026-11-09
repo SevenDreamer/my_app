@@ -5,6 +5,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
+import '../../core/logging/sentry_bridge.dart';
 import '../../data/services/linux_base_service.dart';
 
 class LinuxBaseViewModel extends ChangeNotifier {
@@ -46,28 +47,33 @@ class LinuxBaseViewModel extends ChangeNotifier {
   }
 
   Future<void> startSystem() async {
+    SentryBridge.action('linux_base.start');
     try {
       await _service.start();
       message = '已发送启动指令';
     } catch (e) {
       message = '启动失败：$e';
     }
+    SentryBridge.action('linux_base.start.out', {'result': message});
     await refresh();
   }
 
   Future<void> stopSystem() async {
+    SentryBridge.action('linux_base.stop');
     try {
       await _service.stop();
       message = '已发送停止指令';
     } catch (e) {
       message = '停止失败：$e';
     }
+    SentryBridge.action('linux_base.stop.out', {'result': message});
     await refresh();
   }
 
   /// 创建快照（分钟级）：轮询进度直至完成。
   Future<void> createSnapshot({String? note}) async {
     if (busy) return;
+    SentryBridge.action('linux_base.snapshot_create');
     busy = true;
     message = '快照创建中…';
     _notify();
@@ -78,8 +84,11 @@ class LinuxBaseViewModel extends ChangeNotifier {
       message = error == null
           ? '快照已创建：${result['name']}'
           : '快照失败：$error';
+      SentryBridge.action('linux_base.snapshot_create.out',
+          {'result': message, 'bytes': (result['bytes'] as num?)?.toInt() ?? -1});
     } catch (e) {
       message = '快照失败：$e';
+      SentryBridge.action('linux_base.snapshot_create.out', {'result': message});
     } finally {
       busy = false;
       progress = null;
@@ -91,6 +100,7 @@ class LinuxBaseViewModel extends ChangeNotifier {
   /// 回滚到指定快照（系统会被停止，rootfs 整体替换）。
   Future<void> restoreSnapshot(SnapshotInfo snapshot) async {
     if (busy) return;
+    SentryBridge.action('linux_base.snapshot_restore', {'name': snapshot.name});
     busy = true;
     message = '回滚中（系统将停止）…';
     _notify();
@@ -103,6 +113,7 @@ class LinuxBaseViewModel extends ChangeNotifier {
     } catch (e) {
       message = '回滚失败：$e';
     } finally {
+      SentryBridge.action('linux_base.snapshot_restore.out', {'result': message});
       busy = false;
       progress = null;
       _stopPolling();
@@ -111,12 +122,14 @@ class LinuxBaseViewModel extends ChangeNotifier {
   }
 
   Future<void> deleteSnapshot(SnapshotInfo snapshot) async {
+    SentryBridge.action('linux_base.snapshot_delete', {'name': snapshot.name});
     try {
       await _service.snapshotDelete(snapshot.name);
       message = '已删除 ${snapshot.name}';
     } catch (e) {
       message = '删除失败：$e';
     }
+    SentryBridge.action('linux_base.snapshot_delete.out', {'result': message});
     await refresh();
   }
 
