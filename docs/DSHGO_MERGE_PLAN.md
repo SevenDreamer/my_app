@@ -59,7 +59,7 @@
 | **3** | **运行时域**：Kotlin runtime/ 全搬 + runtime/ 烘层 + tooling/ 分包链；proot 落点改 nativeLibraryDir（决策 10）；**F1 链退役**（dsha_core install/、rust/dsha_runtime、assets/dsha 277MB 烘层、features/dsha_system） | 1 | ✅ 2026-11-05（v1.3.0-dev.42+86）：Kotlin 178 件（25 域）+ runtime/ 烘制规格 + tooling/ + res 合并 + manifest 合并（权限+14/组件+18）；WSL 烘制 rootfs 151MB（r15-dsh0.2.1-rc.4，ELF 审计零警告，proot pin bump 5.1.107.102）；abi flavor 分包（APK 182MB，减重 95MB）；F1 链退役 + 自测换七态等价物；nativeLibraryDir 零改动达成（DirectLaunch 高 targetSdk 自动降级 proot）。⚠️ 余项：x64 flavor 资产待烘、shorebird flavor app_id 已迁移 |
 | **4** | **对话域**：chat/commands/composer 全功能（排队/插话/待办/斜杠命令/模型/文件）+ state/ 相关模块 | 2,3 | ✅ 2026-11-05：Flutter 层全量落位（app/lib 764 dart + l10n → features/dsh_go/ 镜像；决策 7 第一阶段照搬不改）——对话全功能随整壳自带（排队/插话/待办/斜杠命令/模型/文件/state 40+ 模块）；DshGoHost 点亮（registry「DSH」项挂上游整壳）；依赖 +17 验证入、mime 2.x overrides、SDK 下限 ^3.13.5；analyze 0 error + 构建双绿。**批次 5-7 的域随整壳已落位，剩接线/点亮/验证** |
 | **5** | **插件市场域**：market 面板 + plugins/seams 槽位系统（声明式渲染隔离）+ plugin_kit | 2 | 🔍（随整壳落位；接线审计 31 Dart 通道/资产引用全绿，待细测） |
-| **6** | **遥控域**：remote/ + DSH Remote（SSH/隧道）+ share 件；与 device_link/gamepad 的入口边界在此批厘清 | 2,3 | 🔍（随整壳落位；remote/{relay,ssh} + share 插件接线绿；入口边界待厘清：registry 里 device_link/gamepad/vscreen 归宿） |
+| **6** | **遥控域**：remote/ + DSH Remote（SSH/隧道）+ share 件；与 device_link/gamepad 的入口边界在此批厘清 | 2,3 | 🔍（随整壳落位；remote/{relay,ssh} + share 插件接线绿；**边界厘清方案见 §6.1**） |
 | **7** | **桌宠/手机操控/论坛域**：pets + phone（a11y/background Kotlin）+ forum + voice/wallpaper/media 体验件（美术按决策 8） | 3 | 🔍（随整壳落位；PetOverlayPlugin/PhonePlugin 等 Kotlin 面 + 资产全绿，待细测后台保活/a11y 权限链） |
 | **8** | **统一改造**：Riverpod→ChangeNotifier MVVM、UI→shadcn/DESIGN.md tokens、图标→Lucide、i18n 中文优先收编（可拆多轮） | 4–7 逐域后 | ⬜ |
 
@@ -103,3 +103,28 @@
 | 桌面端 DSH 域缺位（dsh-go 仅 Android，minSdk 26） | registry 平台声明如实标注；桌面 DSH 体验退回收敛（管理/控制类），批次 4 设计时细化 |
 | 发版链合流（tooling abi 分包 × R2/Shorebird） | 批次 3 内合流设计，tool/release.sh 改造 |
 | 双 UI/双状态并存期认知负担 | 批次 8 明确收敛时点；并存期代码集中 features/dsh_go/ 不外溢 |
+
+### §6.1 遥控/连接域边界厘清（批次 6 产出，待批）
+
+**认知修正**：dsh-go `remote/`（link_status/relay/ssh）是 **DSH 主机连接域**
+（SSH 隧道/relay 连远端 DSH 引擎），不是"反控 my_app"；后者是 P1 未来向
+（HANDOFF 决策 5 的遥控方向），seams 预留、现无面。
+
+**现状层（不动功能，本批落地）**：
+
+| 域 | 归属 | 边界 |
+|---|---|---|
+| device_link（设备互联） | my_app 既有链保留 | my_app 自家协议组网（Hermes/多链路）；与 dsh-go remote/ 协议不同、各管各（实测已通的镜像注入链不动） |
+| gamepad（手柄 HID） | my_app 既有链保留 | 控制端 HID 模拟能力；将来作为 DSH 插件（plugin_kit/seams）暴露给 dsh-go 遥控面 |
+| vscreen（虚拟屏） | my_app 既有链保留 | **受控端落点**——P1「DSH 反控 my_app」时的受控面复用其 Dart↔Rust↔Kotlin 链 |
+| dsh-go remote/（SSH/relay） | dsh-go 域 | DSH 主机连接（SSH 隧道/relay），面向远端 DSH 引擎 |
+| dsh-go share 件 | dsh-go 域 | 系统分享接收（SharePlugin 已注册），无冲突 |
+
+**方向层（P1 时定，本批仅记录）**：
+- 「DSH 反控 my_app」：dsh-go 侧新建遥控面 → my_app 受控端 = vscreen seam 复用；
+- 「设备控制面归 dsh-go/DSHA」：gamepad/device_link 的 HID/镜像能力以 DSH
+  插件暴露，my_app 侧入口渐变为「DSH 遥控」入口（旧入口保留至能力插件化完成）。
+
+**待用户决策**：
+1. 现阶段 registry 文案：仅加归宿注释（推荐，零 UI 变更），还是改 subtitle 明示演进方向？
+2. 「DSH 反控」的受控端落点：定 vscreen seam（推荐，链已实测），还是届时新建？
