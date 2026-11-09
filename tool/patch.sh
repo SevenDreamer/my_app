@@ -53,7 +53,11 @@ r2_put() { # r2_put <bucket-key> <本地文件> <content-type>
     -w "已上传：$key（%{size_upload} 字节，HTTP %{http_code}）\n"
 }
 
-APP_ID=$(grep '^app_id:' shorebird.yaml | awk '{print $2}')
+# app_id：flavor 化后 release 注册在 flavor 分表（arm64 为发版通道），
+# 须取 flavors.arm64 的 id；根 app_id 仅作无 flavor 兜底（2026-11-06 修：
+# 取根 id 会查空列表 → "未能解析 patch 号"跳过刷新）。
+APP_ID=$(awk '/^  arm64:/{print $2; exit}' shorebird.yaml)
+[ -z "$APP_ID" ] && APP_ID=$(grep '^app_id:' shorebird.yaml | awk '{print $2}')
 # patch 号：从 patches list 只解析数字取最大号（不抄版本/日期串——
 # 工具输出的串有打码坑，PITFALLS #31）
 PATCH_NUMBER=$(tool/shorebird.sh patches list --app-id "$APP_ID" --release-version "$REL" 2>/dev/null \
