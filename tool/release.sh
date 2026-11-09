@@ -117,3 +117,20 @@ r2_put "$R2_PREFIX/manifest-dev.json" build/manifest-dev.json application/json
 echo "发布完成："
 echo "  安装包：$R2_BASE_URL/$ASSET"
 echo "  manifest：$R2_BASE_URL/$MANIFEST"
+
+# 4) 回读验证（2026-11-06，agent 收尾协议）：上传成功 ≠ 文件可用——
+#    匿名 GET manifest 比对版本 + HEAD 安装包核大小，全过输出
+#    RELEASE_VERIFIED 标记（agent 进程完成通知据此执行收尾清单）。
+sleep 3
+REMOTE_VER=$(curl -sS --noproxy '*' "$R2_BASE_URL/manifest.json" | grep -o '"version"[^,]*' | head -1 | sed 's/.*"version"[^"]*"\([^"]*\)".*/\1/')
+if [ "$REMOTE_VER" != "$NAME" ]; then
+  echo "❌ 回读验证失败：manifest version=$REMOTE_VER，期望 $NAME" >&2
+  exit 1
+fi
+REMOTE_SIZE=$(curl -sS --noproxy '*' -I "$R2_BASE_URL/$ASSET" | grep -i '^content-length' | tr -dc '0-9')
+LOCAL_SIZE=$(wc -c < "$APK" | tr -dc '0-9')
+if [ "$REMOTE_SIZE" != "$LOCAL_SIZE" ]; then
+  echo "❌ 回读验证失败：APK 大小远端 $REMOTE_SIZE ≠ 本地 $LOCAL_SIZE" >&2
+  exit 1
+fi
+echo "RELEASE_VERIFIED:$VER"

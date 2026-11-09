@@ -70,7 +70,7 @@ class SentryBridge {
         for (final e in data.entries) e.key: redact('${e.value}'),
     };
     final attrs = <String, SentryAttribute>{
-      for (final e in safe.entries) e.key: SentryAttribute.string(e.value ?? ''),
+      for (final e in safe.entries) e.key: SentryAttribute.string('${e.value ?? ''}'),
     };
     Sentry.logger.info('action:$name', attributes: attrs);
     breadcrumb('action', name);

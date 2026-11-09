@@ -15,6 +15,7 @@ if [ $# -lt 1 ]; then
   exit 1
 fi
 REL="$1"
+PATCH_NOTES="${2:-}"
 
 if [ -f tool/sentry.env ]; then
   . tool/sentry.env
@@ -103,3 +104,12 @@ r2_put "$R2_PREFIX/manifest.json" build/manifest.json application/json
 cp build/manifest.json build/manifest-dev.json
 r2_put "$R2_PREFIX/manifest-dev.json" build/manifest-dev.json application/json
 echo "manifest 已刷新：$R2_BASE_URL/manifest.json"
+
+# 回读验证（agent 收尾协议）：manifest patch 节的 release/number 与本地一致
+sleep 3
+REMOTE=$(curl -sS --noproxy '*' "$R2_BASE_URL/manifest.json")
+if ! echo "$REMOTE" | grep -q "\"release\": \"$REL\"" || ! echo "$REMOTE" | grep -q "\"number\": $PATCH_NUMBER"; then
+  echo "❌ 回读验证失败：manifest patch 节与本地不符" >&2
+  exit 1
+fi
+echo "PATCH_VERIFIED:$REL+$PATCH_NUMBER"
