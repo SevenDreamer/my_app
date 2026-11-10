@@ -12,6 +12,7 @@ import '../../design/tokens.dart';
 import '../../design/widgets/app_header.dart';
 import '../../design/widgets/app_scaffold.dart';
 import 'demos/button_demo.dart';
+import 'demos/variant_matrix_demo.dart';
 import 'demos/display_demo.dart';
 import 'demos/form_demo.dart';
 import 'demos/overlay_demo.dart';
@@ -29,6 +30,7 @@ class ComponentGalleryPage extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.md),
         children: const [
+          VariantMatrixDemo(),
           GalleryGroup(title: '设计 Tokens', children: [TokensDemo()]),
           GalleryGroup(title: '基础壳（design 层九件套）', children: [ShellDemo()]),
           GalleryGroup(title: '按钮', children: [ButtonDemo()]),
