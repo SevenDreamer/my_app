@@ -5,6 +5,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
+import '../../core/ffi/rust_core.dart';
 import '../../core/logging/sentry_bridge.dart';
 import '../../data/services/linux_base_service.dart';
 
@@ -12,6 +13,9 @@ class LinuxBaseViewModel extends ChangeNotifier {
   LinuxBaseViewModel(this._service);
 
   final LinuxBaseService _service;
+
+  /// Rust 核心心跳（FFI 通路活体验证；null = 当前平台不可用）。
+  String? rustCore;
 
   /// 运行态（七态原值：notInstalled/installed/starting/running/…）。
   String phase = 'unknown';
@@ -42,6 +46,10 @@ class LinuxBaseViewModel extends ChangeNotifier {
       runtimeVersion = (status['runtimeVersion'] as String?) ??
           (status['manifestVersion'] as String?);
       stats = await _service.baseStats();
+      final rc = RustCore.ensureLoaded();
+      rustCore = rc == null
+          ? null
+          : '${rc.version() ?? 'core-rs-?'} · add 自检 ${rc.add(2, 3) ?? '-'}';
       snapshots = await _service.snapshotList();
       message = null;
     } catch (e) {

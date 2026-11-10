@@ -103,6 +103,8 @@ class _LinuxBasePageState extends State<LinuxBasePage> {
                 '运行时长 ${_durationLabel((_vm.stats['prootUptimeSec'] as num?)?.toInt())}',
                 style: AppTypography.labelSm,
               ),
+              if (_vm.rustCore != null)
+                Text('Rust ${_vm.rustCore}', style: AppTypography.labelSm),
             ],
           ),
         ),

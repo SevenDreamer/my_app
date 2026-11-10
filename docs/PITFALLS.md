@@ -396,3 +396,11 @@ F1 退役时 `android/app/src/main/jniLibs/` 的 proot 全家桶（libproot.so/l
 libprootloader.so…）漏删，与 dsh-go 的 Termux 版（libproot.so/libtalloc.so **同名**）
 共存——Gradle 两来源同名 .so 打包进哪个不确定，错版本 = 运行时安装/启动失败。规则：
 换运行时时旧 jniLibs 必须整体清退，打包后 `unzip -l` 验证 `.so` 单一来源。
+
+### 39. MSVC /WX 下第三方包的 UTF-8 源文件炸构建（C4819→C2220）
+中文系统代码页 936 下，MSVC 读 UTF-8 源文件报 C4819（字符无法表示），
+项目开着 `/W4 /WX`（警告即错误）→ C2220 构建失败。这次是 flutter_webrtc
+的 loopback_capturer.h 等文件踩的（第三方包没法改源）。修法（windows/
+CMakeLists.txt 的 APPLY_STANDARD_SETTINGS）：加 `/utf-8`（强制 UTF-8 读源）
++ `/wd4819`（双保险）。这是 #2（自家 C++ 禁中文注释）的第三方变体——
+**解法升级为全局 /utf-8，而不是禁注释**。

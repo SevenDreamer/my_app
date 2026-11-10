@@ -43,7 +43,11 @@ class FeatureEntry {
     this.desktop = PlatformSupport.full,
     this.mobile = PlatformSupport.full,
     this.limitedNote,
+    this.group = '工具',
   });
+
+  /// 产品轴分组（VISION 分层）：平台 / 能力 / 个性 / 工具——首页分组展示
+  final String group;
 
   /// 功能唯一标识（后续路由/配置/埋点用）
   final String id;
@@ -89,6 +93,7 @@ final List<FeatureEntry> kFeatures = [
     icon: LucideIcons.network,
     title: '设备互联',
     subtitle: '控制端 · 被控端 · 多链路组网',
+    group: '能力',
     builder: (_) => const DeviceLinkPage(),
     // 通信组网以移动端为主战场（VISION · 平台能力矩阵）
     desktop: PlatformSupport.limited,
@@ -100,6 +105,7 @@ final List<FeatureEntry> kFeatures = [
     icon: LucideIcons.gamepad2,
     title: '手柄控制',
     subtitle: '控制端 · 被控端 · 蓝牙 HID',
+    group: '能力',
     builder: (_) => const GamepadHomePage(),
     // 控制端（HID 模拟）仅 Android 有真实现；桌面端为假链路调试
     desktop: PlatformSupport.limited,
@@ -111,6 +117,7 @@ final List<FeatureEntry> kFeatures = [
     icon: LucideIcons.bot,
     title: 'Hermes',
     subtitle: '连接 gateway · 对话 · 工具流',
+    group: '平台',
     builder: (_) => const HermesHomePage(),
     // Remote gateway 模式：连 PC/Mac/远程 gateway（协议见 docs/HERMES_GATEWAY_PROTOCOL.md）
     desktop: PlatformSupport.full,
@@ -121,6 +128,7 @@ final List<FeatureEntry> kFeatures = [
     icon: LucideIcons.box,
     title: 'Linux 底座',
     subtitle: '系统 · 快照回滚 · 状态监测',
+    group: '平台',
     builder: (_) => const LinuxBasePage(),
     // 底座引擎（proot 容器）与运行时链面向 Android；桌面无 proot 落点
     desktop: PlatformSupport.limited,
@@ -132,6 +140,7 @@ final List<FeatureEntry> kFeatures = [
     icon: LucideIcons.messageCircle,
     title: 'DSH',
     subtitle: '对话 · 运行时 · 遥控 · 完整客户端',
+    group: '平台',
     builder: (_) => const DshGoHost(),
     // dsh-go 整壳（AGPL 派生）：运行时/桌宠/手机操控等原生能力面向 Android
     desktop: PlatformSupport.limited,
@@ -143,6 +152,7 @@ final List<FeatureEntry> kFeatures = [
     icon: LucideIcons.monitor,
     title: '虚拟屏',
     subtitle: '预览 · 触控注入 · 手势缩放',
+    group: '能力',
     builder: (_) => const VscreenPage(),
     // 虚拟屏 core（app_process）面向 Android；桌面无 core 进程
     desktop: PlatformSupport.limited,
@@ -154,6 +164,7 @@ final List<FeatureEntry> kFeatures = [
     icon: LucideIcons.layoutGrid,
     title: '组件库',
     subtitle: '统一组件 · 设计规范 · 实时示例',
+    group: '工具',
     builder: (_) => const ComponentGalleryPage(),
   ),
   FeatureEntry(
@@ -161,6 +172,7 @@ final List<FeatureEntry> kFeatures = [
     icon: LucideIcons.eye,
     title: '机器人眼睛',
     subtitle: '表情 · 注视 · 眼睛动画',
+    group: '个性',
     builder: (_) => const RobotEyePage(),
   ),
   FeatureEntry(
@@ -168,6 +180,7 @@ final List<FeatureEntry> kFeatures = [
     icon: LucideIcons.sparkles,
     title: 'Live2D 看板娘',
     subtitle: 'Cubism 模型渲染 · 触摸跟踪 · 动作表情',
+    group: '个性',
     builder: (_) => const Live2dPage(),
     // WebView 方案理论上跨平台（webview_flutter 支持桌面），桌面端未实测
     desktop: PlatformSupport.limited,
@@ -179,6 +192,7 @@ final List<FeatureEntry> kFeatures = [
     icon: LucideIcons.notebookPen,
     title: '记事本',
     subtitle: '记录想法与需求',
+    group: '工具',
     builder: (_) => const NotesListPage(),
     // sqflite 仅支持移动端；桌面端待换 sqflite_common_ffi 后再开放
     desktop: PlatformSupport.none,

@@ -39,7 +39,9 @@ add_definitions(-DUNICODE -D_UNICODE)
 # of modifying this function.
 function(APPLY_STANDARD_SETTINGS TARGET)
   target_compile_features(${TARGET} PUBLIC cxx_std_17)
-  target_compile_options(${TARGET} PRIVATE /W4 /WX /wd"4100")
+  # /utf-8：强制 MSVC 按 UTF-8 读源（中文系统代码页 936 下，第三方包的 UTF-8
+  # 文件会触发 C4819→/WX 升错误，2026-11-10 flutter_webrtc 实证，PITFALLS #2 变体）
+  target_compile_options(${TARGET} PRIVATE /W4 /WX /wd"4100" /utf-8 /wd"4819")
   target_compile_options(${TARGET} PRIVATE /EHsc)
   target_compile_definitions(${TARGET} PRIVATE "_HAS_EXCEPTIONS=0")
   target_compile_definitions(${TARGET} PRIVATE "$<$<CONFIG:Debug>:_DEBUG>")

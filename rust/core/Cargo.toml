@@ -1,0 +1,18 @@
+[package]
+name = "core"
+version = "0.1.0"
+edition = "2021"
+description = "my_app 核心引擎（Rust）：底座镜像/快照等计算密集核心。C ABI 零依赖 FFI。"
+license = "AGPL-3.0"
+
+[lib]
+# cdylib：给 Flutter（dart:ffi）与未来 wasm 双编；crate-type 多目标共存
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+# 零依赖起步（FFI 规矩：extern "C" 手写，不引 FFI 框架）——
+# 计算功能（xz/zstd 等）落地时再按需加，加前先验证包活性（AGENTS 纪律）。
+
+[profile.release]
+lto = true
+strip = true
