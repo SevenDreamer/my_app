@@ -53,6 +53,9 @@ class NotesViewModel extends ChangeNotifier {
         Note(title: title, content: content, createdAt: now, updatedAt: now),
       );
     }
+    // 静默刷新列表（不置 loading 防闪转圈）——2026-11-10 测试网首抓：
+    // save 此前只 notify 不拉新列表，与 delete 行为不一致。
+    _notes = await _database.getAll();
     notifyListeners();
   }
 }

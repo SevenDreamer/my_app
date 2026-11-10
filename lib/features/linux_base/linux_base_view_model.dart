@@ -51,7 +51,8 @@ class LinuxBaseViewModel extends ChangeNotifier {
           ? null
           : '${rc.version() ?? 'core-rs-?'} · add 自检 ${rc.add(2, 3) ?? '-'}';
       snapshots = await _service.snapshotList();
-      message = null;
+      // 注意：refresh 不清 message（操作反馈须留到用户看到——
+      // 2026-11-10 测试网首抓：命令尾部的 refresh 曾把结果消息秒清）。
     } catch (e) {
       message = '状态读取失败：$e';
     }
