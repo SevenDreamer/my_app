@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 import '../../design/tokens.dart';
+import '../../design/widgets/app_stat_block.dart';
 import '../../design/widgets/app_header.dart';
 import '../../design/widgets/app_layout.dart';
 import '../dsh_go/dsh_go_host.dart';
@@ -120,10 +121,9 @@ class _LinuxBasePageState extends State<LinuxBasePage> {
   }) {
     final layout = AppLayout.of(context);
     final cards = [
-      _StatBlock(label: '内存占用', value: '$memUsed', unit: 'MB'),
-      _StatBlock(
-          label: '系统占用', value: rootfsMb.toStringAsFixed(0), unit: 'MB'),
-      _StatBlock(label: '底座进程', value: '$processes', unit: '个'),
+      AppStatBlock(label: '内存占用', value: '$memUsed', unit: 'MB', size: AppStatBlockSize.sm),
+      AppStatBlock(label: '系统占用', value: rootfsMb.toStringAsFixed(0), unit: 'MB', size: AppStatBlockSize.sm),
+      AppStatBlock(label: '底座进程', value: '$processes', unit: '个', size: AppStatBlockSize.sm),
     ];
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -356,47 +356,6 @@ class _LinuxBasePageState extends State<LinuxBasePage> {
 }
 
 /// stat 数据卡（DESIGN.md · stat-block）：display 大数字 + label-sm 标签
-class _StatBlock extends StatelessWidget {
-  const _StatBlock({required this.label, required this.value, this.unit});
-
-  final String label;
-  final String value;
-  final String? unit;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(value, style: AppTypography.display),
-              if (unit != null) ...[
-                const SizedBox(width: 4),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 6),
-                  child: Text(unit!, style: AppTypography.labelSm),
-                ),
-              ],
-            ],
-          ),
-          const SizedBox(height: AppSpacing.xs),
-          Text(label, style: AppTypography.labelSm),
-        ],
-      ),
-    );
-  }
-}
-
-/// 状态徽章（DESIGN.md · status-badge）：胶囊 + 6px 圆点，不引入新色相
 class _StatusBadge extends StatelessWidget {
   const _StatusBadge({required this.phase});
 
