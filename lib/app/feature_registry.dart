@@ -69,7 +69,11 @@ class FeatureEntry {
 
   /// 当前平台对该功能的支持程度
   PlatformSupport get support {
-    if (kIsWeb) return PlatformSupport.none; // Web 暂不在计划内
+    if (kIsWeb) {
+      // Web 仅供界面预览（2026-11-09 设计评审）：原生能力在 web 不可用，
+      // 但 UI 布局完整可看——全量放行 + limited 提示，不藏功能。
+      return PlatformSupport.limited;
+    }
     if (Platform.isAndroid || Platform.isIOS) return mobile;
     return desktop;
   }

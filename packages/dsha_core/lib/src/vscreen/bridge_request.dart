@@ -14,6 +14,10 @@ import 'dart:typed_data';
 import 'core_identity.dart' show vscreenUuidPattern;
 import 'manager_support.dart' show VscreenRoutes;
 
+// int64 上界：web（JS double）编译不接受 >2^53 的整数字面量，
+// 运行时解析绕开（web 端 vscreen 不实用此值，仅校验范围）。
+final int _int64Max = int.parse('7fffffffffffffff', radix: 16);
+
 /// HTTP 协议失败（原版 `HttpProtocol.Failure`：状态码 + 稳定码）。
 class BridgeRequestFailure implements Exception {
   BridgeRequestFailure(this.status, this.code);
@@ -376,7 +380,7 @@ class VscreenBridgeRequest {
         _need('generation', 80);
         // node 走无障碍 performAction：目标是否还活着由无障碍层树新鲜度决定，与"当前第几帧"
         // 无关，因此帧号对它是可选的（issue #117）；坐标与文本输入仍必填。
-        _integer('frameSeq', 1, 0x7fffffffffffffff, operation != VscreenOperation.node);
+        _integer('frameSeq', 1, _int64Max, operation != VscreenOperation.node);
         if (operation == VscreenOperation.node) {
           allowed.addAll(const ['nodeId', 'action', 'text']);
           _need('nodeId', 80);

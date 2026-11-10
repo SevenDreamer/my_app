@@ -123,7 +123,9 @@ const DartChacha20 _aead = DartChacha20.poly1305Aead();
 
 /// Highest nonce used before the session must be rebuilt (2^64-1 is
 /// reserved by Noise; Dart ints are 64-bit signed, so stop well before).
-const int _maxNonce = 0x3fffffffffffffff;
+// int64 掩码：web（JS double）编译不接受 >2^53 字面量，运行时解析（web 端
+// Noise 握手不实用，仅防 nonce 越界）。
+final int _maxNonce = int.parse('3fffffffffffffff', radix: 16);
 
 class _CipherState {
   _CipherState([this._key]);

@@ -46,6 +46,9 @@ abstract class AppSpacing {
 
   /// 区块间距
   static const double lg = 24;
+
+  /// 区块大跳（仪表盘/页面模式的区块间，DESIGN.md · 比例与公式）
+  static const double xl = 40;
 }
 
 /// 圆角（DESIGN.md · Shapes）
@@ -60,6 +63,21 @@ abstract class AppRadius {
   static const double lg = 16;
 }
 
+/// 响应式断点（DESIGN.md · Responsive）：页面经 AppLayout.of 判断档位
+abstract class AppBreakpoints {
+  /// 手机（< 600）：单列
+  static const double compactMax = 600;
+
+  /// 平板/分屏（600–1024）：内容限宽 720
+  static const double mediumMax = 1024;
+
+  /// 内容区最大宽度（medium 档）
+  static const double contentMedium = 720;
+
+  /// 内容区最大宽度（expanded 档）
+  static const double contentExpanded = 900;
+}
+
 /// 字阶（DESIGN.md · Typography，系统默认字体，不引入自定义字体）
 ///
 /// 每档都显式携带颜色：避免 copyWith 后 color 丢失导致
@@ -71,6 +89,14 @@ abstract class AppTypography {
     fontSize: 28,
     fontWeight: FontWeight.w700,
     height: 1.25,
+  );
+
+  /// display：仪表盘数据大数字（2.25rem/600，stat-block 专用）
+  static const TextStyle display = TextStyle(
+    color: AppColors.onSurface,
+    fontSize: 36,
+    fontWeight: FontWeight.w600,
+    height: 1.15,
   );
 
   /// body-md：正文与列表主文本（1rem/400）
