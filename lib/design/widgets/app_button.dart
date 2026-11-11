@@ -9,7 +9,10 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 
 import '../tokens.dart';
 
-/// 按钮变体（DESIGN.md · 变体矩阵）
+/// 按钮变体（DESIGN.md · 变体矩阵）。
+/// **API 边界**：本件只覆盖 label/onPressed/variant/size/icon 常规三件套；
+/// 需要 leading/自定义 style/enabled 精细态的复杂按钮请直接用 ShadButton
+/// （矩阵外用法不硬塞——克制原则，扩矩阵须先改 DESIGN.md 表）。
 enum AppButtonVariant {
   /// 黑底白字——一屏唯一的高强调动作
   primary,

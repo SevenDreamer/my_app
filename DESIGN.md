@@ -247,7 +247,11 @@ pressed（8% 覆盖）+ disabled（40% 透明度，不换色）。
 | `AppStatBlock` | plain | sm（display 25）· md（display 36） | 数字+单位+标签 |
 | `AppListTile` | leading-icon · leading-label（首字母） | sm · md | 尾随区可挂按钮/开关 |
 | `AppInput` | outline · filled | sm · md | 聚焦描边走 primary |
-| `AppProgressBar` | determinate · indeterminate | thin（4px） | 轨道 border 色 |
+| `AppProgressBar` | determinate · indeterminate | thin（4px） | 轨道 border / 填充 primary |
+
+> **组件 API 边界（克制原则）**：矩阵未覆盖的按钮用法（前导图标 leading、
+> 自定义 style、enabled 精细态）**走 shadcn 原生组件**，不硬塞进 AppButton
+> ——组件 API 越瘦越好用；扩矩阵=设计决策，须先改本表再动代码。
 
 新组件入册流程：先登记本表（含三态）→ DESIGN.md 前端 YAML 登记 → 实现进
 `lib/design/widgets/` → 组件库页展示示例（正误对照）。
