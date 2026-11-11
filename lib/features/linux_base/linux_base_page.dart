@@ -8,6 +8,7 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 
 import '../../design/tokens.dart';
 import '../../design/widgets/app_button.dart';
+import '../../design/widgets/app_chip.dart';
 import '../../design/widgets/app_stat_block.dart';
 import '../../design/widgets/app_header.dart';
 import '../../design/widgets/app_layout.dart';
@@ -370,52 +371,17 @@ class _StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final (label, fg, bg) = switch (phase) {
-      'running' => (
-          '运行中',
-          AppColors.primary,
-          AppColors.primary.withValues(alpha: 0.10)
-        ),
-      'installing' || 'starting' || 'stopping' => (
-          '进行中',
-          AppColors.secondary,
-          AppColors.secondary.withValues(alpha: 0.10)
-        ),
-      'error' => (
-          '异常',
-          AppColors.error,
-          AppColors.error.withValues(alpha: 0.12)
-        ),
-      'installed' => (
-          '已安装',
-          AppColors.primary,
-          AppColors.primary.withValues(alpha: 0.10)
-        ),
-      _ => (
-          '未安装',
-          AppColors.secondary,
-          AppColors.secondary.withValues(alpha: 0.10)
-        ),
+    // 渲染交公共 AppChip（DESIGN.md · status-badge）——本件只留 phase 语义映射
+    final (label, tone) = switch (phase) {
+      'running' || 'installed' => ('运行中', AppChipTone.normal),
+      'installing' || 'starting' || 'stopping' => ('进行中', AppChipTone.busy),
+      'error' => ('异常', AppChipTone.error),
+      _ => ('未安装', AppChipTone.busy),
     };
-    return Container(
-      padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 6,
-            height: 6,
-            decoration: BoxDecoration(color: fg, shape: BoxShape.circle),
-          ),
-          const SizedBox(width: 6),
-          Text(label, style: AppTypography.labelSm.copyWith(color: fg)),
-        ],
-      ),
-    );
+    if (phase == 'installed') {
+      return const AppChip(label: '已安装', tone: AppChipTone.normal);
+    }
+    return AppChip(label: label, tone: tone);
   }
 }
+

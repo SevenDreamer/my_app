@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 import '../../design/tokens.dart';
+import '../../design/widgets/app_button.dart';
 import 'app_error.dart';
 import 'error_codes.dart';
 import 'error_log.dart';
@@ -29,8 +30,9 @@ Future<void> showErrorDialog(
         child: Text(error.message),
       ),
       actions: [
-        ShadButton.outline(
-          child: const Text('复制错误'),
+        AppButton(
+          label: '复制错误',
+          variant: AppButtonVariant.outline,
           onPressed: () {
             Clipboard.setData(ClipboardData(text: error.fullText));
             ShadSonner.of(ctx).show(
@@ -41,8 +43,8 @@ Future<void> showErrorDialog(
             );
           },
         ),
-        ShadButton(
-          child: const Text('关闭'),
+        AppButton(
+          label: '关闭',
           onPressed: () => Navigator.of(ctx).pop(),
         ),
       ],
