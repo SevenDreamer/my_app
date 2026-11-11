@@ -8,6 +8,7 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../design/tokens.dart';
+import '../../design/widgets/app_button.dart';
 import '../../core/errors/app_error.dart';
 import '../../core/errors/error_codes.dart';
 import '../../core/errors/error_dialog.dart';
@@ -24,15 +25,16 @@ Future<void> showUpdateNotice(BuildContext context, UpdateInfo info) async {
       title: Text('发现新版本 v${info.version}'),
       description: Text(notes.isEmpty ? '本次更新包含改进与修复。' : notes),
       actions: [
-        ShadButton.outline(
-          child: const Text('忽略本版'),
+        AppButton(
+                  label: '忽略本版',
+                  variant: AppButtonVariant.ghost,
           onPressed: () {
             UpdateService().ignoreVersion(info.version);
             Navigator.of(ctx).pop();
           },
         ),
-        ShadButton(
-          child: Text(isAndroid ? '下载并安装' : '前往下载'),
+        AppButton(
+                  label: isAndroid ? '下载并安装' : '前往下载',
           onPressed: () async {
             Navigator.of(ctx).pop();
             if (isAndroid) {
@@ -64,8 +66,9 @@ Future<void> _downloadAndInstall(BuildContext ctx, UpdateInfo info) async {
       return ShadDialog.alert(
         title: const Text('正在下载更新'),
         actions: [
-          ShadButton.outline(
-            child: const Text('后台下载'),
+          AppButton(
+                      label: '后台下载',
+                      variant: AppButtonVariant.outline,
             onPressed: () => Navigator.of(dctx).pop(),
           ),
         ],

@@ -6,6 +6,7 @@ import 'package:flutter/widgets.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 import '../../design/tokens.dart';
+import '../../design/widgets/app_button.dart';
 import '../../design/widgets/app_spinner.dart';
 import 'self_test_runner.dart';
 
@@ -56,13 +57,13 @@ class _SelfTestDialogState extends State<_SelfTestDialog> {
       title: const Text('自动测试'),
       actions: [
         if (!_running)
-          ShadButton.outline(
+          AppButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('关闭'),
+            label: '关闭',
           ),
-        ShadButton(
+        AppButton(
           onPressed: _running ? null : _run,
-          child: Text(_running ? '测试中…' : '开始测试'),
+          label: _running ? '测试中…' : '开始测试',
         ),
       ],
       child: Container(

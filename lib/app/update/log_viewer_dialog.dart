@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 import '../../core/logging/app_logger.dart';
+import '../../design/widgets/app_button.dart';
 
 Future<void> showLogViewerDialog(BuildContext context) async {
   await showShadDialog<void>(
@@ -10,9 +11,9 @@ Future<void> showLogViewerDialog(BuildContext context) async {
     builder: (ctx) => ShadDialog(
       title: const Text('运行日志（最近 200 条）'),
       actions: [
-        ShadButton.outline(
+        AppButton(variant: AppButtonVariant.outline,
           onPressed: () => Navigator.of(ctx).pop(),
-          child: const Text('关闭'),
+          label: '关闭',
         ),
       ],
       child: SizedBox(

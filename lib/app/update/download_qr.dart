@@ -5,6 +5,7 @@
 //! 解析出的下载地址，手机扫码浏览器打开直接下载。
 import 'package:flutter/widgets.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import '../../design/widgets/app_button.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 import '../../core/errors/app_error.dart';
@@ -57,8 +58,8 @@ Future<void> showDownloadQrDialog(BuildContext context) async {
       title: const Text('扫码下载 Android 版'),
       description: const Text('用手机相机或微信扫码，浏览器打开后下载安装。\n链接长期有效，可随时扫码。'),
       actions: [
-        ShadButton(
-          child: const Text('关闭'),
+        AppButton(
+          label: '关闭',
           onPressed: () => Navigator.of(context).pop(),
         ),
       ],

@@ -8,6 +8,7 @@ import 'package:flutter/widgets.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 import '../../design/tokens.dart';
+import '../../design/widgets/app_button.dart';
 import '../../design/widgets/app_scaffold.dart';
 import '../../design/widgets/app_spinner.dart';
 import '../selftest/self_test_prompt.dart';
@@ -92,16 +93,16 @@ class _GateBody extends StatelessWidget {
             // 底部操作：「跳过」全程可见（绝不把用户堵在门外）；
             // 重启降级态额外给「退出应用」（重开即应用热更）
             if (phase == BootGatePhase.restartPending) ...[
-              ShadButton.outline(
+              AppButton(variant: AppButtonVariant.outline,
                 onPressed: controller.exitApp,
-                child: const Text('退出应用'),
+                label: '退出应用',
               ),
               const SizedBox(height: AppSpacing.sm),
             ],
             if (phase != BootGatePhase.restarting)
-              ShadButton.ghost(
+              AppButton(variant: AppButtonVariant.ghost,
                 onPressed: controller.skip,
-                child: const Text('跳过'),
+                label: '跳过',
               ),
             const SizedBox(height: AppSpacing.md),
           ],
