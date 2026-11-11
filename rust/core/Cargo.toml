@@ -10,6 +10,7 @@ license = "AGPL-3.0"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
+sha2 = "0.11.1"
 # 零依赖起步（FFI 规矩：extern "C" 手写，不引 FFI 框架）——
 # 计算功能（xz/zstd 等）落地时再按需加，加前先验证包活性（AGENTS 纪律）。
 

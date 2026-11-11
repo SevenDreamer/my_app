@@ -7,15 +7,18 @@
 //! 分层：本 crate 只做纯计算（无 IO/无平台 API）——平台相关（文件/线程）
 //! 留在调用侧，保证 wasm 可编译。
 
-use std::ffi::{c_char, CString};
+use std::ffi::{c_char, CStr, CString};
+use std::slice;
+
+use sha2::{Digest, Sha256};
 
 /// 核心引擎版本号（心跳函数——FFI 通路的活体验证）。
 /// 返回值为静态字符串指针，调用方**不得释放**。
 #[unsafe(no_mangle)]
 pub extern "C" fn core_version() -> *const c_char {
-    // 静态生命周期：进程内有效，免释放（FFI 心跳惯例）
-    static VERSION: &str = concat!("core-rs-", env!("CARGO_PKG_VERSION"));
-    // CString::new 只能给运行时串用；静态串直接转指针
+    // C ABI 字符串必须 NUL 终止——静态串手动补 \0（2026-11-10 FFI 测试
+    // 抓获：缺 NUL 尾会让调用方 toDartString 读越界出 FormatException）
+    static VERSION: &str = concat!("core-rs-", env!("CARGO_PKG_VERSION"), "\0");
     VERSION.as_ptr() as *const c_char
 }
 
@@ -35,6 +38,22 @@ pub extern "C" fn core_build_info() -> *mut c_char {
         if cfg!(debug_assertions) { "debug" } else { "release" }
     );
     CString::new(s).map(|c| c.into_raw()).unwrap_or(std::ptr::null_mut())
+}
+
+/// SHA-256 哈希（镜像/快照校验原语）：字节缓冲进 → 十六进制串出。
+/// [data] 为缓冲指针、[len] 为字节数；返回堆分配字符串，须用
+/// [core_string_free] 释放。data 为空指针返回 null。
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn core_sha256_hex(data: *const u8, len: usize) -> *mut c_char {
+    if data.is_null() {
+        return std::ptr::null_mut();
+    }
+    let bytes = unsafe { slice::from_raw_parts(data, len) };
+    let mut hasher = Sha256::new();
+    hasher.update(bytes);
+    let digest = hasher.finalize();
+    let hex: String = digest.iter().map(|b| format!("{b:02x}")).collect();
+    CString::new(hex).map(|c| c.into_raw()).unwrap_or(std::ptr::null_mut())
 }
 
 /// 释放 [core_build_info] 返回的字符串（配对释放，FFI 纪律）。
@@ -64,6 +83,33 @@ mod tests {
         assert!(!p.is_null());
         let s = unsafe { std::ffi::CStr::from_ptr(p) };
         assert!(s.to_str().unwrap().starts_with("core-rs-"));
+    }
+
+    #[test]
+    fn sha256_known_vector() {
+        // NIST 测试向量：空串 → e3b0c442...（校验哈希正确性）
+        let p = unsafe { core_sha256_hex(std::ptr::null(), 0) };
+        assert!(p.is_null(), "空指针须返回 null");
+        let empty: [u8; 0] = [];
+        let p = unsafe { core_sha256_hex(empty.as_ptr(), 0) };
+        let s = unsafe { CStr::from_ptr(p) }.to_str().unwrap().to_string();
+        assert_eq!(
+            s,
+            "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        );
+        unsafe { core_string_free(p) };
+    }
+
+    #[test]
+    fn sha256_abc_vector() {
+        let data = b"abc";
+        let p = unsafe { core_sha256_hex(data.as_ptr(), data.len()) };
+        let s = unsafe { CStr::from_ptr(p) }.to_str().unwrap().to_string();
+        assert_eq!(
+            s,
+            "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+        );
+        unsafe { core_string_free(p) };
     }
 
     #[test]

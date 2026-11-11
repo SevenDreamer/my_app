@@ -7,6 +7,7 @@ import 'dart:ffi';
 import 'dart:io';
 
 import 'package:ffi/ffi.dart';
+// calloc 由 package:ffi 提供（堆缓冲）
 
 /// Rust 核心能力句柄（null = 当前平台不可用）。
 class RustCore {
@@ -17,12 +18,13 @@ class RustCore {
   static RustCore? _instance;
 
   /// 尝试加载核心库（幂等；失败返回 null）。
-  static RustCore? ensureLoaded() {
+  /// [libraryPath] 可指定绝对路径（测试环境用——Windows DLL 加载不搜
+  /// 工作目录，产品运行时 dll 在 exe 旁走默认名即可）。
+  static RustCore? ensureLoaded({String? libraryPath}) {
     if (_instance != null) return _instance;
     try {
-      final lib = Platform.isWindows
-          ? DynamicLibrary.open('core.dll')
-          : DynamicLibrary.open('libcore.so');
+      final lib = DynamicLibrary.open(libraryPath ??
+          (Platform.isWindows ? 'core.dll' : 'libcore.so'));
       _instance = RustCore._(lib);
       return _instance;
     } catch (_) {
@@ -47,6 +49,29 @@ class RustCore {
       final fn = _lib.lookupFunction<Int64 Function(Int64, Int64),
           int Function(int, int)>('core_add');
       return fn(a, b);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// SHA-256（镜像/快照校验原语）：字节进 → 十六进制串出；失败返回 null。
+  String? sha256Hex(List<int> bytes) {
+    try {
+      final fn = _lib.lookupFunction<
+          Pointer<Utf8> Function(Pointer<UnsignedChar>, IntPtr),
+          Pointer<Utf8> Function(Pointer<UnsignedChar>, int)>('core_sha256_hex');
+      final free = _lib.lookupFunction<Void Function(Pointer<Utf8>),
+          void Function(Pointer<Utf8>)>('core_string_free');
+      final buf = calloc<UnsignedChar>(bytes.length);
+      for (var i = 0; i < bytes.length; i++) {
+        buf[i] = bytes[i] & 0xff;
+      }
+      final p = fn(buf, bytes.length);
+      calloc.free(buf);
+      if (p == nullptr) return null;
+      final s = p.toDartString();
+      free(p);
+      return s;
     } catch (_) {
       return null;
     }
