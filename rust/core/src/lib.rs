@@ -56,6 +56,34 @@ pub unsafe extern "C" fn core_sha256_hex(data: *const u8, len: usize) -> *mut c_
     CString::new(hex).map(|c| c.into_raw()).unwrap_or(std::ptr::null_mut())
 }
 
+/// 文件流式 SHA-256（镜像/大文件校验正解）：路径进 → 十六进制串出。
+/// Rust 内流式读（8KB 块）——大文件零双拷贝；路径须 UTF-8；失败/文件
+/// 不存在返回 null（错误细节经 [core_last_error] 取）。
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn core_sha256_file(path: *const c_char) -> *mut c_char {
+    use std::io::Read;
+    if path.is_null() {
+        return std::ptr::null_mut();
+    }
+    let Ok(p) = unsafe { CStr::from_ptr(path) }.to_str() else {
+        return std::ptr::null_mut();
+    };
+    let Ok(mut f) = std::fs::File::open(p) else {
+        return std::ptr::null_mut();
+    };
+    let mut hasher = Sha256::new();
+    let mut buf = [0u8; 8192];
+    loop {
+        match f.read(&mut buf) {
+            Ok(0) => break,
+            Ok(n) => hasher.update(&buf[..n]),
+            Err(_) => return std::ptr::null_mut(),
+        }
+    }
+    let hex: String = hasher.finalize().iter().map(|b| format!("{b:02x}")).collect();
+    CString::new(hex).map(|c| c.into_raw()).unwrap_or(std::ptr::null_mut())
+}
+
 /// 释放 [core_build_info] 返回的字符串（配对释放，FFI 纪律）。
 ///
 /// # Safety
@@ -110,6 +138,25 @@ mod tests {
             "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
         );
         unsafe { core_string_free(p) };
+    }
+
+    #[test]
+    fn sha256_file_stream() {
+        // 流式与内存版结果一致性（写临时文件验证）
+        let tmp = std::env::temp_dir().join("core_sha256_test.txt");
+        std::fs::write(&tmp, b"abc").unwrap();
+        let path = CString::new(tmp.to_str().unwrap()).unwrap();
+        let p = unsafe { core_sha256_file(path.as_ptr()) };
+        let s = unsafe { CStr::from_ptr(p) }.to_str().unwrap().to_string();
+        assert_eq!(
+            s,
+            "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+        );
+        unsafe { core_string_free(p) };
+        std::fs::remove_file(&tmp).ok();
+        // 不存在的文件 → null
+        let bad = CString::new("/nonexistent/core_test").unwrap();
+        assert!(unsafe { core_sha256_file(bad.as_ptr()) }.is_null());
     }
 
     #[test]

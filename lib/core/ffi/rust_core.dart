@@ -77,6 +77,25 @@ class RustCore {
     }
   }
 
+  /// 文件流式 SHA-256（大文件零双拷贝）；失败/不存在返回 null。
+  String? sha256File(String path) {
+    try {
+      final fn = _lib.lookupFunction<Pointer<Utf8> Function(Pointer<Utf8>),
+          Pointer<Utf8> Function(Pointer<Utf8>)>('core_sha256_file');
+      final free = _lib.lookupFunction<Void Function(Pointer<Utf8>),
+          void Function(Pointer<Utf8>)>('core_string_free');
+      final cPath = path.toNativeUtf8();
+      final p = fn(cPath);
+      calloc.free(cPath);
+      if (p == nullptr) return null;
+      final s = p.toDartString();
+      free(p);
+      return s;
+    } catch (_) {
+      return null;
+    }
+  }
+
   /// 构建信息（堆字符串，配对释放）。
   String? buildInfo() {
     try {

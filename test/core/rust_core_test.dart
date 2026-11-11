@@ -33,6 +33,15 @@ void main() {
       rc.sha256Hex('abc'.codeUnits),
       'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad',
     );
+    // 文件流式版与内存版一致性（临时文件）
+    final tmp = File('${Directory.systemTemp.path}/rust_core_test.txt')
+      ..writeAsStringSync('abc');
+    expect(
+      rc.sha256File(tmp.path),
+      'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad',
+    );
+    expect(rc.sha256File('/nonexistent/core_test'), isNull);
+    tmp.deleteSync();
     expect(rc.buildInfo(), contains('target='));
   });
 }
