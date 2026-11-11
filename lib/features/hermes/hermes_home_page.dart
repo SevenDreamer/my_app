@@ -5,6 +5,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
+import '../../design/widgets/app_button.dart';
 import '../../design/tokens.dart';
 import '../../design/widgets/app_header.dart';
 import '../../design/widgets/app_scaffold.dart';
@@ -73,20 +74,20 @@ class _HermesHomePageState extends State<HermesHomePage> {
                 Row(
                   children: [
                     if (!connected) ...[
-                      ShadButton(
+                      AppButton(
                         onPressed: () => _vm.detectAndConnect(_token.text),
-                        child: const Text('检测本机网关'),
+                        label: '检测本机网关',
                       ),
                       const SizedBox(width: AppSpacing.sm),
                     ],
-                    ShadButton(
+                    AppButton(
                       onPressed: connected
                           ? () => _vm.disconnect()
                           : () => _vm.connect(_url.text, _token.text),
-                      child: Text(connected ? '断开' : '连接'),
+                      label: connected ? '断开' : '连接',
                     ),
                     const SizedBox(width: AppSpacing.sm),
-                    ShadButton.outline(
+                    AppButton(variant: AppButtonVariant.outline,
                       onPressed: connected
                           ? () => Navigator.of(context).push(
                                 PageRouteBuilder<void>(
@@ -99,7 +100,7 @@ class _HermesHomePageState extends State<HermesHomePage> {
                                 ),
                               )
                           : null,
-                      child: const Text('会话列表'),
+                      label: '会话列表',
                     ),
                   ],
                 ),
