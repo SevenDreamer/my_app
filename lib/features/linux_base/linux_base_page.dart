@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 import '../../design/tokens.dart';
+import '../../design/widgets/app_button.dart';
 import '../../design/widgets/app_stat_block.dart';
 import '../../design/widgets/app_header.dart';
 import '../../design/widgets/app_layout.dart';
@@ -196,9 +197,9 @@ class _LinuxBasePageState extends State<LinuxBasePage> {
           Text('从镜像仓下载 Ubuntu rootfs 解包（约几分钟，占 800 MB）',
               style: AppTypography.labelSm),
           const SizedBox(height: AppSpacing.md),
-          ShadButton(
+          AppButton(
+            label: '安装系统',
             onPressed: _vm.busy ? null : _vm.installSystem,
-            child: const Text('安装系统'),
           ),
         ],
       ),
@@ -212,27 +213,31 @@ class _LinuxBasePageState extends State<LinuxBasePage> {
       runSpacing: AppSpacing.sm,
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
-        ShadButton(
+        AppButton(
+          label: '启动系统',
           onPressed: _vm.busy ? null : _vm.startSystem,
-          child: const Text('启动系统'),
         ),
-        ShadButton.outline(
+        AppButton(
+          label: '停止',
+          variant: AppButtonVariant.outline,
           onPressed: _vm.busy ? null : _vm.stopSystem,
-          child: const Text('停止'),
         ),
-        ShadButton.outline(
+        AppButton(
+          label: '重新安装',
+          variant: AppButtonVariant.outline,
           onPressed: _vm.busy ? null : _vm.reinstallSystem,
-          child: const Text('重新安装'),
         ),
-        ShadButton.ghost(
+        AppButton(
+          label: '重置系统',
+          variant: AppButtonVariant.danger,
           onPressed: _vm.busy ? null : _confirmReset,
-          child: const Text('重置系统', style: TextStyle(color: AppColors.error)),
         ),
-        ShadButton.ghost(
+        AppButton(
+          label: '终端',
+          variant: AppButtonVariant.ghost,
           onPressed: () => Navigator.of(context).push(
             MaterialPageRoute<void>(builder: (_) => const DshGoHost()),
           ),
-          child: const Text('终端'),
         ),
       ],
     );
@@ -252,11 +257,12 @@ class _LinuxBasePageState extends State<LinuxBasePage> {
             ),
             Text('保留最近 3 个', style: AppTypography.labelSm),
             const SizedBox(width: AppSpacing.sm),
-            ShadButton.outline(
-              size: ShadButtonSize.sm,
+            AppButton(
+              label: '创建快照',
+              variant: AppButtonVariant.outline,
+              size: AppButtonSize.sm,
               onPressed:
                   _vm.busy ? null : () => _vm.createSnapshot(note: '手动快照'),
-              child: const Text('创建快照'),
             ),
           ],
         ),
@@ -297,17 +303,18 @@ class _LinuxBasePageState extends State<LinuxBasePage> {
                     ],
                   ),
                 ),
-                ShadButton.outline(
-                  size: ShadButtonSize.sm,
+                AppButton(
+                  label: '回滚',
+                  variant: AppButtonVariant.outline,
+                  size: AppButtonSize.sm,
                   onPressed: _vm.busy ? null : () => _vm.restoreSnapshot(snap),
-                  child: const Text('回滚'),
                 ),
                 const SizedBox(width: AppSpacing.sm),
-                ShadButton.ghost(
-                  size: ShadButtonSize.sm,
+                AppButton(
+                  label: '删除',
+                  variant: AppButtonVariant.danger,
+                  size: AppButtonSize.sm,
                   onPressed: _vm.busy ? null : () => _vm.deleteSnapshot(snap),
-                  child:
-                      const Text('删除', style: TextStyle(color: AppColors.error)),
                 ),
               ],
             ),
