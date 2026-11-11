@@ -12,6 +12,7 @@ import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shorebird_code_push/shorebird_code_push.dart';
 
+import '../../core/ffi/rust_core.dart';
 import '../../core/logging/sentry_bridge.dart';
 import '../update/apk_installer.dart';
 import '../update/update_service.dart';
@@ -86,6 +87,7 @@ class SelfTestRunner {
     await step('apk', '更新链 · 安装包', () async => _apk());
     await step('patch', '更新链 · 热更通道', () async => _patch());
     await step('dsh', 'DSH 运行时', () async => _dsh());
+    await step('rustCore', 'Rust 核心自检', () async => _rustCore());
 
     final report = SelfTestReport(version: version, results: results);
     if (report.passed) {
@@ -109,6 +111,38 @@ class SelfTestRunner {
   }
 
   /// 启动冒烟：应用活着且版本/诊断底座可读
+  /// Rust core FFI 自检：心跳 + NIST SHA-256 向量（通路与算法双验）。
+  /// 缺 dll（未打包 Rust 的构建）记 skipped 不算失败。
+  static SelfTestStepResult _rustCore() {
+    final rc = RustCore.ensureLoaded();
+    if (rc == null) {
+      return const SelfTestStepResult(
+        id: 'rustCore',
+        label: 'Rust 核心自检',
+        outcome: SelfTestOutcome.skipped,
+        detail: '当前构建未包含 Rust 核心（core.dll 缺席）',
+      );
+    }
+    final ver = rc.version() ?? '?';
+    final addOk = rc.add(2, 3) == 5;
+    final hashOk = rc.sha256Hex(const []) ==
+        'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855';
+    if (addOk && hashOk) {
+      return SelfTestStepResult(
+        id: 'rustCore',
+        label: 'Rust 核心自检',
+        outcome: SelfTestOutcome.passed,
+        detail: '$ver · 算术/SHA-256 NIST 向量过界验证通过',
+      );
+    }
+    return SelfTestStepResult(
+      id: 'rustCore',
+      label: 'Rust 核心自检',
+      outcome: SelfTestOutcome.failed,
+      detail: '$ver · add=$addOk sha256=$hashOk',
+    );
+  }
+
   static SelfTestStepResult _boot(PackageInfo info) {
     return SelfTestStepResult(
       id: 'boot',
