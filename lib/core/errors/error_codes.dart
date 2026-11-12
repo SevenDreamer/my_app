@@ -42,6 +42,9 @@ abstract class ErrorCodes {
   /// 签名下载链接获取失败
   static const String updateSignedUrl = 'E3003';
 
+  /// 安装包完整性校验失败（SHA-256 不匹配，拒装）
+  static const String updateChecksum = 'E3004';
+
   // ── E4xxx 存储 ──
   /// 本地凭证/日志存储异常
   static const String storage = 'E4001';

@@ -118,7 +118,11 @@ Future<void> _downloadAndInstall(BuildContext ctx, UpdateInfo info) async {
   }
 
   final installErr =
-      await downloadAndInstallApk(url, onProgress: (p) => progress.value = p);
+      await downloadAndInstallApk(
+      url,
+      onProgress: (p) => progress.value = p,
+      expectSha256: info.apkSha256,
+    );
   closeProgress();
   progress.dispose();
   if (installErr != null && ctx.mounted) {

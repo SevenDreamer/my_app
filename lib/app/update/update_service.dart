@@ -24,11 +24,15 @@ class UpdateInfo {
     required this.notes,
     required this.url,
     required this.apks,
+    this.apkSha256,
     this.patch,
   });
 
   /// 纯版本号（如 1.3.0-dev.5）
   final String version;
+
+  /// APK 完整性期望值（R2 manifest 的 apkSha256；旧 manifest 无此字段=null）
+  final String? apkSha256;
 
   /// 更新说明（截取展示由 UI 决定）
   final String notes;
@@ -125,6 +129,7 @@ class ManifestUpdateSource implements UpdateSource {
       notes: (j['notes'] as String?) ?? '',
       url: (j['page'] as String?) ?? '',
       apks: apks,
+      apkSha256: j['apkSha256'] as String?,
       patch: PatchInfo.tryParse(j['patch']),
     );
   }
