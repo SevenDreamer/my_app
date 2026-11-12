@@ -431,3 +431,11 @@ MSYS 把 `-o /d/Projects/...` 转成 `D:\d\Projects\...`（盘符重复）——
 修法：`REPO_WIN=$(pwd -W 2>/dev/null || pwd)` 动态推导再拼（**勿写死绝对路径**
 ——换机即坏，用户指正教训）。同 #5（emulator）同族：Windows 原生程序的
 路径参数一律 Windows 风格。
+
+### 45. web wasm 引导选线是环境探测，不是编译问题
+`flutter build web --wasm` 修完 dart:ffi 条件导入（rust_core_stub）后产物全通
+（main.dart.wasm 字节码合法/MIME 正确），但引导可能仍选 JS——**这不是失败**
+（errs 空=主动探测选择）：wasm 路径要 SharedArrayBuffer（COOP/COEP 响应头）
+等环境能力。正式部署配 `Cross-Origin-Opener-Policy: same-origin` +
+`Cross-Origin-Embedder-Policy: require-corp` 两行即走 wasm。调试钩子：
+index.html 挂 window.__errs 可区分"失败回落"与"探测选择"。
