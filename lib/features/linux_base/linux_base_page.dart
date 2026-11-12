@@ -17,14 +17,18 @@ import 'linux_base_view_model.dart';
 import '../../data/services/linux_base_service.dart';
 
 class LinuxBasePage extends StatefulWidget {
-  const LinuxBasePage({super.key});
+  /// [vm] 可注入（测试用 fake service 驱动）；缺省自建真服务
+  const LinuxBasePage({super.key, this.vm});
+
+  final LinuxBaseViewModel? vm;
 
   @override
   State<LinuxBasePage> createState() => _LinuxBasePageState();
 }
 
 class _LinuxBasePageState extends State<LinuxBasePage> {
-  late final LinuxBaseViewModel _vm = LinuxBaseViewModel(LinuxBaseService());
+  late final LinuxBaseViewModel _vm =
+        widget.vm ?? LinuxBaseViewModel(LinuxBaseService());
 
   @override
   void initState() {
