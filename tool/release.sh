@@ -98,7 +98,7 @@ for c in python3 python; do
 done
 [ -n "$PY" ] || { echo "需要可用的 python3 或 python" >&2; exit 1; }
 # APK 完整性期望值（app 端下载后经 Rust core 流式 SHA-256 校验拒装）
-APK_SHA=$(sha256sum "build/$ASSET" | awk '{print $1}')
+APK_SHA=$(sha256sum "$APK" | awk '{print $1}')
 echo "APK SHA-256: $APK_SHA"
 "$PY" - "$NAME" "$NOTES" "$R2_BASE_URL/$ASSET" "build/$MANIFEST" "$APK_SHA" <<'PY'
 import json, sys
