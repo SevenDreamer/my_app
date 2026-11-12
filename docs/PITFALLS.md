@@ -404,3 +404,24 @@ libprootloader.so…）漏删，与 dsh-go 的 Termux 版（libproot.so/libtallo
 CMakeLists.txt 的 APPLY_STANDARD_SETTINGS）：加 `/utf-8`（强制 UTF-8 读源）
 + `/wd4819`（双保险）。这是 #2（自家 C++ 禁中文注释）的第三方变体——
 **解法升级为全局 /utf-8，而不是禁注释**。
+
+### 40. FFI C ABI 字符串必须 NUL 终止（Rust 侧最容易漏）
+Rust 静态 `&str` 直接 `as_ptr()` 给 C ABI 用**没有 \0 尾**——Dart 侧
+`toDartString()` 扫到越界字节抛 `FormatException (Missing extension byte)`。
+修法：`concat!(..., "\0")` 手动补终止符，或 `CString` 分配。凡是 FFI 返回
+字符串，先问"有 NUL 尾吗"。
+
+### 41. 包名 ≠ 入口文件名（import 双查）
+`lucide_icons_flutter` 包的入口是 `lucide_icons.dart`（包名和文件名不一致）。
+import 写错两轮才定准。**查法**：`ls ~/.pub-cache/hosted/pub.dev/<pkg>-*/lib/`
+看实际入口文件，别按包名猜。
+
+### 42. Windows DLL 加载不搜工作目录（flutter test 环境）
+`DynamicLibrary.open('core.dll')` 在产品运行时（dll 在 exe 旁）没问题，
+但 `flutter test` 的 cwd 是项目根且 Windows DLL 搜索不含 cwd——加载返回 null。
+修法：封装层留 `libraryPath` 参数，测试传绝对路径。
+
+### 43. golden 测试的 finder 要锚唯一节点
+`find.byType(Row)` 会同时命中测试根 Row 和组件内部 Row（"Found 3 widgets"）。
+基准图对 `RepaintBoundary`（`_shot` 唯一包裹层）拍，别对容器类型拍。
+另：ShadButton 测试环境必须包 `ShadTheme`（No ShadTheme widget ancestor）。
