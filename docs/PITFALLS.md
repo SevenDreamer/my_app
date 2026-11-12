@@ -425,3 +425,9 @@ import 写错两轮才定准。**查法**：`ls ~/.pub-cache/hosted/pub.dev/<pkg
 `find.byType(Row)` 会同时命中测试根 Row 和组件内部 Row（"Found 3 widgets"）。
 基准图对 `RepaintBoundary`（`_shot` 唯一包裹层）拍，别对容器类型拍。
 另：ShadButton 测试环境必须包 `ShadTheme`（No ShadTheme widget ancestor）。
+
+### 44. cargo-ndk 的 -o 必须 Windows 风格路径（MSYS 转换坑）
+MSYS 把 `-o /d/Projects/...` 转成 `D:\d\Projects\...`（盘符重复）——库落错位。
+修法：`REPO_WIN=$(pwd -W 2>/dev/null || pwd)` 动态推导再拼（**勿写死绝对路径**
+——换机即坏，用户指正教训）。同 #5（emulator）同族：Windows 原生程序的
+路径参数一律 Windows 风格。
