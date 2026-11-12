@@ -28,6 +28,28 @@ Future<String> deviceAbi() async {
   }
 }
 
+/// APK 完整性校验（独立纯函数——测试靶）：
+/// [expectSha256] 为 null/空则跳过（旧 manifest 兼容）；Rust 核心不可用
+/// 降级放行返回 null；不匹配删文件返回 E3004 错误。
+AppError? verifyApkIntegrity(File file, String? expectSha256) {
+  if (expectSha256 == null || expectSha256.isEmpty) return null;
+  final actual = RustCore.ensureLoaded()?.sha256File(file.path);
+  if (actual == null) {
+    SentryBridge.breadcrumb(
+        'update.verify_skipped', 'rust-core-unavailable');
+    return null;
+  }
+  if (actual.toLowerCase() != expectSha256.toLowerCase()) {
+    file.deleteSync();
+    return AppError(
+      code: ErrorCodes.updateChecksum,
+      message: '安装包完整性校验失败（SHA-256 不匹配），已拒绝安装',
+      detail: 'expected=$expectSha256 actual=$actual',
+    );
+  }
+  return null;
+}
+
 /// 下载 APK 并调起安装；[onProgress] 回报 0..1。
 /// [expectSha256]（R2 manifest 提供）下载完成后经 Rust core 流式校验——
 /// 不匹配即拒装并删文件（供应链完整性防护，2026-11-10 补）。
@@ -64,23 +86,9 @@ Future<AppError?> downloadAndInstallApk(
     await sink.close();
     client.close();
 
-    // 完整性校验（Rust core 流式 SHA-256，零双拷贝）——
-    // manifest 提供期望值才校验（向后兼容旧 manifest）
-    if (expectSha256 != null && expectSha256.isNotEmpty) {
-      final actual = RustCore.ensureLoaded()?.sha256File(file.path);
-      if (actual == null) {
-        // Rust 核心不可用：降级放行（增强件原则）但留 breadcrumb
-        SentryBridge.breadcrumb(
-            'update.verify_skipped', 'rust-core-unavailable');
-      } else if (actual.toLowerCase() != expectSha256.toLowerCase()) {
-        file.deleteSync();
-        return AppError(
-          code: ErrorCodes.updateChecksum,
-          message: '安装包完整性校验失败（SHA-256 不匹配），已拒绝安装',
-          detail: 'expected=$expectSha256 actual=$actual',
-        );
-      }
-    }
+    // 完整性校验（Rust core 流式 SHA-256）——不匹配拒装
+    final verifyErr = verifyApkIntegrity(file, expectSha256);
+    if (verifyErr != null) return verifyErr;
 
     // 调起系统安装器（首次系统弹"允许安装未知应用"授权）
     final result = await OpenFile.open(file.path);
