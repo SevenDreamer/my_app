@@ -25,8 +25,10 @@ else
   echo "==> $DEST 不存在（桌面端未构建过）——dll 留在 $DLL"
 fi
 
-# Android 双 ABI（cargo-ndk → runtime/out/<abi>/jniLibs/<abi>/，Gradle flavor 读取）
-# 注意：-o 必须传 Windows 风格路径（MSYS 会把 /d/ 转成 D:\d\，见坑）
-echo "==> cargo ndk（arm64-v8a + x86_64）"
-(cd rust/core &&   cargo ndk -t arm64-v8a -o "D:/Projects/my_app/runtime/out/arm64-v8a/jniLibs" build --release &&   cargo ndk -t x86_64 -o "D:/Projects/my_app/runtime/out/x86_64/jniLibs" build --release)
-echo "RUST_DEV_DONE"
+# Android 双 ABI（cargo-ndk -> runtime/out/<abi>/jniLibs/<abi>/，Gradle flavor 读取）
+# 注意：cargo-ndk 的 -o 必须 Windows 风格路径（MSYS 会把 /d/ 转成 D:\d\——
+# 换机即坏的写死路径教训，2026-11-10 用户指正）——pwd -W 动态推导
+REPO_WIN=$(pwd -W 2>/dev/null || pwd)
+echo "==> cargo ndk（arm64-v8a + x86_64）-> $REPO_WIN/runtime/out/..."
+(cd rust/core &&   cargo ndk -t arm64-v8a -o "$REPO_WIN/runtime/out/arm64-v8a/jniLibs" build --release &&   cargo ndk -t x86_64 -o "$REPO_WIN/runtime/out/x86_64/jniLibs" build --release)
+echo RUST_DEV_DONE
