@@ -24,4 +24,9 @@ if [ -d "$DEST" ]; then
 else
   echo "==> $DEST 不存在（桌面端未构建过）——dll 留在 $DLL"
 fi
+
+# Android 双 ABI（cargo-ndk → runtime/out/<abi>/jniLibs/<abi>/，Gradle flavor 读取）
+# 注意：-o 必须传 Windows 风格路径（MSYS 会把 /d/ 转成 D:\d\，见坑）
+echo "==> cargo ndk（arm64-v8a + x86_64）"
+(cd rust/core &&   cargo ndk -t arm64-v8a -o "D:/Projects/my_app/runtime/out/arm64-v8a/jniLibs" build --release &&   cargo ndk -t x86_64 -o "D:/Projects/my_app/runtime/out/x86_64/jniLibs" build --release)
 echo "RUST_DEV_DONE"
