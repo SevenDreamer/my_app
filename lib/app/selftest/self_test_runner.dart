@@ -12,7 +12,8 @@ import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shorebird_code_push/shorebird_code_push.dart';
 
-import '../../core/ffi/rust_core.dart';
+import '../../core/ffi/rust_core_stub.dart'
+    if (dart.library.io) '../../core/ffi/rust_core.dart';
 import '../../core/logging/sentry_bridge.dart';
 import '../update/apk_installer.dart';
 import '../update/update_service.dart';

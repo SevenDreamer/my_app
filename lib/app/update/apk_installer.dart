@@ -10,7 +10,8 @@ import 'package:http/http.dart' as http;
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
 
-import '../../core/ffi/rust_core.dart';
+import '../../core/ffi/rust_core_stub.dart'
+    if (dart.library.io) '../../core/ffi/rust_core.dart';
 import '../../core/logging/sentry_bridge.dart';
 
 import '../../core/errors/app_error.dart';

@@ -5,7 +5,8 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
-import '../../core/ffi/rust_core.dart';
+import '../../core/ffi/rust_core_stub.dart'
+    if (dart.library.io) '../../core/ffi/rust_core.dart';
 import '../../core/logging/sentry_bridge.dart';
 import '../../data/services/linux_base_service.dart';
 
