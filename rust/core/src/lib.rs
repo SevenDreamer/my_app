@@ -44,6 +44,44 @@ pub unsafe extern "C" fn core_semver_is_newer(
     }
 }
 
+/// HID 游戏手柄报告编码（Dart→Rust 迁移第一批 B）：字段进 → 10 字节出。
+/// 布局：[reportId, buttons_lo, buttons_hi, dpad, lx, ly, rx, ry, l2, r2]。
+/// 范围越界返回 -1（调用方走原 Dart 校验报错）；成功返回写入长度。
+/// 接收侧 decode 低频留 Dart（性能点在 60fps 发送侧）。
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn core_gamepad_encode(
+    out: *mut u8,
+    out_len: usize,
+    report_id: u8,
+    buttons: u16,
+    dpad: u8,
+    lx: u8,
+    ly: u8,
+    rx: u8,
+    ry: u8,
+    l2: u8,
+    r2: u8,
+) -> i32 {
+    if out.is_null() || out_len < 10 {
+        return -1;
+    }
+    if dpad > 8 {
+        return -1;
+    }
+    let buf = unsafe { std::slice::from_raw_parts_mut(out, out_len) };
+    buf[0] = report_id;
+    buf[1] = (buttons & 0xFF) as u8;
+    buf[2] = ((buttons >> 8) & 0xFF) as u8;
+    buf[3] = dpad;
+    buf[4] = lx;
+    buf[5] = ly;
+    buf[6] = rx;
+    buf[7] = ry;
+    buf[8] = l2;
+    buf[9] = r2;
+    10
+}
+
 /// 核心引擎版本号（心跳函数——FFI 通路的活体验证）。
 /// 返回值为静态字符串指针，调用方**不得释放**。
 #[unsafe(no_mangle)]
@@ -151,6 +189,30 @@ mod tests {
         // 非法串
         let (r6, c6) = (c("not-a-version"), c("1.0.0"));
         assert_eq!(unsafe { core_semver_is_newer(r6.as_ptr(), c6.as_ptr()) }, -1);
+    }
+
+    #[test]
+    fn gamepad_encode_layout() {
+        let mut buf = [0u8; 16];
+        let n = unsafe {
+            core_gamepad_encode(buf.as_mut_ptr(), 16, 0x03, 0x1234, 5, 1, 2, 3, 4, 5, 6)
+        };
+        assert_eq!(n, 10);
+        assert_eq!(
+            &buf[..10],
+            &[0x03, 0x34, 0x12, 5, 1, 2, 3, 4, 5, 6],
+            "LE buttons + 字段序"
+        );
+        // dpad 越界
+        assert_eq!(
+            unsafe { core_gamepad_encode(buf.as_mut_ptr(), 16, 0, 0, 9, 0, 0, 0, 0, 0, 0) },
+            -1
+        );
+        // buffer 太小
+        assert_eq!(
+            unsafe { core_gamepad_encode(buf.as_mut_ptr(), 5, 0, 0, 0, 0, 0, 0, 0, 0, 0) },
+            -1
+        );
     }
 
     #[test]

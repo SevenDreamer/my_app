@@ -18,5 +18,16 @@ class RustCore {
 
   bool? isVersionNewer(String remote, String current) => null;
 
+  List<int>? gamepadEncode(
+      {required int reportId,
+      required int buttons,
+      required int dpad,
+      required int lx,
+      required int ly,
+      required int rx,
+      required int ry,
+      required int l2,
+      required int r2}) => null;
+
   String? sha256File(String path) => null;
 }

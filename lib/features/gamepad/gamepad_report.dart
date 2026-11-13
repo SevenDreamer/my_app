@@ -6,6 +6,9 @@
 //! 格式改动 = HID 描述符改动 = 主机端重新识别，故以单测钉死。
 import 'dart:typed_data';
 
+import '../../core/ffi/rust_core_stub.dart'
+    if (dart.library.io) '../../core/ffi/rust_core.dart';
+
 /// 按钮位（[GamepadReport.buttons] 位图中的 bit）
 abstract class GamepadButton {
   static const int a = 1 << 0;
@@ -79,7 +82,25 @@ class GamepadReport {
   bool pressed(int mask) => buttons & mask != 0;
 
   /// 编码为 HID 输入报告字节
+  /// 编码（Dart→Rust 迁移第一批 B）：Rust core_gamepad_encode 打头（60fps
+  /// 发送侧性能点），原 Dart 实现兜底（Rust 不可用时——增强件降级原则）。
   Uint8List encode() {
+    final rust = RustCore.ensureLoaded()?.gamepadEncode(
+      reportId: reportId,
+      buttons: buttons,
+      dpad: dpad,
+      lx: lx,
+      ly: ly,
+      rx: rx,
+      ry: ry,
+      l2: l2,
+      r2: r2,
+    );
+    if (rust != null) return Uint8List.fromList(rust);
+    return _encodeDart();
+  }
+
+  Uint8List _encodeDart() {
     _checkRange(buttons, 0, 0xFFFF, 'buttons');
     _checkRange(dpad, 0, 8, 'dpad');
     for (final (name, v) in [

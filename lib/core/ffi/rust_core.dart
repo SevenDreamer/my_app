@@ -54,6 +54,38 @@ class RustCore {
     }
   }
 
+  /// HID 手柄报告编码（10 字节）：字段进 buffer 出；越界/缓冲不足返回 null。
+  List<int>? gamepadEncode(
+      {required int reportId,
+      required int buttons,
+      required int dpad,
+      required int lx,
+      required int ly,
+      required int rx,
+      required int ry,
+      required int l2,
+      required int r2}) {
+    try {
+      final fn = _lib.lookupFunction<
+          Int32 Function(Pointer<UnsignedChar>, IntPtr, UnsignedChar, Uint16,
+              UnsignedChar, UnsignedChar, UnsignedChar, UnsignedChar,
+              UnsignedChar, UnsignedChar, UnsignedChar),
+          int Function(Pointer<UnsignedChar>, int, int, int, int, int, int,
+              int, int, int, int)>('core_gamepad_encode');
+      final buf = calloc<UnsignedChar>(10);
+      final n = fn(buf, 10, reportId, buttons, dpad, lx, ly, rx, ry, l2, r2);
+      if (n <= 0) {
+        calloc.free(buf);
+        return null;
+      }
+      final out = List<int>.generate(n, (i) => buf[i]);
+      calloc.free(buf);
+      return out;
+    } catch (_) {
+      return null;
+    }
+  }
+
   /// 版本决策：remote 是否比 current 新（semver 含预发布排序）。
   /// true=更新 / false=不更新 / null=解析失败（调用方保守处理）。
   bool? isVersionNewer(String remote, String current) {
