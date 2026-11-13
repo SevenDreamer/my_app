@@ -82,6 +82,168 @@ pub unsafe extern "C" fn core_gamepad_encode(
     10
 }
 
+// ── LatencyMeter 状态机（Dart→Rust 迁移第一批 C）────────────────
+// UDP 网络层留 Dart；节拍配对/时钟差滑动平均/丢包回收的有状态算法在
+// 本侧。handle = 状态句柄（Box 泄漏进裸指针——用 [core_latency_free] 释放）。
+
+use std::collections::HashMap;
+
+pub struct LatencyState {
+    /// seq → (t1 控制端时钟, hostAt 本机收到时刻)
+    pending: HashMap<i64, (i64, i64)>,
+    /// 端到端毫秒样本（上限 100）
+    samples: Vec<i64>,
+    lost: i64,
+    /// 时钟差（控制端 - 本机，滑动平均）
+    offset: Option<f64>,
+}
+
+impl LatencyState {
+    const MAX_SAMPLES: usize = 100;
+
+    fn new() -> Self {
+        Self {
+            pending: HashMap::new(),
+            samples: Vec::new(),
+            lost: 0,
+            offset: None,
+        }
+    }
+
+    /// 收到本机节拍回执：配对出端到端延迟样本
+    fn ingest_beat(&mut self, seq: i64, t1: i64, host_at: i64) {
+        self.pending.insert(seq, (t1, host_at));
+    }
+
+    /// 配对回收：超时未回执的记丢包（调用方按 now 扫）
+    fn collect(&mut self, seq: i64, reply_at: i64) -> i64 {
+        if let Some((t1, host_at)) = self.pending.remove(&seq) {
+            let latency = (reply_at - t1).max(0) - (reply_at - host_at).max(0) / 2;
+            let latency = latency.max(0);
+            if self.samples.len() >= Self::MAX_SAMPLES {
+                self.samples.remove(0);
+            }
+            self.samples.push(latency);
+            latency
+        } else {
+            self.lost += 1;
+            -1
+        }
+    }
+
+    /// 时钟差滑动平均更新（alpha=0.25）
+    fn ingest_syncack(&mut self, controller_minus_local: f64) {
+        self.offset = Some(match self.offset {
+            Some(prev) => prev * 0.75 + controller_minus_local * 0.25,
+            None => controller_minus_local,
+        });
+    }
+
+    /// 统计：(样本数, 平均, 最小, 最大, 丢包, 时钟差)——无样本返回 None
+    fn stats(&self) -> Option<(usize, i64, i64, i64, i64, Option<f64>)> {
+        if self.samples.is_empty() {
+            return None;
+        }
+        let (mut sum, mut min, mut max) = (0i64, self.samples[0], self.samples[0]);
+        for &v in &self.samples {
+            sum += v;
+            min = min.min(v);
+            max = max.max(v);
+        }
+        Some((
+            self.samples.len(),
+            sum / self.samples.len() as i64,
+            min,
+            max,
+            self.lost,
+            self.offset,
+        ))
+    }
+}
+
+/// 新建延迟状态机；返回句柄（须 [core_latency_free] 释放）。
+#[unsafe(no_mangle)]
+pub extern "C" fn core_latency_new() -> *mut LatencyState {
+    Box::into_raw(Box::new(LatencyState::new()))
+}
+
+/// 收节拍（seq 配对登记）。
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn core_latency_beat(
+    handle: *mut LatencyState,
+    seq: i64,
+    t1: i64,
+    host_at: i64,
+) {
+    if let Some(state) = unsafe { handle.as_mut() } {
+        state.ingest_beat(seq, t1, host_at);
+    }
+}
+
+/// 配对回收：返回延迟样本或 -1（记丢包）。
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn core_latency_collect(
+    handle: *mut LatencyState,
+    seq: i64,
+    reply_at: i64,
+) -> i64 {
+    match unsafe { handle.as_mut() } {
+        Some(state) => state.collect(seq, reply_at),
+        None => -1,
+    }
+}
+
+/// 时钟差滑动平均更新。
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn core_latency_syncack(handle: *mut LatencyState, delta: f64) {
+    if let Some(state) = unsafe { handle.as_mut() } {
+        state.ingest_syncack(delta);
+    }
+}
+
+/// 统计输出：out=[count, avg, min, max, lost]（i64×5）+ offset 传出。
+/// 无样本返回 0，有样本返回 1。
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn core_latency_stats(
+    handle: *mut LatencyState,
+    out: *mut i64,
+    out_len: usize,
+    offset_out: *mut f64,
+) -> i32 {
+    let state = unsafe { handle.as_ref() };
+    let Some(state) = state else {
+        return 0;
+    };
+    let stats = state.stats();
+    let Some((count, avg, min, max, lost, offset)) = stats else {
+        return 0;
+    };
+    if out.is_null() || out_len < 5 {
+        return 0;
+    }
+    let buf = unsafe { std::slice::from_raw_parts_mut(out, out_len) };
+    buf[0] = count as i64;
+    buf[1] = avg;
+    buf[2] = min;
+    buf[3] = max;
+    buf[4] = lost;
+    if !offset_out.is_null() {
+        unsafe { *offset_out = offset.unwrap_or(0.0) };
+    }
+    1
+}
+
+/// 释放状态机（配对 [core_latency_new]）。
+///
+/// # Safety
+/// [handle] 必须来自 [core_latency_new] 且只释放一次。
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn core_latency_free(handle: *mut LatencyState) {
+    if !handle.is_null() {
+        unsafe { drop(Box::from_raw(handle)) };
+    }
+}
+
 /// 核心引擎版本号（心跳函数——FFI 通路的活体验证）。
 /// 返回值为静态字符串指针，调用方**不得释放**。
 #[unsafe(no_mangle)]
@@ -213,6 +375,36 @@ mod tests {
             unsafe { core_gamepad_encode(buf.as_mut_ptr(), 5, 0, 0, 0, 0, 0, 0, 0, 0, 0) },
             -1
         );
+    }
+
+    #[test]
+    fn latency_state_machine() {
+        let h = core_latency_new();
+        assert!(!h.is_null());
+        // 无样本 stats=0
+        let mut out = [0i64; 5];
+        let mut off = 0.0;
+        assert_eq!(
+            unsafe { core_latency_stats(h, out.as_mut_ptr(), 5, &mut off) },
+            0
+        );
+        // beat → collect 配对出样本
+        unsafe { core_latency_beat(h, 1, 1000, 1010) };
+        let lat = unsafe { core_latency_collect(h, 1, 1030) };
+        assert!(lat >= 0, "配对出样本: {lat}");
+        // 未登记 seq → 丢包
+        assert_eq!(unsafe { core_latency_collect(h, 99, 2000) }, -1);
+        // syncack 滑动平均
+        unsafe { core_latency_syncack(h, 100.0) };
+        unsafe { core_latency_syncack(h, 0.0) };
+        assert_eq!(
+            unsafe { core_latency_stats(h, out.as_mut_ptr(), 5, &mut off) },
+            1
+        );
+        assert_eq!(out[0], 1, "样本数");
+        assert_eq!(out[4], 1, "丢包数");
+        assert!((off - 75.0).abs() < 1e-9, "滑动平均 0.75*100+0.25*0");
+        unsafe { core_latency_free(h) };
     }
 
     #[test]
