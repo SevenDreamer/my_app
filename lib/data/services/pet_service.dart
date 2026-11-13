@@ -8,6 +8,16 @@ import 'dart:io';
 
 import '../../core/logging/sentry_bridge.dart';
 
+/// P2：系统状态 → 桌宠情绪映射（纯函数——联动语义的单一来源）。
+/// running=开心 · 进行中=困 · error=生气 · 已装=平静 · 未装=惊讶。
+String moodForPhase(String phase) => switch (phase) {
+      'running' => 'happy',
+      'installing' || 'starting' || 'stopping' => 'sleepy',
+      'error' => 'angry',
+      'installed' => 'neutral',
+      _ => 'surprised',
+    };
+
 class PetService {
   Process? _process;
   bool _wantAlive = false;
@@ -80,6 +90,9 @@ class PetService {
     p.stdin.writeln('mood:$mood');
     return true;
   }
+
+  /// P2：按系统状态联动桌宠情绪（映射见 [moodForPhase]）。
+  bool syncPhase(String phase) => sendMood(moodForPhase(phase));
 
   /// P1：发原始命令行（扩展用）。
   bool sendRaw(String line) {

@@ -6,6 +6,16 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:my_app/data/services/pet_service.dart';
 
 void main() {
+  test('P2 状态映射：phase → 情绪语义', () {
+    expect(moodForPhase('running'), 'happy');
+    expect(moodForPhase('starting'), 'sleepy');
+    expect(moodForPhase('installing'), 'sleepy');
+    expect(moodForPhase('error'), 'angry');
+    expect(moodForPhase('installed'), 'neutral');
+    expect(moodForPhase('notInstalled'), 'surprised');
+    expect(moodForPhase('whatever'), 'surprised');
+  });
+
   test('pet.exe 缺席：start 返回 false 不抛出', () async {
     final svc = PetService();
     // 测试环境 exe 旁无 pet.exe——走缺失分支
