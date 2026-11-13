@@ -16,5 +16,7 @@ class RustCore {
 
   String? sha256Hex(List<int> bytes) => null;
 
+  bool? isVersionNewer(String remote, String current) => null;
+
   String? sha256File(String path) => null;
 }
