@@ -49,7 +49,7 @@ void main() {
     final vm = GamepadViewModel(link);
     await vm.connect();
     expect(link.calls.first, startsWith('start:'));
-    expect(link.calls, contains('send')); // 连接后发初始报告
+    expect(link.calls, isNot(contains('send'))); // 连接本身不发报告（按键才发）
     vm.dispose();
   });
 
