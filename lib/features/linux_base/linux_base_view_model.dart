@@ -9,20 +9,15 @@ import '../../core/ffi/rust_core_stub.dart'
     if (dart.library.io) '../../core/ffi/rust_core.dart';
 import '../../core/logging/sentry_bridge.dart';
 import '../../data/services/linux_base_service.dart';
-import '../../data/services/pet_service.dart';
 
 class LinuxBaseViewModel extends ChangeNotifier {
-  LinuxBaseViewModel(this._service, {PetService? pet}) : _pet = pet;
+  LinuxBaseViewModel(this._service);
 
   final LinuxBaseService _service;
 
-  /// P2：桌宠联动（可选——null 则不联动，纯展示态照常）
-  final PetService? _pet;
-
-  /// phase 落位统一入口：赋值 + P2 桌宠联动（情绪随系统状态）
+  /// phase 落位统一入口
   void _applyPhase(String p) {
     phase = p;
-    _pet?.syncPhase(p);
   }
 
   /// Rust 核心心跳（FFI 通路活体验证；null = 当前平台不可用）。

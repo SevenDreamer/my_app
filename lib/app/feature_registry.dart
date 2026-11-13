@@ -15,7 +15,6 @@ import '../features/gamepad/gamepad_home_page.dart';
 import '../features/hermes/hermes_home_page.dart';
 import '../features/live2d/live2d_page.dart';
 import '../features/notes/notes_list_page.dart';
-import '../features/robot_eyes/robot_eye_page.dart';
 import '../features/dsh_go/dsh_go_host.dart';
 import '../features/linux_base/linux_base_page.dart';
 import '../features/vscreen/vscreen_page.dart';
@@ -166,14 +165,6 @@ final List<FeatureEntry> kFeatures = [
     subtitle: '统一组件 · 设计规范 · 实时示例',
     group: '工具',
     builder: (_) => const ComponentGalleryPage(),
-  ),
-  FeatureEntry(
-    id: 'robot_eyes',
-    icon: LucideIcons.eye,
-    title: '机器人眼睛',
-    subtitle: '表情 · 注视 · 眼睛动画',
-    group: '个性',
-    builder: (_) => const RobotEyePage(),
   ),
   FeatureEntry(
     id: 'live2d',

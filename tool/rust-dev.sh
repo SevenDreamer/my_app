@@ -31,8 +31,5 @@ fi
 REPO_WIN=$(pwd -W 2>/dev/null || pwd)
 echo "==> cargo ndk（arm64-v8a + x86_64）-> $REPO_WIN/runtime/out/..."
 (cd rust/core &&   cargo ndk -t arm64-v8a -o "$REPO_WIN/runtime/out/arm64-v8a/jniLibs" build --release &&   cargo ndk -t x86_64 -o "$REPO_WIN/runtime/out/x86_64/jniLibs" build --release)
-# pet 桌宠（gpui，nightly）——构建到 target/release/pet.exe
-echo "==> cargo +nightly build --release -p pet"
-(cd rust && cargo +nightly build --release -p pet) || echo "pet 构建失败（gpui 依赖重，见 docs/RUST_PET.md）"
 
 echo "RUST_DEV_DONE"

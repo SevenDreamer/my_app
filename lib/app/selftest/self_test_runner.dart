@@ -91,7 +91,6 @@ class SelfTestRunner {
     await step('patch', '更新链 · 热更通道', () async => _patch());
     await step('dsh', 'DSH 运行时', () async => _dsh());
     await step('rustCore', 'Rust 核心自检', () async => _rustCore());
-    await step('pet', '桌宠分发链', () async => _pet());
 
     final report = SelfTestReport(version: version, results: results);
     if (report.passed) {
