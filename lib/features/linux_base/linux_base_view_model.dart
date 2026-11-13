@@ -29,7 +29,7 @@ class LinuxBaseViewModel extends ChangeNotifier {
   String? rustCore;
 
   /// 运行态（七态原值：notInstalled/installed/starting/running/…）。
-  String _applyPhase('unknown');
+  String phase = 'unknown';
   String? installedVersion;
   String? runtimeVersion;
 
@@ -100,7 +100,8 @@ class LinuxBaseViewModel extends ChangeNotifier {
     for (var i = 0; i < 180; i++) {
       await Future<void>.delayed(const Duration(seconds: 5));
       final status = await _service.getStatus();
-      final _applyPhase((status['phase'] as String?) ?? '');
+      final phaseNow = (status['phase'] as String?) ?? '';
+      _applyPhase(phaseNow);
       if (phase != 'installing') break;
     }
     await sub.cancel();
