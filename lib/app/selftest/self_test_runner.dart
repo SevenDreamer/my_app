@@ -9,6 +9,8 @@ import 'dart:io' as io;
 
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
+import 'dart:io';
+
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shorebird_code_push/shorebird_code_push.dart';
 
@@ -89,6 +91,7 @@ class SelfTestRunner {
     await step('patch', '更新链 · 热更通道', () async => _patch());
     await step('dsh', 'DSH 运行时', () async => _dsh());
     await step('rustCore', 'Rust 核心自检', () async => _rustCore());
+    await step('pet', '桌宠分发链', () async => _pet());
 
     final report = SelfTestReport(version: version, results: results);
     if (report.passed) {
@@ -141,6 +144,20 @@ class SelfTestRunner {
       label: 'Rust 核心自检',
       outcome: SelfTestOutcome.failed,
       detail: '$ver · add=$addOk sha256=$hashOk',
+    );
+  }
+
+  /// 桌宠分发链自检：pet.exe 在位（进程启动/命令协议归集成验证，不在此闪窗）。
+  static SelfTestStepResult _pet() {
+    final exe = File(Platform.resolvedExecutable).parent
+        .path;
+    final path = Platform.isWindows ? '$exe\\pet.exe' : '$exe/pet';
+    final exists = File(path).existsSync();
+    return SelfTestStepResult(
+      id: 'pet',
+      label: '桌宠分发链',
+      outcome: exists ? SelfTestOutcome.passed : SelfTestOutcome.skipped,
+      detail: exists ? 'pet.exe 在位（$path）' : 'pet.exe 不在 exe 旁（P0 分发链未就绪）',
     );
   }
 
