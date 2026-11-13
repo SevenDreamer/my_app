@@ -97,13 +97,14 @@ npx -y -p @google/design.md designmd lint DESIGN.md   # DESIGN.md 变更时：0 
   引擎版本由 CLI 锁定（当前 Flutter 3.47.7，与 dev-release.yml 的
   `flutter-version` 一致，改一边必须同步另一边）。
 
-## Rust 侧（桌宠 workspace）
+## Rust 侧（core workspace）
 
-- `rust/` 是 Cargo workspace（`pet` 为成员）；将来网络扫描 sidecar 等同放此处。
-- 构建**必须 nightly**：`cargo +nightly build`（stable 编不了 gpui，PITFALLS #11）。
-- gpui/gpui_platform 锁 Y 项目同 rev（zed `b1a7ef0`）以复用本机缓存；
-  gpui API 坑位先查 `docs/PITFALLS.md` 四节 + `gpui-desktop-app` skill。
-- 桌宠架构与路线见 `docs/RUST_PET.md`；FFI 一律零依赖手写 `extern "system"` 声明。
+- `rust/` 是 Cargo workspace（`core` 为成员——SHA-256 等计算密集核心）；
+  将来网络扫描 sidecar 等同放此处。Android 经 `cargo-ndk` 编 `libcore.so`
+  进 `runtime/out/<abi>/jniLibs/`（flavor 读取链）。
+- FFI 一律零依赖手写 `extern "C"` 声明；**C ABI 字符串必须 NUL 终止**
+  （PITFALLS #40）。Flutter 侧经 `core/ffi/rust_core.dart`（web 走
+  stub 条件导入）。
 
 ## 环境要点
 
