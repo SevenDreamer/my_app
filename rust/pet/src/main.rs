@@ -2,6 +2,7 @@
 //!
 //! P2：LED 点阵眼睛 + 整窗拖动 + 右键菜单（表情/退出）+ 全局鼠标视线跟随。
 //! 表情语义与点阵移植自 Flutter 侧 robot_eyes 功能。
+mod command;
 mod expressions;
 mod eyes;
 mod menu;
@@ -21,6 +22,8 @@ use crate::expressions::Expression;
 use crate::eyes::EyeState;
 
 fn main() {
+    // P1：stdio 命令通道（my_app 经 stdin 控制情绪/退出）
+    command::spawn_stdin_listener();
     // gpui_platform::application：平台初始化入口（与 Y 项目一致）
     application().run(|cx: &mut gpui::App| {
         // 眼睛窗尺寸：15:11x2+间隙 的点阵放大（460x180）
@@ -63,6 +66,12 @@ impl PetWindow {
                 // 实体已销毁则退出循环
                 let alive = this
                     .update(cx, |this, cx| {
+                        // P1：消费 stdin 命令队列（零 GPUI 跨线程——tick 轮询）
+                        for cmd in command::take_commands() {
+                            if let command::PetCommand::Mood(expr) = cmd {
+                                this.eye.set_expression(expr);
+                            }
+                        }
                         this.eye.tick(1.0 / 60.0);
                         cx.notify(); // 每帧重渲染
                         true

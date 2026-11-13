@@ -72,6 +72,23 @@ class PetService {
         'code=$code count=$_restartCount delay=${delay.inSeconds}s');
   }
 
+  /// P1：发情绪命令（行协议 `mood:<name>`，pet stdout 回 `ok:mood:<name>`）。
+  /// 未运行返回 false。
+  bool sendMood(String mood) {
+    final p = _process;
+    if (p == null) return false;
+    p.stdin.writeln('mood:$mood');
+    return true;
+  }
+
+  /// P1：发原始命令行（扩展用）。
+  bool sendRaw(String line) {
+    final p = _process;
+    if (p == null) return false;
+    p.stdin.writeln(line);
+    return true;
+  }
+
   /// 停止桌宠（联动 app 退出调用）。
   Future<void> stop() async {
     _wantAlive = false;
