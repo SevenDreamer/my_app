@@ -54,6 +54,24 @@ class RustCore {
     }
   }
 
+  /// 版本决策：remote 是否比 current 新（semver 含预发布排序）。
+  /// true=更新 / false=不更新 / null=解析失败（调用方保守处理）。
+  bool? isVersionNewer(String remote, String current) {
+    try {
+      final fn = _lib.lookupFunction<
+          Int32 Function(Pointer<Utf8>, Pointer<Utf8>),
+          int Function(Pointer<Utf8>, Pointer<Utf8>)>('core_semver_is_newer');
+      final r = remote.toNativeUtf8();
+      final c = current.toNativeUtf8();
+      final result = fn(r, c);
+      calloc.free(r);
+      calloc.free(c);
+      return switch (result) { 1 => true, 0 => false, _ => null };
+    } catch (_) {
+      return null;
+    }
+  }
+
   /// SHA-256（镜像/快照校验原语）：字节进 → 十六进制串出；失败返回 null。
   String? sha256Hex(List<int> bytes) {
     try {

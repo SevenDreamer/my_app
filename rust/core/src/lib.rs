@@ -12,6 +12,38 @@ use std::slice;
 
 use sha2::{Digest, Sha256};
 
+/// 版本决策：[remote] 是否比 [current] 新（semver 标准，含预发布段
+/// 排序——1.3.0-dev.1 < 1.3.0）。解析失败返回 -1（调用方保守处理）。
+/// 迁移自 update_service._isNewer（pub_semver 同标准）。
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn core_semver_is_newer(
+    remote: *const c_char,
+    current: *const c_char,
+) -> i32 {
+    use semver::Version;
+    let (Some(r), Some(c)) = (
+        unsafe { CStr::from_ptr(remote) }.to_str().ok(),
+        unsafe { CStr::from_ptr(current) }.to_str().ok(),
+    ) else {
+        return -1;
+    };
+    // 兼容带 build 号（1.3.0+92）与纯版本（1.3.0）——取版本段
+    let clean = |s: &str| -> String {
+        s.split('+').next().unwrap_or(s).trim().to_string()
+    };
+    let (Ok(rv), Ok(cv)) = (
+        Version::parse(&clean(r)),
+        Version::parse(&clean(c)),
+    ) else {
+        return -1;
+    };
+    if rv > cv {
+        1
+    } else {
+        0
+    }
+}
+
 /// 核心引擎版本号（心跳函数——FFI 通路的活体验证）。
 /// 返回值为静态字符串指针，调用方**不得释放**。
 #[unsafe(no_mangle)]
@@ -98,6 +130,28 @@ pub unsafe extern "C" fn core_string_free(ptr: *mut c_char) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn semver_decisions() {
+        let c = |s: &str| CString::new(s).unwrap();
+        let (r1, c1) = (c("1.3.0"), c("1.2.9"));
+        assert_eq!(unsafe { core_semver_is_newer(r1.as_ptr(), c1.as_ptr()) }, 1);
+        // 预发布排序：dev.9 < dev.10（数字比较非字典序——手写踩过的坑）
+        let (r2, c2) = (c("1.3.0-dev.10"), c("1.3.0-dev.9"));
+        assert_eq!(unsafe { core_semver_is_newer(r2.as_ptr(), c2.as_ptr()) }, 1);
+        // 预发布 < 正式
+        let (r3, c3) = (c("1.3.0"), c("1.3.0-dev.49"));
+        assert_eq!(unsafe { core_semver_is_newer(r3.as_ptr(), c3.as_ptr()) }, 1);
+        // 带 build 号兼容
+        let (r4, c4) = (c("1.4.0"), c("1.3.0+92"));
+        assert_eq!(unsafe { core_semver_is_newer(r4.as_ptr(), c4.as_ptr()) }, 1);
+        // 不更新
+        let (r5, c5) = (c("1.3.0-dev.48"), c("1.3.0-dev.49"));
+        assert_eq!(unsafe { core_semver_is_newer(r5.as_ptr(), c5.as_ptr()) }, 0);
+        // 非法串
+        let (r6, c6) = (c("not-a-version"), c("1.0.0"));
+        assert_eq!(unsafe { core_semver_is_newer(r6.as_ptr(), c6.as_ptr()) }, -1);
+    }
 
     #[test]
     fn add_saturates() {

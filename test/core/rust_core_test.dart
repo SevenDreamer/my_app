@@ -42,6 +42,12 @@ void main() {
     );
     expect(rc.sha256File('/nonexistent/core_test'), isNull);
     tmp.deleteSync();
+    // 版本决策（Dart→Rust 迁移第一批）
+    expect(rc.isVersionNewer('1.3.0', '1.2.9'), isTrue);
+    expect(rc.isVersionNewer('1.3.0-dev.10', '1.3.0-dev.9'), isTrue);
+    expect(rc.isVersionNewer('1.3.0', '1.3.0-dev.49'), isTrue);
+    expect(rc.isVersionNewer('1.3.0-dev.48', '1.3.0-dev.49'), isFalse);
+    expect(rc.isVersionNewer('garbage', '1.0.0'), isNull);
     expect(rc.buildInfo(), contains('target='));
   });
 }

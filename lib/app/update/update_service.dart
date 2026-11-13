@@ -14,6 +14,9 @@ import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:pub_semver/pub_semver.dart';
 
+import '../../core/ffi/rust_core_stub.dart'
+    if (dart.library.io) '../../core/ffi/rust_core.dart';
+
 import '../../core/errors/app_error.dart';
 import '../../core/errors/error_log.dart';
 
@@ -189,9 +192,12 @@ class UpdateService {
 
   /// 语义化版本比较（含预发布）：remote 是否比 current 更新。
   /// 规则：1.2.0 < 1.3.0-dev.1 < 1.3.0（同三段下，正式版大于预发布版）。
-  /// 比较委托 pub_semver（pub 官方解析器）——手写比较踩过坑：
-  /// 'dev.10' 整段字符串比 < 'dev.9'，跨位数就漏报更新。
+  /// 版本决策（Dart→Rust 迁移第一批，2026-11-13）：Rust core_semver_is_newer
+  /// 打头（semver crate 标准——含 dev.10 > dev.9 预发布数字比较），pub_semver
+  /// 兜底（Rust 核心不可用时——增强件降级原则）。解析失败一律按「无更新」。
   bool _isNewer(String remote, String current) {
+    final rust = RustCore.ensureLoaded()?.isVersionNewer(remote, current);
+    if (rust != null) return rust;
     final r = _tryParse(remote);
     final c = _tryParse(current);
     if (r == null || c == null) return false;
